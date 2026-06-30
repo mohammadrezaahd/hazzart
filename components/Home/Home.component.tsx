@@ -47,7 +47,7 @@ export const HomeComponent = ({
   galleryRef,
 }: HomeSectionProps) => {
   return (
-    <section className="flex-1 min-h-0 w-full flex justify-center items-center relative">
+    <section className="flex-1 min-h-0 h-full mx-auto w-11/12 flex justify-center items-center relative">
       <Image
         ref={penRef}
         src="/images/pen.png"

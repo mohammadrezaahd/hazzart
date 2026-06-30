@@ -4,8 +4,11 @@ import { useGSAP } from "@gsap/react";
 import { useRef } from "react";
 import gsap from "gsap";
 import { HomeComponent, HeaderComponent, FooterComponent } from "@/components";
+import { useBreakpoints } from "@/utils";
 
 const Home = () => {
+  const { isTablet } = useBreakpoints();
+
   const penRef = useRef<HTMLImageElement>(null);
   const penTextRef = useRef<HTMLHeadingElement>(null);
   const welcomeTextRef = useRef<HTMLParagraphElement>(null);
@@ -47,6 +50,7 @@ const Home = () => {
     const scaleRatio = logoRect.width / nameRect.width;
 
     gsap.set(penElement, { yPercent: 40 });
+    gsap.set(penTextElement, { xPercent: -30 });
     gsap.set(footerElement, { opacity: 0, yPercent: 100 });
     gsap.set(welcomeElement, { opacity: 0, yPercent: 30 });
     gsap.set(nameElement, { opacity: 0, yPercent: 30 });
@@ -66,10 +70,11 @@ const Home = () => {
     tl.to(penElement, {
       rotate: 10,
       scale: 0.8,
-      xPercent: -100,
+      xPercent: -50,
       yPercent: -20,
       duration: 2,
     });
+
     tl.to(penTextElement, { xPercent: 300, duration: 2 });
 
     tl.to(welcomeElement, { opacity: 1, yPercent: 0, duration: 1 }, "-=0.5");
@@ -77,7 +82,13 @@ const Home = () => {
 
     tl.to(
       penElement,
-      { rotate: 71, scale: 0.5, xPercent: 50, yPercent: 46, duration: 3 },
+      {
+        rotate: 71,
+        scale: 0.5,
+        xPercent: 50,
+        yPercent: isTablet ? 65 : 50,
+        duration: 3,
+      },
       "<-=0.8",
     );
 
@@ -97,7 +108,7 @@ const Home = () => {
 
     tl.to(headerElement, { opacity: 1, duration: 0.5, yPercent: 0 }, "-=0.2");
     tl.to(nameElement, { opacity: 0, duration: 0.3 }, "<+=0.3");
-    tl.to(footerElement, { opacity: 1, duration: 1, yPercent: 0 }, "<");
+    tl.to(footerElement, { opacity: 1, duration: 1, yPercent: -60 }, "<");
     tl.to(galleryElement, { opacity: 1, duration: 1 }, "<+=0.3");
   });
 
