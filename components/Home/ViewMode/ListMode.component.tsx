@@ -46,19 +46,50 @@ export const ListModeComponent = ({
       rootRef.current,
     );
 
+    const cleanups: Array<() => void> = [];
+
     tracks.forEach((track, index) => {
       const toLeft = index % 2 === 0;
       const from = toLeft ? 0 : -50;
       const to = toLeft ? -50 : 0;
 
       gsap.set(track, { xPercent: from });
-      gsap.to(track, {
+      const tween = gsap.to(track, {
         xPercent: to,
         duration: 24 + index * 2,
         ease: "none",
         repeat: -1,
       });
+
+      const handleEnter = () => {
+        gsap.to(tween, {
+          timeScale: 0.35,
+          duration: 0.35,
+          ease: "power2.out",
+        });
+      };
+
+      const handleLeave = () => {
+        gsap.to(tween, {
+          timeScale: 1,
+          duration: 0.35,
+          ease: "power2.out",
+        });
+      };
+
+      track.addEventListener("mouseenter", handleEnter);
+      track.addEventListener("mouseleave", handleLeave);
+
+      cleanups.push(() => {
+        track.removeEventListener("mouseenter", handleEnter);
+        track.removeEventListener("mouseleave", handleLeave);
+        tween.kill();
+      });
     });
+
+    return () => {
+      cleanups.forEach((cleanup) => cleanup());
+    };
   }, [rowGroups.length]);
 
   return (
