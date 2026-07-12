@@ -1,13 +1,17 @@
 "use client";
 
 import { useGSAP } from "@gsap/react";
-import { useRef } from "react";
+import { useCallback, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import gsap from "gsap";
+import { Flip } from "gsap/Flip";
 import { HomeComponent, HeaderComponent, FooterComponent } from "@/components";
 import { useBreakpoints } from "@/utils";
+import { GalleryMode } from "@/components/Home/ViewMode";
 
 const Home = () => {
   const { isTablet } = useBreakpoints();
+  const [mode, setMode] = useState<GalleryMode>("list");
 
   const penRef = useRef<HTMLImageElement>(null);
   const penTextRef = useRef<HTMLHeadingElement>(null);
@@ -110,11 +114,43 @@ const Home = () => {
     tl.to(nameElement, { opacity: 0, duration: 0.3 }, "<+=0.3");
     tl.to(footerElement, { opacity: 1, duration: 1, yPercent: -60 }, "<");
     tl.to(galleryElement, { opacity: 1, duration: 1 }, "<+=0.3");
-  });
+  }, [isTablet]);
+
+  const handleModeChange = useCallback(
+    (nextMode: GalleryMode) => {
+      if (nextMode === mode) {
+        return;
+      }
+
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        setMode(nextMode);
+        return;
+      }
+
+      const state = Flip.getState("[data-gallery-item]");
+      flushSync(() => {
+        setMode(nextMode);
+      });
+
+      Flip.from(state, {
+        targets: "[data-gallery-item]",
+        duration: 0.9,
+        ease: "power2.inOut",
+        absolute: true,
+        stagger: 0.008,
+      });
+    },
+    [mode],
+  );
 
   return (
     <main className="flex flex-col bg-white h-screen w-full overflow-hidden relative">
-      <HeaderComponent headerRef={headerRef} headerLogoRef={headerLogoRef} />
+      <HeaderComponent
+        headerRef={headerRef}
+        headerLogoRef={headerLogoRef}
+        mode={mode}
+        onModeChange={handleModeChange}
+      />
 
       <HomeComponent
         penRef={penRef}
@@ -122,6 +158,7 @@ const Home = () => {
         welcomeTextRef={welcomeTextRef}
         nameTextRef={nameTextRef}
         galleryRef={galleryRef}
+        mode={mode}
       />
 
       <FooterComponent footerRef={footerRef} />

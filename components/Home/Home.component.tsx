@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { RefObject } from "react";
 import { fakeArts } from "@/consts";
-import { DeskModeComponent, ListModeComponent } from "./ViewMode";
+import { GalleryMode, GalleryModeComponent } from "./ViewMode";
 
 interface HomeSectionProps {
   penRef: RefObject<HTMLImageElement | null>;
@@ -11,6 +11,7 @@ interface HomeSectionProps {
   welcomeTextRef: RefObject<HTMLParagraphElement | null>;
   nameTextRef: RefObject<HTMLParagraphElement | null>;
   galleryRef?: RefObject<HTMLDivElement | null>;
+  mode: GalleryMode;
 }
 
 export const HomeComponent = ({
@@ -19,6 +20,7 @@ export const HomeComponent = ({
   welcomeTextRef,
   nameTextRef,
   galleryRef,
+  mode,
 }: HomeSectionProps) => {
   return (
     <section className="flex-1 min-h-0 h-full mx-auto w-11/12 flex justify-center items-center relative">
@@ -48,8 +50,7 @@ export const HomeComponent = ({
         data-home-gallery="wrapper"
         className="absolute inset-x-0 top-4 bottom-28 overflow-hidden"
       >
-        <ListModeComponent arts={fakeArts} />
-        {false && <DeskModeComponent arts={fakeArts} />}
+        <GalleryModeComponent arts={fakeArts} mode={mode} />
       </div>
     </section>
   );
