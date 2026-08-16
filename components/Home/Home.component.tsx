@@ -23,7 +23,7 @@ export const HomeComponent = ({
   mode,
 }: HomeSectionProps) => {
   return (
-    <section className="flex-1 min-h-0 h-full mx-auto w-11/12 flex justify-center items-center relative">
+    <section className="absolute inset-0 z-0 mx-auto w-11/12 flex justify-center items-center">
       <Image
         ref={penRef}
         src="/images/pen.png"
@@ -48,7 +48,7 @@ export const HomeComponent = ({
       <div
         ref={galleryRef}
         data-home-gallery="wrapper"
-        className="absolute inset-x-0 top-4 bottom-28 overflow-hidden"
+        className="absolute inset-x-0 top-24 bottom-28 overflow-hidden flex items-center justify-center"
       >
         <GalleryModeComponent arts={fakeArts} mode={mode} />
       </div>

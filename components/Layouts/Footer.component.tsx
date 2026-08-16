@@ -1,21 +1,85 @@
 "use client";
 
-import { RefObject } from "react";
+import { RefObject, useLayoutEffect, useRef, useState } from "react";
 
 interface FooterComponentProps {
   footerRef: RefObject<HTMLDivElement | null>;
 }
 
+const items = ["YEARLY", "SERIES", "RANDOM", "RECENT"];
+
 export const FooterComponent = ({ footerRef }: FooterComponentProps) => {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const buttonsRef = useRef<(HTMLButtonElement | null)[]>([]);
+
+  const [indicatorStyle, setIndicatorStyle] = useState({
+    width: 0,
+    x: 0,
+  });
+
+  useLayoutEffect(() => {
+    const activeButton = buttonsRef.current[activeIndex];
+
+    if (!activeButton) return;
+
+    setIndicatorStyle({
+      width: activeButton.offsetWidth,
+      x: activeButton.offsetLeft,
+    });
+  }, [activeIndex]);
+
   return (
     <footer
       ref={footerRef}
-      className="bg-[#1E1E1E] flex justify-between items-center self-center px-3 py-4 gap-3 bottom-8"
+      className="absolute inset-x-0 bottom-0 z-20 flex flex-col items-center justify-between self-center bg-transparent"
     >
-      <button className="bg-black text-white p-2">YEARLY</button>
-      <button className="bg-black text-white p-2">SERIES</button>
-      <button className="bg-black text-white p-2">RANDOM</button>
-      <button className="bg-black text-white p-2">RECENT</button>
+      <div className="relative flex items-center justify-between gap-4">
+        {/* Active background */}
+        <div
+          className="
+            absolute
+            top-0
+            left-0
+            h-full
+            rounded-xl
+            bg-black
+            transition-all
+            duration-300
+            ease-in-out
+          "
+          style={{
+            width: indicatorStyle.width,
+            transform: `translateX(${indicatorStyle.x}px)`,
+          }}
+        />
+
+        {items.map((item, index) => (
+          <button
+            key={item}
+            ref={(element) => {
+              buttonsRef.current[index] = element;
+            }}
+            onClick={() => setActiveIndex(index)}
+            className={`
+              relative
+              z-10
+              rounded-xl
+              bg-transparent
+              px-5
+              py-3
+              font-bold
+              transition-colors
+              duration-300
+              ${activeIndex === index ? "text-white" : "text-black"}
+            `}
+          >
+            {item}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-3 h-1 w-92 rounded-2xl bg-current" />
     </footer>
   );
 };

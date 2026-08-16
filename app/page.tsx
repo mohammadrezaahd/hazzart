@@ -2,16 +2,14 @@
 
 import { useGSAP } from "@gsap/react";
 import { useCallback, useRef, useState } from "react";
-import { flushSync } from "react-dom";
 import gsap from "gsap";
-import { Flip } from "gsap/Flip";
 import { HomeComponent, HeaderComponent, FooterComponent } from "@/components";
 import { useBreakpoints } from "@/utils";
 import { GalleryMode } from "@/components/Home/ViewMode";
 
 const Home = () => {
   const { isTablet } = useBreakpoints();
-  const [mode, setMode] = useState<GalleryMode>("list");
+  const [mode, setMode] = useState<GalleryMode>("desk");
 
   const penRef = useRef<HTMLImageElement>(null);
   const penTextRef = useRef<HTMLHeadingElement>(null);
@@ -90,8 +88,9 @@ const Home = () => {
         rotate: 71,
         scale: 0.5,
         xPercent: 50,
-        yPercent: isTablet ? 65 : 50,
+        yPercent: -40,
         duration: 3,
+        opacity: 0,
       },
       "<-=0.8",
     );
@@ -116,35 +115,20 @@ const Home = () => {
     tl.to(galleryElement, { opacity: 1, duration: 1 }, "<+=0.3");
   }, [isTablet]);
 
+  // FLIP removed for now — plain state switch
   const handleModeChange = useCallback(
     (nextMode: GalleryMode) => {
       if (nextMode === mode) {
         return;
       }
 
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        setMode(nextMode);
-        return;
-      }
-
-      const state = Flip.getState("[data-gallery-item]");
-      flushSync(() => {
-        setMode(nextMode);
-      });
-
-      Flip.from(state, {
-        targets: "[data-gallery-item]",
-        duration: 0.9,
-        ease: "power2.inOut",
-        absolute: true,
-        stagger: 0.008,
-      });
+      setMode(nextMode);
     },
     [mode],
   );
 
   return (
-    <main className="flex flex-col bg-white h-screen w-full overflow-hidden relative">
+    <main className="relative bg-white h-screen w-full overflow-hidden">
       <HeaderComponent
         headerRef={headerRef}
         headerLogoRef={headerLogoRef}
