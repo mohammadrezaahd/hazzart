@@ -1,13 +1,13 @@
 "use client";
 
 import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
 import { Draggable } from "gsap/Draggable";
 import { InertiaPlugin } from "gsap/InertiaPlugin";
 import Image from "next/image";
 import { useMemo, useRef, type CSSProperties } from "react";
 
 import { IArts } from "@/interfaces";
+import { gsap } from "@/lib/gsap";
 
 gsap.registerPlugin(Draggable, InertiaPlugin);
 
@@ -89,11 +89,14 @@ export const DeskModeComponent = ({ arts }: DeskModeComponentProps) => {
         "[data-gallery-item]",
         rootRef.current,
       );
+      const reduceMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
 
       const draggables = Draggable.create(items, {
         type: "x,y",
         bounds: rootRef.current,
-        inertia: true,
+        inertia: !reduceMotion,
         edgeResistance: 0.65,
         onPress() {
           gsap.set(this.target, { zIndex: 999 });
@@ -107,6 +110,7 @@ export const DeskModeComponent = ({ arts }: DeskModeComponentProps) => {
     {
       dependencies: [arts.length],
       scope: rootRef,
+      revertOnUpdate: true,
     },
   );
 
