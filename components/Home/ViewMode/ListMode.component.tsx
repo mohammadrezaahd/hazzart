@@ -1,7 +1,6 @@
 "use client";
 
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
+import { gsap, useGSAP } from "@/lib/gsap";
 import Image from "next/image";
 import { useMemo, useRef, type CSSProperties } from "react";
 
@@ -53,8 +52,8 @@ export const ListModeComponent = ({
   );
 
   useGSAP(
-    () => {
-      if (!rootRef.current) {
+    (_, contextSafe) => {
+      if (!rootRef.current || !contextSafe) {
         return;
       }
 
@@ -114,21 +113,23 @@ export const ListModeComponent = ({
           return;
         }
 
-        const handleEnter = () => {
+        const handleEnter = contextSafe(() => {
+          gsap.killTweensOf(rowTween);
           gsap.to(rowTween, {
             timeScale: 0.35,
             duration: 0.25,
             ease: "power2.out",
           });
-        };
+        });
 
-        const handleLeave = () => {
+        const handleLeave = contextSafe(() => {
+          gsap.killTweensOf(rowTween);
           gsap.to(rowTween, {
             timeScale: 1,
             duration: 0.25,
             ease: "power2.out",
           });
-        };
+        });
 
         item.addEventListener("mouseenter", handleEnter);
 
@@ -154,6 +155,7 @@ export const ListModeComponent = ({
     {
       dependencies: [arts.length, rows],
       scope: rootRef,
+      revertOnUpdate: true,
     },
   );
 

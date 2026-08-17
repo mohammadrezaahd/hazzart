@@ -62,6 +62,7 @@ export const FooterComponent = ({ footerRef }: FooterComponentProps) => {
             }}
             onClick={() => setActiveIndex(index)}
             className={`
+              cursor-pointer
               relative
               z-10
               rounded-xl
