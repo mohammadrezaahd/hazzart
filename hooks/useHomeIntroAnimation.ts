@@ -1,9 +1,7 @@
 "use client";
 
-import { useGSAP } from "@gsap/react";
+import { gsap, useGSAP } from "@/lib/gsap";
 import { useRef } from "react";
-
-import { gsap } from "@/lib/gsap";
 
 export const useHomeIntroAnimation = () => {
   const rootRef = useRef<HTMLElement>(null);
@@ -57,9 +55,12 @@ export const useHomeIntroAnimation = () => {
           };
 
           if (reduceMotion) {
-            gsap.set([penElement, penTextElement, welcomeElement, nameElement], {
-              opacity: 0,
-            });
+            gsap.set(
+              [penElement, penTextElement, welcomeElement, nameElement],
+              {
+                opacity: 0,
+              },
+            );
             gsap.set(headerElement, { opacity: 1, yPercent: 0 });
             gsap.set(footerElement, { opacity: 1, yPercent: -60 });
             gsap.set(galleryElement, { opacity: 1 });
@@ -153,11 +154,7 @@ export const useHomeIntroAnimation = () => {
             { opacity: 1, duration: 1, yPercent: -60 },
             "<",
           );
-          timeline.to(
-            galleryElement,
-            { opacity: 1, duration: 1 },
-            "<+=0.3",
-          );
+          timeline.to(galleryElement, { opacity: 1, duration: 1 }, "<+=0.3");
         },
       );
 

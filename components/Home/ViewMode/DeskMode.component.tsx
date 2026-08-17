@@ -1,15 +1,11 @@
 "use client";
 
-import { useGSAP } from "@gsap/react";
-import { Draggable } from "gsap/Draggable";
-import { InertiaPlugin } from "gsap/InertiaPlugin";
+import { Draggable, gsap, useGSAP } from "@/lib/gsap";
 import Image from "next/image";
 import { useMemo, useRef, type CSSProperties } from "react";
 
 import { IArts } from "@/interfaces";
-import { gsap } from "@/lib/gsap";
 
-gsap.registerPlugin(Draggable, InertiaPlugin);
 
 interface DeskModeComponentProps {
   arts: IArts[];

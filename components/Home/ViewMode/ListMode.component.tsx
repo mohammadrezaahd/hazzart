@@ -1,11 +1,10 @@
 "use client";
 
-import { useGSAP } from "@gsap/react";
+import { gsap, useGSAP } from "@/lib/gsap";
 import Image from "next/image";
 import { useMemo, useRef, type CSSProperties } from "react";
 
 import { IArts } from "@/interfaces";
-import { gsap } from "@/lib/gsap";
 
 interface ListModeComponentProps {
   arts: IArts[];
@@ -54,7 +53,7 @@ export const ListModeComponent = ({
 
   useGSAP(
     (_, contextSafe) => {
-      if (!rootRef.current) {
+      if (!rootRef.current || !contextSafe) {
         return;
       }
 
