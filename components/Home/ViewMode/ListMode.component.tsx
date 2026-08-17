@@ -2,7 +2,13 @@
 
 import { gsap, useGSAP } from "@/lib/gsap";
 import Image from "next/image";
-import { useMemo, useRef, type CSSProperties } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 
 import { IArts } from "@/interfaces";
 
@@ -30,8 +36,8 @@ const createListStyles = (total: number, rowCount: number): CSSProperties[] => {
       top: `${row * rowHeight + 1}%`,
       left: `${col * colWidth + offsetX}%`,
 
-      width: `${Math.max(12, colWidth * 0.95)}%`,
-      height: `${Math.max(14, rowHeight * 0.92)}%`,
+      width: `clamp(5rem, ${Math.max(12, colWidth * 0.95)}%, 11rem)`,
+      height: `clamp(4.5rem, ${Math.max(14, rowHeight * 0.92)}%, 9rem)`,
 
       transform: "rotate(0deg)",
 
@@ -40,15 +46,52 @@ const createListStyles = (total: number, rowCount: number): CSSProperties[] => {
   });
 };
 
+const useResponsiveRows = (desktopRows: number) => {
+  const [rowCount, setRowCount] = useState(desktopRows);
+
+  useEffect(() => {
+    const mobileQuery = window.matchMedia("(max-width: 639px)");
+    const tabletQuery = window.matchMedia(
+      "(min-width: 640px) and (max-width: 1023px)",
+    );
+
+    const updateRowCount = () => {
+      if (mobileQuery.matches) {
+        setRowCount(3);
+        return;
+      }
+
+      if (tabletQuery.matches) {
+        setRowCount(4);
+        return;
+      }
+
+      setRowCount(desktopRows);
+    };
+
+    updateRowCount();
+    mobileQuery.addEventListener("change", updateRowCount);
+    tabletQuery.addEventListener("change", updateRowCount);
+
+    return () => {
+      mobileQuery.removeEventListener("change", updateRowCount);
+      tabletQuery.removeEventListener("change", updateRowCount);
+    };
+  }, [desktopRows]);
+
+  return rowCount;
+};
+
 export const ListModeComponent = ({
   arts,
   rows = 5,
 }: ListModeComponentProps) => {
   const rootRef = useRef<HTMLDivElement>(null);
+  const responsiveRows = useResponsiveRows(rows);
 
   const listStyles = useMemo(
-    () => createListStyles(arts.length, rows),
-    [arts.length, rows],
+    () => createListStyles(arts.length, responsiveRows),
+    [arts.length, responsiveRows],
   );
 
   useGSAP(
@@ -153,7 +196,7 @@ export const ListModeComponent = ({
       };
     },
     {
-      dependencies: [arts.length, rows],
+      dependencies: [arts.length, responsiveRows],
       scope: rootRef,
       revertOnUpdate: true,
     },
@@ -165,7 +208,7 @@ export const ListModeComponent = ({
       className="relative h-full w-full overflow-hidden bg-transparent"
     >
       {arts.map((art, index) => {
-        const rowIndex = index % Math.max(1, rows);
+        const rowIndex = index % Math.max(1, responsiveRows);
 
         return (
           <div
@@ -184,7 +227,7 @@ export const ListModeComponent = ({
               src={art.uri}
               alt={art.title}
               fill
-              sizes="(max-width: 1024px) 30vw, 14vw"
+              sizes="(max-width: 639px) 28vw, (max-width: 1023px) 20vw, 14vw"
               className="object-cover"
               priority={index < 6}
             />

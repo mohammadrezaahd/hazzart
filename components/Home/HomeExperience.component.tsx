@@ -20,7 +20,7 @@ export const HomeExperience = () => {
   return (
     <main
       ref={animationRefs.rootRef}
-      className="relative h-screen w-full overflow-hidden bg-white"
+      className="relative h-dvh min-h-[30rem] w-full overflow-hidden bg-white"
     >
       <HeaderComponent
         headerRef={animationRefs.headerRef}

@@ -11,6 +11,7 @@ const items = ["YEARLY", "SERIES", "RANDOM", "RECENT"];
 export const FooterComponent = ({ footerRef }: FooterComponentProps) => {
   const [activeIndex, setActiveIndex] = useState(0);
 
+  const navigationRef = useRef<HTMLDivElement>(null);
   const buttonsRef = useRef<(HTMLButtonElement | null)[]>([]);
 
   const [indicatorStyle, setIndicatorStyle] = useState({
@@ -19,22 +20,42 @@ export const FooterComponent = ({ footerRef }: FooterComponentProps) => {
   });
 
   useLayoutEffect(() => {
-    const activeButton = buttonsRef.current[activeIndex];
+    const navigation = navigationRef.current;
 
-    if (!activeButton) return;
+    const updateIndicator = () => {
+      const activeButton = buttonsRef.current[activeIndex];
 
-    setIndicatorStyle({
-      width: activeButton.offsetWidth,
-      x: activeButton.offsetLeft,
-    });
+      if (!activeButton) {
+        return;
+      }
+
+      setIndicatorStyle({
+        width: activeButton.offsetWidth,
+        x: activeButton.offsetLeft,
+      });
+    };
+
+    updateIndicator();
+
+    if (!navigation) {
+      return;
+    }
+
+    const resizeObserver = new ResizeObserver(updateIndicator);
+    resizeObserver.observe(navigation);
+
+    return () => resizeObserver.disconnect();
   }, [activeIndex]);
 
   return (
     <footer
       ref={footerRef}
-      className="absolute inset-x-0 bottom-0 z-20 flex flex-col items-center justify-between self-center bg-transparent"
+      className="absolute inset-x-0 bottom-0 z-20 flex flex-col items-center bg-transparent px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-4"
     >
-      <div className="relative flex items-center justify-between gap-4">
+      <div
+        ref={navigationRef}
+        className="relative grid w-full max-w-lg grid-cols-4 items-center gap-1 sm:gap-2"
+      >
         {/* Active background */}
         <div
           className="
@@ -67,11 +88,18 @@ export const FooterComponent = ({ footerRef }: FooterComponentProps) => {
               z-10
               rounded-xl
               bg-transparent
-              px-5
-              py-3
+              px-1.5
+              py-2
+              text-[10px]
               font-bold
               transition-colors
               duration-300
+              sm:px-3
+              sm:py-2.5
+              sm:text-xs
+              lg:px-5
+              lg:py-3
+              lg:text-sm
               ${activeIndex === index ? "text-white" : "text-black"}
             `}
           >
@@ -80,7 +108,7 @@ export const FooterComponent = ({ footerRef }: FooterComponentProps) => {
         ))}
       </div>
 
-      <div className="mt-3 h-1 w-92 rounded-2xl bg-current" />
+      <div className="mt-2 h-0.5 w-full max-w-80 rounded-2xl bg-current sm:mt-3 sm:h-1 sm:max-w-92" />
     </footer>
   );
 };

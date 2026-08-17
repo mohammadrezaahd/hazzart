@@ -50,8 +50,10 @@ export const useHomeIntroAnimation = () => {
           desktop: "(min-width: 1024px)",
         },
         (context) => {
-          const { reduceMotion } = context.conditions as {
+          const { reduceMotion, mobile, tablet } = context.conditions as {
             reduceMotion: boolean;
+            mobile: boolean;
+            tablet: boolean;
           };
 
           if (reduceMotion) {
@@ -62,7 +64,7 @@ export const useHomeIntroAnimation = () => {
               },
             );
             gsap.set(headerElement, { opacity: 1, yPercent: 0 });
-            gsap.set(footerElement, { opacity: 1, yPercent: -60 });
+            gsap.set(footerElement, { opacity: 1, yPercent: 0 });
             gsap.set(galleryElement, { opacity: 1 });
             return;
           }
@@ -88,7 +90,7 @@ export const useHomeIntroAnimation = () => {
             scrollTrigger: {
               trigger: rootElement,
               start: "top top",
-              end: "+=3000",
+              end: `+=${mobile ? 1800 : tablet ? 2400 : 3000}`,
               scrub: true,
               pin: true,
               invalidateOnRefresh: true,
@@ -97,8 +99,8 @@ export const useHomeIntroAnimation = () => {
 
           timeline.to(penElement, {
             rotate: 10,
-            scale: 0.8,
-            xPercent: -50,
+            scale: mobile ? 0.7 : 0.8,
+            xPercent: mobile ? -25 : -50,
             yPercent: -20,
             duration: 2,
           });
@@ -118,8 +120,8 @@ export const useHomeIntroAnimation = () => {
             penElement,
             {
               rotate: 71,
-              scale: 0.5,
-              xPercent: 50,
+              scale: mobile ? 0.4 : 0.5,
+              xPercent: mobile ? 25 : 50,
               yPercent: -40,
               duration: 3,
               opacity: 0,
@@ -151,7 +153,7 @@ export const useHomeIntroAnimation = () => {
           timeline.to(nameElement, { opacity: 0, duration: 0.3 }, "<+=0.3");
           timeline.to(
             footerElement,
-            { opacity: 1, duration: 1, yPercent: -60 },
+            { opacity: 1, duration: 1, yPercent: 0 },
             "<",
           );
           timeline.to(galleryElement, { opacity: 1, duration: 1 }, "<+=0.3");

@@ -100,16 +100,21 @@ export const HeaderComponent = ({
         items-center
         justify-between
         bg-transparent
-        px-6
-        py-4
+        px-4
+        py-3
+        sm:px-6
+        sm:py-4
       "
     >
-      <div className="flex w-1/2 items-center justify-start gap-5">
-        <div ref={headerLogoRef} className="logo text-4xl font-bold">
+      <div className="flex min-w-0 flex-1 items-center justify-start gap-2 sm:gap-4 lg:gap-5">
+        <div
+          ref={headerLogoRef}
+          className="logo shrink-0 whitespace-nowrap text-xl font-bold sm:text-3xl lg:text-4xl"
+        >
           GHAZAL SHAFIEI
         </div>
 
-        <div className="modes flex flex-col gap-1">
+        <div className="modes flex shrink-0 flex-col gap-0.5 text-[10px] leading-tight sm:gap-1 sm:text-xs lg:text-sm">
           <button
             type="button"
             onClick={() => onModeChange("desk")}
@@ -147,7 +152,8 @@ export const HeaderComponent = ({
         onClick={handleMenuToggle}
         className="
           flex
-          w-8
+          w-7
+          shrink-0
           cursor-pointer
           flex-col
           items-center
@@ -155,13 +161,23 @@ export const HeaderComponent = ({
           border-0
           bg-transparent
           p-0
+          sm:w-8
         "
       >
-        <span ref={topLineRef} className="block h-0.5 w-8 bg-current" />
+        <span
+          ref={topLineRef}
+          className="block h-0.5 w-7 bg-current sm:w-8"
+        />
 
-        <span ref={middleLineRef} className="block h-0.5 w-4 bg-current" />
+        <span
+          ref={middleLineRef}
+          className="block h-0.5 w-3.5 bg-current sm:w-4"
+        />
 
-        <span ref={bottomLineRef} className="block h-0.5 w-8 bg-current" />
+        <span
+          ref={bottomLineRef}
+          className="block h-0.5 w-7 bg-current sm:w-8"
+        />
       </button>
 
       {shouldRenderMenu && (

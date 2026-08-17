@@ -54,8 +54,8 @@ const createDeskStyles = (arts: IArts[]): CSSProperties[] => {
       top: `calc(50% + ${offsetY}vmin)`,
       left: `calc(50% + ${offsetX}vmin)`,
 
-      width: `${widthVmin}vmin`,
-      height: `${heightVmin}vmin`,
+      width: `clamp(8rem, ${widthVmin}vmin, 22rem)`,
+      height: `clamp(10rem, ${heightVmin}vmin, 30rem)`,
 
       transform: `translate(-50%, -50%) rotate(${rotate}deg)`,
 
@@ -113,7 +113,7 @@ export const DeskModeComponent = ({ arts }: DeskModeComponentProps) => {
   return (
     <div
       ref={rootRef}
-      className="relative h-full w-full overflow-hidden bg-transparent flex items-center justify-center"
+      className="relative flex h-full w-full touch-none items-center justify-center overflow-hidden bg-transparent"
     >
       {arts.map((art, index) => (
         <div
@@ -135,7 +135,7 @@ export const DeskModeComponent = ({ arts }: DeskModeComponentProps) => {
             src={art.uri}
             alt={art.title}
             fill
-            sizes="30vw"
+            sizes="(max-width: 639px) 45vw, (max-width: 1023px) 32vw, 22vw"
             className="object-cover pointer-events-none"
             priority={index < 6}
           />

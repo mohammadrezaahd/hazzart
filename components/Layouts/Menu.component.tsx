@@ -171,13 +171,16 @@ const MenuItemComponent = ({ item }: MenuItemComponentProps) => {
           w-full
           cursor-pointer
           bg-transparent
-          px-5
-          py-5
+          px-4
+          py-4
           text-center
-          text-sm
+          text-xs
           font-semibold
           transition-colors
           hover:bg-black/5
+          sm:px-5
+          sm:py-5
+          sm:text-sm
         "
       >
         {item.label}
@@ -194,7 +197,7 @@ const MenuItemComponent = ({ item }: MenuItemComponentProps) => {
             bg-neutral-300/65
           "
         >
-          <div className="flex flex-col py-3">
+          <div className="flex flex-col py-2 sm:py-3">
             {item.subItems?.map((subItem) => (
               <button
                 key={subItem.id}
@@ -204,13 +207,16 @@ const MenuItemComponent = ({ item }: MenuItemComponentProps) => {
                   w-full
                   cursor-pointer
                   bg-transparent
-                  px-5
-                  py-3
+                  px-4
+                  py-2.5
                   text-center
-                  text-sm
+                  text-xs
                   font-semibold
                   transition-colors
                   hover:bg-black/5
+                  sm:px-5
+                  sm:py-3
+                  sm:text-sm
                 "
               >
                 {subItem.label}
@@ -334,18 +340,26 @@ export const MenuComponent = ({
       className="
         invisible
         absolute
-        right-6
-        top-16
+        right-3
+        top-14
         z-30
-        w-53.75
+        max-h-[calc(100dvh-4.5rem)]
+        w-[calc(100vw-1.5rem)]
+        max-w-72
         overflow-hidden
+        overflow-y-auto
         rounded-2xl
-        border-2
+        border
         border-black/85
         bg-white/80
         opacity-0
         shadow-xl
         shadow-black/10
+        backdrop-blur-md
+        sm:right-6
+        sm:top-16
+        sm:w-64
+        sm:border-2
       "
     >
       {menuItems.map((item) => (
