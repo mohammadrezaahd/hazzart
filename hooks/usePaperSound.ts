@@ -2,8 +2,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 export function usePaperSound() {
-  const [enabled, setEnabled] = useState(false);
-  const enabledRef = useRef(false);
+  const [enabled, setEnabled] = useState(true);
+  const enabledRef = useRef(true);
   const audio = useRef<HTMLAudioElement | null>(null);
   useEffect(() => () => { audio.current?.pause(); }, []);
   const play = useCallback(() => {

@@ -32,7 +32,7 @@ The pencil/scroll intro has been removed. Seven artworks fall onto the table aft
 
 Random reshuffles; Recent and Yearly place newer artwork on top. Medium filters use the category list and preserve the selected order. Changing an arrangement restacks the cards. Dragged positions survive opening/closing a work, but intentionally reset on arrangement/filter changes. Reduced-motion users get immediate placement, immediate dialogs and no inertia or foley.
 
-The phone table, full-screen menu, and black medium sheet follow the supplied mobile frames. No mobile artwork-detail frame was supplied, so that dialog adapts the desktop design to a stacked image/caption layout. Only the table page is implemented; Paintings, Projects, Artist CV, Portfolio and Contact are intentionally placeholder pages.
+The phone table, full-screen menu, and black medium sheet follow the supplied mobile frames. No mobile artwork-detail frame was supplied, so that dialog adapts the desktop design to a stacked image/caption layout. Table and Paintings are implemented; Projects, Artist CV, Portfolio and Contact remain placeholder pages.
 
 ## Assets and sound
 

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { orderArtworks } from '../utils/artworks.ts';
 import { fakeData } from '../consts/fakeData.ts';
 import { navigationItems, footerItems } from '../consts/navigation.ts';
+import { getCategoryAndDescendantIds, getExpandedCategoryId } from '../utils/categories.ts';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -30,13 +31,22 @@ test('recent and yearly arrangements expose the newest work at the top of the st
 });
 test('mock content uses valid dynamic categories and existing durable assets', () => {
   const mediums = new Set(fakeData.mediums.map(medium => medium.id));
+  const paintingCategories = new Set(fakeData.paintingCategories.flatMap(category => getCategoryAndDescendantIds(fakeData.paintingCategories, category.id)));
   assert.equal(new Set(fakeData.artworks.map(art => art.id)).size, fakeData.artworks.length);
   for (const artwork of fakeData.artworks) {
     assert.ok(mediums.has(artwork.mediumId));
+    assert.ok(artwork.paintingCategoryIds.length > 0);
+    assert.ok(artwork.paintingCategoryIds.every(categoryId => paintingCategories.has(categoryId)));
     assert.ok(existsSync(join(process.cwd(), 'public', artwork.image.src)));
     assert.ok(artwork.image.alt.length > 10);
     assert.ok(artwork.table.aspectRatio > 0);
   }
+});
+test('painting categories support parent and child filtering', () => {
+  assert.deepEqual(getCategoryAndDescendantIds(fakeData.paintingCategories, 'series'), ['series', 'roxy-series', 'table-series']);
+  assert.equal(getExpandedCategoryId(fakeData.paintingCategories, 'roxy-series'), 'series');
+  assert.equal(getExpandedCategoryId(fakeData.paintingCategories, 'charcoal'), 'charcoal');
+  assert.deepEqual(getCategoryAndDescendantIds(fakeData.paintingCategories, 'missing'), []);
 });
 test('navigation and footer IDs are unique and routes are local', () => {
   assert.equal(new Set(navigationItems.map(item => item.href)).size, navigationItems.length);
