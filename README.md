@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ghazal Shafiei / Hazzart
 
-## Getting Started
+Next.js App Router + TypeScript + GSAP. The table experience follows the desktop and mobile designs in [Ghazal Shafiei on Figma](https://www.figma.com/design/IZQs5Jp3TMpm0BAtEGrmyl/Ghazal-Shafiei?node-id=98-3).
 
-First, run the development server:
+## Run
 
-```bash
+Use Node.js 22.18+ or 24 LTS.
+
+```sh
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run lint
+npm test
+npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Structure
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `consts/fakeData.ts`: typed artist, artwork and administrator-defined medium data. All titles/dates/descriptions except the supplied Roxy caption are mock content.
+- `interfaces/Portfolio.ts`: serializable content interfaces. `mediumId` references a category, so adding a medium does not require changing a TypeScript enum.
+- `consts/navigation.ts`: header links and footer controls. New top-level links produce placeholder routes through `app/[section]/page.tsx` on the next build.
+- `components/Layouts`: shared header, animated mobile menu, footer and medium picker.
+- `components/Home/ViewMode/DeskMode.component.tsx`: table entrance, drag handling, arrangement and resize bounds. GSAP owns the transforms.
+- `components/Artwork`: reusable image treatment and an accessible animated artwork dialog.
+- `utils/artworks.ts`: immutable deterministic sorting/shuffling.
+- `hooks/useAnimatedDialog.ts`: native modal focus/inert behavior and transitions.
+- `hooks/usePaperSound.ts`: opt-in sound with graceful playback failure.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Interaction
 
-## Learn More
+The pencil/scroll intro has been removed. Seven artworks fall onto the table after their images are ready (with a bounded wait on slow connections). Drag works with mouse and touch; movement beyond 6px is a drag, a click opens the work, and Enter/Space provides keyboard access. The active work grows out of its table position; closing by button, background or Escape animates back to the same position. The background is inert while a dialog is open and focus returns to the artwork.
 
-To learn more about Next.js, take a look at the following resources:
+Random reshuffles; Recent and Yearly place newer artwork on top. Medium filters use the category list and preserve the selected order. Changing an arrangement restacks the cards. Dragged positions survive opening/closing a work, but intentionally reset on arrangement/filter changes. Reduced-motion users get immediate placement, immediate dialogs and no inertia or foley.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The phone table, full-screen menu, and black medium sheet follow the supplied mobile frames. No mobile artwork-detail frame was supplied, so that dialog adapts the desktop design to a stacked image/caption layout. Only the table page is implemented; Paintings, Projects, Artist CV, Portfolio and Contact are intentionally placeholder pages.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Assets and sound
 
-## Deploy on Vercel
+Artwork fills and navigation SVGs were extracted from the supplied Figma file; the swimming image already existed at `public/images/5.jpg` and matches that Figma fill. Image reflection/rotation from the design is applied separately from drag transforms. All assets and the Alef font are local, with no expiring Figma asset URLs in shipped code.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+`public/audio/paper-drop.wav` is original synthesized paper-on-table foley. Regenerate with `python scripts/generate-paper-sound.py`. Sound starts off and requires the Sound button because browsers restrict unsolicited playback. Enable it and use Random to replay the entrance with sound.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+There are no API routes, database calls, credentials or backend changes. Future API data can replace `fakeData` while retaining the same `PortfolioData` contract.
+
+## Validation
+
+`npm test` checks hydration-stable ordering, shuffle integrity, source immutability, chronology, category references, asset existence, navigation and sound validity. `npm run lint`, TypeScript checking and the production build are additional gates. Live browser visual QA is currently blocked by this work environment's localhost access restriction; desktop/mobile visual comparison and touch-device QA remain to be performed.

@@ -1,1 +1,1 @@
-export * from "./useHomeIntroAnimation";
+export * from './useAnimatedDialog';

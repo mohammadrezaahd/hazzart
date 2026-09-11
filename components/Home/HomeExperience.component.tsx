@@ -1,44 +1,18 @@
-"use client";
+'use client';
+import { useMemo, useState } from 'react';
+import { fakeData } from '@/consts/fakeData';
+import { orderArtworks } from '@/utils/artworks';
+import type { TableOrder } from '@/interfaces/Portfolio';
+import { FooterComponent } from '@/components/Layouts';
+import { DeskModeComponent } from './ViewMode/DeskMode.component';
 
-import { useState } from "react";
-
-import { FooterComponent, HeaderComponent } from "@/components/Layouts";
-import { useHomeIntroAnimation } from "@/hooks";
-import { GalleryMode } from "./ViewMode";
-import { HomeComponent } from "./Home.component";
-
-export const HomeExperience = () => {
-  const [mode, setMode] = useState<GalleryMode>("desk");
-  const animationRefs = useHomeIntroAnimation();
-
-  const handleModeChange = (nextMode: GalleryMode) => {
-    setMode((currentMode) =>
-      currentMode === nextMode ? currentMode : nextMode,
-    );
-  };
-
-  return (
-    <main
-      ref={animationRefs.rootRef}
-      className="relative h-screen w-full overflow-hidden bg-white"
-    >
-      <HeaderComponent
-        headerRef={animationRefs.headerRef}
-        headerLogoRef={animationRefs.headerLogoRef}
-        mode={mode}
-        onModeChange={handleModeChange}
-      />
-
-      <HomeComponent
-        penRef={animationRefs.penRef}
-        penTextRef={animationRefs.penTextRef}
-        welcomeTextRef={animationRefs.welcomeTextRef}
-        nameTextRef={animationRefs.nameTextRef}
-        galleryRef={animationRefs.galleryRef}
-        mode={mode}
-      />
-
-      <FooterComponent footerRef={animationRefs.footerRef} />
-    </main>
-  );
-};
+export function HomeExperience() {
+  const [order, setOrder] = useState<TableOrder>('random');
+  const [seed, setSeed] = useState(0);
+  const [mediumId, setMediumId] = useState<string | null>(null);
+  const artworks = useMemo(() => orderArtworks(fakeData.artworks.filter(art => !mediumId || art.mediumId === mediumId), order, seed), [mediumId, order, seed]);
+  return <main className="table-experience" id="main-content">
+    <DeskModeComponent artworks={artworks} arrangementKey={`${order}:${seed}:${mediumId ?? 'all'}`} />
+    <FooterComponent order={order} mediumId={mediumId} mediums={fakeData.mediums} onMediumChange={setMediumId} onOrderChange={next => { setOrder(next); if (next === 'random') setSeed(current => current + 1); }} />
+  </main>;
+}

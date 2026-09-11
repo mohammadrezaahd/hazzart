@@ -1,146 +1,77 @@
-"use client";
+'use client';
+import { useRef, useState, type CSSProperties } from 'react';
+import { Draggable, gsap, useGSAP } from '@/lib/gsap';
+import type { Artwork } from '@/interfaces/Portfolio';
+import { ArtworkImage } from '@/components/Artwork/ArtworkImage';
+import { ArtworkViewer, type ArtworkSelection } from '@/components/Artwork/ArtworkViewer';
+import { usePaperSound } from '@/hooks/usePaperSound';
 
-import { Draggable, gsap, useGSAP } from "@/lib/gsap";
-import Image from "next/image";
-import { useMemo, useRef, type CSSProperties } from "react";
-
-import { IArts } from "@/interfaces";
-
-
-interface DeskModeComponentProps {
-  arts: IArts[];
-}
-
-const mulberry32 = (seed: number) => {
-  let t = seed;
-
-  return () => {
-    t |= 0;
-    t = (t + 0x6d2b79f5) | 0;
-
-    let r = Math.imul(t ^ (t >>> 15), 1 | t);
-    r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
-
-    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+export function DeskModeComponent({ artworks, arrangementKey }: { artworks: Artwork[]; arrangementKey: string }) {
+  const root = useRef<HTMLDivElement>(null);
+  const [selection, setSelection] = useState<ArtworkSelection | null>(null);
+  const zIndex = useRef(artworks.length);
+  const sound = usePaperSound();
+  const open = (artwork: Artwork, element: HTMLElement) => {
+    gsap.killTweensOf(element);
+    setSelection({ artwork, element, rotation: Number(gsap.getProperty(element, 'rotation')) || 0, rect: element.getBoundingClientRect() });
   };
-};
-
-const createDeskStyles = (arts: IArts[]): CSSProperties[] => {
-  const total = arts.length;
-
-  if (!total) {
-    return [];
-  }
-
-  return arts.map((art, index) => {
-    const rand = mulberry32(art.id * 1000 + 7);
-
-    const rx = rand();
-    const ry = rand();
-    const rr = rand();
-    const rz = rand();
-
-    const offsetX = (rx - 0.5) * 10; // vmin
-    const offsetY = (ry - 0.5) * 10; // vmin
-
-    const rotate = (rr - 0.5) * 22;
-
-    const widthVmin = 22;
-    const heightVmin = 30;
-
-    return {
-      position: "absolute",
-
-      top: `calc(50% + ${offsetY}vmin)`,
-      left: `calc(50% + ${offsetX}vmin)`,
-
-      width: `${widthVmin}vmin`,
-      height: `${heightVmin}vmin`,
-
-      transform: `translate(-50%, -50%) rotate(${rotate}deg)`,
-
-      transformOrigin: "center",
-
-      zIndex: Math.round(rz * total) + index,
-
-      borderRadius: 2,
-
-      boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
-    };
-  });
-};
-
-export const DeskModeComponent = ({ arts }: DeskModeComponentProps) => {
-  const rootRef = useRef<HTMLDivElement>(null);
-
-  const deskStyles = useMemo(() => createDeskStyles(arts), [arts]);
-
-  useGSAP(
-    () => {
-      if (!rootRef.current) {
-        return;
-      }
-
-      const items = gsap.utils.toArray<HTMLElement>(
-        "[data-gallery-item]",
-        rootRef.current,
-      );
-      const reduceMotion = window.matchMedia(
-        "(prefers-reduced-motion: reduce)",
-      ).matches;
-
-      const draggables = Draggable.create(items, {
-        type: "x,y",
-        bounds: rootRef.current,
-        inertia: !reduceMotion,
-        edgeResistance: 0.65,
-        onPress() {
-          gsap.set(this.target, { zIndex: 999 });
-        },
+  useGSAP(() => {
+    const stage = root.current;
+    if (!stage) return;
+    const media = gsap.matchMedia();
+    media.add({ reduced: '(prefers-reduced-motion: reduce)', motion: '(prefers-reduced-motion: no-preference)' }, context => {
+      const reduced = Boolean(context.conditions?.reduced);
+      const cards = Array.from(stage.querySelectorAll<HTMLElement>('[data-artwork-id]'));
+      zIndex.current = cards.length;
+      const drags: Draggable[] = [];
+      const timeline = gsap.timeline({ paused: !reduced, delay: reduced ? 0 : 0.12 });
+      let disposed = false;
+      let startTimer: ReturnType<typeof setTimeout> | undefined;
+      cards.forEach((card, i) => {
+        const artwork = artworks[i];
+        gsap.set(card, { xPercent: -50, yPercent: -50, x: 0, y: 0, rotation: artwork.table.rotation, zIndex: i + 1, autoAlpha: 1 });
+        // Entrance transform and drag transform share one owner, never competing.
+        if (!reduced) {
+          timeline.fromTo(card, { y: -stage.clientHeight * 0.85, x: (i % 2 ? -1 : 1) * 45, scale: 1.12, rotation: artwork.table.rotation + (i % 2 ? -16 : 18), autoAlpha: 0 }, { x: 0, y: 0, scale: 1, rotation: artwork.table.rotation, autoAlpha: 1, duration: 0.72, ease: 'power3.out' }, i * 0.13);
+          timeline.to(card, { scale: 0.99, duration: 0.09, yoyo: true, repeat: 1, ease: 'sine.inOut', onStart: sound.play }, i * 0.13 + 0.65);
+        }
+        const [drag] = Draggable.create(card, {
+          type: 'x,y', bounds: stage, inertia: !reduced, edgeResistance: 0.8,
+          dragClickables: true, minimumMovement: 6, maxDuration: 0.55,
+          onPress() { timeline.killTweensOf(card); gsap.killTweensOf(card); gsap.set(card, { autoAlpha: 1, scale: 1, zIndex: ++zIndex.current }); },
+          onDragStart() { card.dataset.dragging = 'true'; },
+          onDragEnd() { delete card.dataset.dragging; sound.play(); },
+          onClick() { open(artwork, card); },
+        });
+        drag.disable();
+        drags.push(drag);
       });
+      // Do not allow a touch to grab a card while it is still above the table.
+      timeline.eventCallback('onComplete', () => drags.forEach(drag => { drag.enable(); drag.update(true); }));
+      if (reduced) drags.forEach(drag => drag.enable());
+      else {
+        const images = Array.from(stage.querySelectorAll('img'));
+        const ready = Promise.allSettled(images.map(image => image.complete ? Promise.resolve() : image.decode()));
+        const timeout = new Promise<void>(resolve => { startTimer = setTimeout(resolve, 4000); });
+        void Promise.race([ready, timeout]).then(() => { if (!disposed) timeline.play(); clearTimeout(startTimer); });
+      }
+      const observer = new ResizeObserver(() => { drags.forEach(drag => { if (!drag.isDragging && (reduced || timeline.progress() === 1)) drag.applyBounds(stage); }); });
+      observer.observe(stage);
+      return () => { disposed = true; clearTimeout(startTimer); timeline.kill(); observer.disconnect(); drags.forEach(drag => drag.kill()); };
+    });
+    return () => media.revert();
+  }, { scope: root, dependencies: [arrangementKey], revertOnUpdate: true });
 
-      return () => {
-        draggables.forEach((instance) => instance.kill());
-      };
-    },
-    {
-      dependencies: [arts.length],
-      scope: rootRef,
-      revertOnUpdate: true,
-    },
-  );
-
-  return (
-    <div
-      ref={rootRef}
-      className="relative h-full w-full overflow-hidden bg-transparent flex items-center justify-center"
-    >
-      {arts.map((art, index) => (
-        <div
-          key={art.id}
-          data-gallery-item
-          data-gallery-id={art.id}
-          className="
-            absolute
-            top-1/2
-            left-1/2
-            overflow-hidden
-            will-change-transform
-            cursor-grab
-            active:cursor-grabbing
-          "
-          style={deskStyles[index]}
-        >
-          <Image
-            src={art.uri}
-            alt={art.title}
-            fill
-            sizes="30vw"
-            className="object-cover pointer-events-none"
-            priority={index < 6}
-          />
-        </div>
-      ))}
+  return <>
+    <p className="sr-only" id="table-instructions">Drag the artworks to explore the table. Select an artwork or press Enter to view it. Press Escape to return.</p>
+    <div className="desk-stage" ref={root} aria-label="Artwork table" aria-describedby="table-instructions">
+      {artworks.map(artwork => <button key={artwork.id} type="button" className={`artwork-card ${artwork.table.aspectRatio > 1 ? 'landscape-card' : ''}`} data-artwork-id={artwork.id} aria-label={`View ${artwork.title}`} aria-haspopup="dialog" style={{ '--art-ratio': artwork.table.aspectRatio, transform: `translate(-50%, -50%) rotate(${artwork.table.rotation}deg)` } as CSSProperties} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(artwork, event.currentTarget); } }}>
+        <ArtworkImage artwork={artwork} sizes="(max-width: 767px) 55vw, 44vw" priority />
+      </button>)}
+      {artworks.length === 0 && <p className="empty-table">No artwork in this medium yet.</p>}
     </div>
-  );
-};
+    <button type="button" className="sound-toggle" aria-pressed={sound.enabled} onClick={sound.toggle}>Sound {sound.enabled ? 'on' : 'off'}</button>
+    <span className="sr-only" role="status">{artworks.length} artworks on the table</span>
+    {selection && <ArtworkViewer selection={selection} onClose={() => setSelection(null)} />}
+  </>;
+}

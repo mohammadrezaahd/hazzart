@@ -1,1 +1,2 @@
-export * from "./fakeData";
+export * from './fakeData';
+export * from './navigation';
