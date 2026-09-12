@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { navigationItems } from '@/consts/navigation';
 export const dynamicParams = false;
-export function generateStaticParams() { return navigationItems.filter(item => item.href !== '/' && item.href !== '/paintings').map(item => ({ section: item.href.slice(1) })); }
+export function generateStaticParams() { return navigationItems.filter(item => item.href !== '/' && item.href !== '/paintings' && item.href !== '/projects').map(item => ({ section: item.href.slice(1) })); }
 export async function generateMetadata({ params }: { params: Promise<{ section: string }> }) { const { section } = await params; return { title: navigationItems.find(item => item.href === `/${section}`)?.label ?? 'Page not found' }; }
 export default async function SectionPage({ params }: { params: Promise<{ section: string }> }) {
   const { section } = await params;

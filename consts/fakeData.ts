@@ -26,4 +26,74 @@ export const fakeData: PortfolioData = {
     { id: 'roxy-line-study', title: 'Roxy — Line Study', year: 2024, createdAt: '2024-05-09', mediumId: 'charcoal', paintingCategoryIds: ['charcoal', 'roxy-series'], description: 'The original line study for Roxy On A Ride.', dimensions: '3000 × 4000 px', image: { src: '/artworks/artwork-12.png', alt: 'A line drawing of a cat riding in a car', width: 840, height: 1121 }, table: { rotation: 14.96, aspectRatio: 0.75 } },
     { id: 'roxy-on-a-ride', title: 'Roxy On A Ride', year: 2024, createdAt: '2024-06-18', mediumId: 'digital-painting', paintingCategoryIds: ['digital-painting', 'roxy-series'], description: 'Digital Painting based on Original Photography, shadow pass', dimensions: '3000*4000px', image: { src: '/artworks/artwork-19.png', alt: 'Roxy the cat beside a steering wheel, rendered in bold black and white', width: 846, height: 1120, flipX: true }, table: { rotation: 0, aspectRatio: 0.7554 } },
   ],
+  projects: [
+    {
+      id: 'space-cat',
+      name: 'Space Cat',
+      tagline: 'A story-first portfolio microsite with cinematic motion and editorial pacing.',
+      myRole: ['Art Direction', 'UX Design', 'Front-end Development'],
+      cover: {
+        src: '/images/1.png',
+        alt: 'Monochrome space cat project hero composition',
+        width: 1600,
+        height: 1067,
+        aspectRatio: 1.5,
+      },
+      links: [
+        { id: 'live', label: 'Live Site', href: 'https://example.com/space-cat' },
+        { id: 'case-study', label: 'Case Study', href: 'https://example.com/space-cat/case-study' },
+      ],
+      dynamicFields: {
+        development: 'Next.js 15, TypeScript, GSAP, responsive image optimization',
+        timeline: '6 weeks',
+        team: '1 Designer + 1 Developer',
+        challenge: 'Maintaining fluid motion without compromising loading performance on mobile.',
+      },
+    },
+    {
+      id: 'silent-atlas',
+      name: 'Silent Atlas',
+      tagline: 'An immersive archive explorer for illustrations, travel notes, and audio fragments.',
+      myRole: ['Interaction Design', 'UI Systems', 'Animation Prototyping'],
+      cover: {
+        src: '/images/3.jpg',
+        alt: 'Silent Atlas project visual with layered archival layouts',
+        width: 1600,
+        height: 1067,
+        aspectRatio: 1.5,
+      },
+      links: [
+        { id: 'prototype', label: 'Prototype', href: 'https://example.com/silent-atlas' },
+      ],
+      dynamicFields: {
+        development: 'Design-system driven React app with route-based transitions',
+        deliverables: 'IA, design library, prototype, interaction documentation',
+        audience: 'Curators and independent publishers',
+        stack: 'React, Framer Motion, headless CMS integration plan',
+      },
+    },
+    {
+      id: 'table-notes',
+      name: 'Table Notes',
+      tagline: 'A process diary platform for publishing sketches, revisions, and behind-the-scenes context.',
+      myRole: ['Product Strategy', 'Content Architecture', 'Visual Design'],
+      cover: {
+        src: '/images/6.jpg',
+        alt: 'Table Notes project card with textured monochrome styling',
+        width: 1600,
+        height: 1067,
+        aspectRatio: 1.5,
+      },
+      links: [
+        { id: 'preview', label: 'Preview', href: 'https://example.com/table-notes' },
+        { id: 'docs', label: 'Documentation', href: 'https://example.com/table-notes/docs' },
+      ],
+      dynamicFields: {
+        development: 'Server-component architecture and markdown rendering pipeline',
+        status: 'In production',
+        localization: 'English and Persian',
+        metrics: 'Targeted 40% reduction in content publishing time',
+      },
+    },
+  ],
 };
