@@ -50,6 +50,8 @@ export interface SliderScrollOptions {
 type ScrollMode = 'idle' | 'follow' | 'scrub' | 'snap' | 'drag';
 
 const EDGE_EPSILON = 0.75;
+/** Listeners are told about any change above this — one style write per frame. */
+const RANGE_EPSILON = 0.00002;
 const SETTLED_EPSILON = 0.4;
 const FOLLOW_SMOOTHING = 15;
 const SCRUB_SMOOTHING = 24;
@@ -183,8 +185,8 @@ export function useSliderScroll({
     if (
       previous.ready !== next.ready
       || previous.edge !== next.edge
-      || Math.abs(previous.position - next.position) > 0.0004
-      || Math.abs(previous.size - next.size) > 0.0004
+      || Math.abs(previous.position - next.position) > RANGE_EPSILON
+      || Math.abs(previous.size - next.size) > RANGE_EPSILON
       || Math.abs(previous.max - next.max) > 0.5
     ) {
       listenersRef.current.forEach(listener => listener(next));
