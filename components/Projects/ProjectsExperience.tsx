@@ -1,42 +1,73 @@
 'use client';
 
+import Image from 'next/image';
+import { useCallback, useRef, useState } from 'react';
 import { fakeData } from '@/consts/fakeData';
 import { ReusableSlider } from '@/components/Slider';
-import { ProjectCard } from './ProjectCard';
+import { ProjectDetail } from './ProjectDetail';
+import { ProjectsDiagnostics } from './ProjectsDiagnostics';
 
 /**
  * Projects page.
  *
- * The slider is bounded: it loops only in the sense that it never wraps, it settles on
- * the nearest project and, when the visitor keeps pushing past an end, the space around
- * the track opens up and the matching arrow appears in it. The control under the slider
- * is the same slider seen from above — one page per project plus a thumb that mirrors
- * how much of the track is on screen.
+ * One project on screen at a time: its data sits above the slider, the work itself is
+ * the only thing inside the track, and the range control under it walks through the
+ * projects. The slider is bounded — it never loops, it settles on a project, and one
+ * wheel gesture moves exactly one project. When the visitor keeps pushing past either
+ * end, the space around the track opens up and the matching arrow appears in it.
  */
 export function ProjectsExperience() {
   const { projects } = fakeData;
+  const [activeIndex, setActiveIndex] = useState(0);
+  const wheelRoot = useRef<HTMLElement | null>(null);
+  const activeProject = projects[activeIndex] ?? projects[0];
+
+  const handleActiveIndex = useCallback((index: number) => setActiveIndex(index), []);
 
   return (
-    <main className="projects-experience" id="main-content">
+    <main className="projects-experience" id="main-content" ref={wheelRoot}>
       <h1 className="sr-only">Projects</h1>
-      <p className="projects-intro">
-        <span>Selected projects</span>
-        <span className="projects-intro__count" aria-hidden="true">{String(projects.length).padStart(2, '0')}</span>
-      </p>
+
+      {activeProject && (
+        <ProjectDetail
+          key={activeProject.id}
+          project={activeProject}
+          index={activeIndex}
+          total={projects.length}
+        />
+      )}
+
       <ReusableSlider
         items={projects}
         ariaLabel="Projects"
         className="projects-slider"
         infinite={false}
+        wheelStep="page"
+        wheelRoot={wheelRoot}
         pagination={{ enabled: true, ariaLabel: 'Project pagination', getLabel: project => project.name }}
-        edgeOverflow={{ enabled: true, chargeWheelDistance: 720, releaseDelay: 1400 }}
+        edgeOverflow={{ enabled: true, chargeWheelDistance: 260, releaseDelay: 1600 }}
         emptyMessage="No projects added yet."
         getItemId={project => project.id}
         getSlideAspectRatio={project => project.cover.aspectRatio}
         getSlideA11yLabel={project => `${project.name}, ${project.year}`}
-        renderSlide={(project, index) => <ProjectCard project={project} index={index} eager={index < 2} />}
+        onActiveIndexChange={handleActiveIndex}
+        renderSlide={(project, index) => (
+          <span className="projects-piece">
+            <span className="projects-piece__image">
+              <Image
+                src={project.cover.src}
+                alt={project.cover.alt}
+                fill
+                sizes="(max-width: 899px) 96vw, 60vw"
+                priority={index < 2}
+                draggable={false}
+              />
+            </span>
+          </span>
+        )}
       />
-      <span className="sr-only" role="status">{projects.length} projects shown</span>
+
+      <ProjectsDiagnostics />
     </main>
   );
 }

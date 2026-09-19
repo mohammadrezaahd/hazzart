@@ -1,6 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { nearestSlideIndex, projectMomentum, thumbGeometry, edgeAt } from '../utils/slider.ts';
+import {
+  edgeAt,
+  nearestSlideIndex,
+  pageWheelIntent,
+  projectMomentum,
+  railPositionToSlider,
+  thumbGeometry,
+} from '../utils/slider.ts';
 import { clamp, damp, prefersReducedMotion } from '../utils/motion.ts';
 
 test('nearestSlideIndex reports the slide the visitor is closest to', () => {
@@ -23,12 +30,40 @@ test('projectMomentum carries the release velocity and stays inside the track', 
   assert.equal(projectMomentum(0, 0, 0), 0);
 });
 
-test('thumbGeometry keeps the range thumb inside its rail and never smaller than a page width', () => {
+test('the range thumb keeps both ends exact and lines up with the page cells', () => {
   assert.deepEqual(thumbGeometry(0, 0.5), { start: 0, size: 0.5 });
   assert.deepEqual(thumbGeometry(1, 0.25), { start: 0.75, size: 0.25 });
-  assert.deepEqual(thumbGeometry(0.9, 0.4), { start: 0.6, size: 0.4 });
-  assert.deepEqual(thumbGeometry(-4, 0.02), { start: 0, size: 0.06 });
+  assert.deepEqual(thumbGeometry(0.5, 0.4), { start: 0.3, size: 0.4 });
+  assert.deepEqual(thumbGeometry(-1, 0.02), { start: 0, size: 0.06 });
   assert.deepEqual(thumbGeometry(2, 4), { start: 0, size: 1 });
+
+  // Four projects: one page per cell, so every resting position sits on its cell.
+  const size = 1 / 4;
+  for (let index = 0; index < 4; index++) {
+    const { start } = thumbGeometry(index / 3, size);
+    assert.ok(Math.abs(start - index / 4) < 1e-9, `page ${index} should sit on its cell`);
+  }
+});
+
+test('railPositionToSlider mirrors thumbGeometry while the control is dragged', () => {
+  const size = 0.25;
+  for (const position of [0, 0.25, 0.5, 0.75, 1]) {
+    const { start } = thumbGeometry(position, size);
+    const centre = start + size / 2;
+    assert.ok(Math.abs(railPositionToSlider(centre, size) - position) < 1e-9);
+  }
+  assert.equal(railPositionToSlider(0.5, 1), 0);
+});
+
+test('pageWheelIntent turns a gesture into exactly one step', () => {
+  let state = { direction: 0 as -1 | 1 | 0, accumulator: 0 };
+  assert.deepEqual(pageWheelIntent(0, 12, 0, 40), { direction: 0, accumulator: 12 });
+  assert.deepEqual(pageWheelIntent(12, 12, 1, 40), { direction: 0, accumulator: 24 });
+  state = pageWheelIntent(24, 20, 1, 40);
+  assert.deepEqual(state, { direction: 1, accumulator: 0 });
+  // A new direction never reuses the old intent.
+  assert.deepEqual(pageWheelIntent(30, -12, 1, 40), { direction: 0, accumulator: -12 });
+  assert.deepEqual(pageWheelIntent(-35, -10, -1, 40), { direction: -1, accumulator: 0 });
 });
 
 test('edgeAt only reports the ends of a bounded slider', () => {

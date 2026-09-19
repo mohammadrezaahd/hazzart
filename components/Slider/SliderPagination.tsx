@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
 import { clamp, damp, prefersReducedMotion } from '@/utils/motion';
-import { thumbGeometry } from '@/utils/slider';
+import { railPositionToSlider, thumbGeometry } from '@/utils/slider';
 import type { SliderRange } from './useSliderScroll';
 
 export interface SliderPaginationProps {
@@ -47,6 +47,7 @@ export function SliderPagination({
   const thumbCenterRef = useRef(0);
   const targetRef = useRef({ start: 0, size: 1 });
   const currentRef = useRef({ start: 0, size: 1 });
+  const sizeRef = useRef(1);
   const frameRef = useRef<number | null>(null);
   const lastFrameRef = useRef(0);
   const startedRef = useRef(false);
@@ -83,7 +84,8 @@ export function SliderPagination({
     const rail = railRef.current;
     if (!rail) return;
     rail.dataset.ready = range.ready ? 'true' : 'false';
-    targetRef.current = thumbGeometry(range.start, range.size);
+    sizeRef.current = clamp(range.size, 0.06, 1);
+    targetRef.current = thumbGeometry(range.position, range.size);
     if (!startedRef.current || prefersReducedMotion()) {
       startedRef.current = true;
       currentRef.current = { ...targetRef.current };
@@ -125,16 +127,17 @@ export function SliderPagination({
     // Pressing the thumb keeps the grab offset; pressing the rail jumps there.
     const onThumb = Boolean(target?.closest('[data-slider-thumb]'));
     const offset = onThumb ? thumbCenterRef.current - pointer : 0;
-    dragRef.current = { pointerId: event.pointerId, offset, last: clamp(pointer + offset, 0, 1) };
+    const position = railPositionToSlider(pointer + offset, sizeRef.current);
+    dragRef.current = { pointerId: event.pointerId, offset, last: position };
     rail.setPointerCapture(event.pointerId);
     setScrubbing(true);
-    onScrub(dragRef.current.last);
+    onScrub(position);
   };
 
   const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
-    drag.last = clamp(positionFromClientX(event.clientX) + drag.offset, 0, 1);
+    drag.last = railPositionToSlider(positionFromClientX(event.clientX) + drag.offset, sizeRef.current);
     onScrub(drag.last);
   };
 

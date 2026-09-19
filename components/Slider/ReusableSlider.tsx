@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useMemo, type CSSProperties, type ReactNode, type RefObject } from 'react';
 import { gsap } from '@/lib/gsap';
 import { prefersReducedMotion } from '@/utils/motion';
 import { SliderPagination } from './SliderPagination';
@@ -25,6 +25,10 @@ export interface ReusableSliderProps<TItem extends ReusableSliderItem> {
   className?: string;
   infinite?: boolean;
   emptyMessage?: string;
+  /** `free` follows the wheel pixel by pixel, `page` moves one item per gesture. */
+  wheelStep?: 'free' | 'page';
+  /** Listen for the wheel here instead of on the viewport (whole-page scrolling). */
+  wheelRoot?: RefObject<HTMLElement | null>;
   pagination?: {
     enabled?: boolean;
     ariaLabel?: string;
@@ -37,15 +41,17 @@ export interface ReusableSliderProps<TItem extends ReusableSliderItem> {
   /** width / height of the visual inside the slide. */
   getSlideAspectRatio: (item: TItem) => number;
   getSlideA11yLabel?: (item: TItem, index: number) => string;
+  /** Tells the experience which item the slider has settled on. */
+  onActiveIndexChange?: (index: number) => void;
   renderSlide: (item: TItem, index: number) => ReactNode;
 }
 
 /**
  * Slider shared by the paintings and projects experiences.
  *
- * `infinite` loops the paintings gallery forever. Without it the track is bounded:
- * slides settle onto the nearest one and, when the visitor keeps pushing past an
- * end, the surrounding space opens up and the matching arrow appears in it.
+ * `infinite` loops the paintings gallery forever. Without it the track is bounded: it
+ * settles on a slide, one wheel gesture moves a single slide, and pushing past an end
+ * opens the space for the matching arrow instead of moving the track.
  */
 export function ReusableSlider<TItem extends ReusableSliderItem>({
   items,
@@ -53,12 +59,15 @@ export function ReusableSlider<TItem extends ReusableSliderItem>({
   className,
   infinite = false,
   emptyMessage = 'No items to display yet.',
+  wheelStep = 'free',
+  wheelRoot,
   pagination,
   edgeOverflow,
   slideClassName,
   getItemId,
   getSlideAspectRatio,
   getSlideA11yLabel,
+  onActiveIndexChange,
   renderSlide,
 }: ReusableSliderProps<TItem>) {
   const hasLoop = infinite && items.length > 1;
@@ -79,6 +88,8 @@ export function ReusableSlider<TItem extends ReusableSliderItem>({
   } = useSliderScroll({
     itemCount: items.length,
     infinite: hasLoop,
+    wheelStep,
+    wheelRoot,
     edgeCharge: {
       enabled: !!edgeOverflow?.enabled,
       distance: edgeOverflow?.chargeWheelDistance,
@@ -95,6 +106,10 @@ export function ReusableSlider<TItem extends ReusableSliderItem>({
     const width = node.scrollWidth / 3;
     if (width > 0 && scroller.scrollLeft <= 0) scroller.scrollLeft = width;
   }, [hasLoop, scrollerRef, trackRef]);
+
+  useEffect(() => {
+    onActiveIndexChange?.(activeIndex);
+  }, [activeIndex, onActiveIndexChange]);
 
   const slides = useMemo(() => {
     const rendered = hasLoop
@@ -153,7 +168,6 @@ export function ReusableSlider<TItem extends ReusableSliderItem>({
         <div className="reusable-slider__viewport" ref={scrollerRef} aria-label={ariaLabel} tabIndex={0}>
           <div className="reusable-slider__track" ref={attachTrack}>
             {slides}
-            {!hasLoop && <div className="reusable-slider__tail" aria-hidden="true" />}
           </div>
         </div>
         {canCharge && edgeState && (

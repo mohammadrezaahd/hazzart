@@ -1,15 +1,15 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 import { clamp, damp, prefersReducedMotion } from '@/utils/motion';
-import { edgeAt, nearestSlideIndex, projectMomentum } from '@/utils/slider';
+import { edgeAt, nearestSlideIndex, pageWheelIntent, projectMomentum } from '@/utils/slider';
 
 export type SliderDirection = 'previous' | 'next';
 export type SliderEdge = SliderDirection | null;
 
 export interface SliderRange {
-  /** 0..1 — where the visible window starts inside the scrollable range. */
-  start: number;
+  /** 0..1 — how far the visible window has travelled inside the scrollable range. */
+  position: number;
   /** 0..1 — how much of the scrollable range the visible window covers. */
   size: number;
   /** Maximum scrollable distance in pixels (0 while the track fits the viewport). */
@@ -43,6 +43,13 @@ export interface SliderScrollOptions {
   itemCount: number;
   infinite?: boolean;
   edgeCharge?: SliderEdgeChargeConfig;
+  /**
+   * `free` follows the wheel pixel by pixel (paintings). `page` turns one wheel gesture
+   * into one slide (projects), which is what a single-item view needs.
+   */
+  wheelStep?: 'free' | 'page';
+  /** Wheel is listened for on this element instead of the scrolling viewport. */
+  wheelRoot?: RefObject<HTMLElement | null>;
 }
 
 type ScrollMode = 'idle' | 'follow' | 'scrub' | 'snap' | 'drag';
@@ -54,6 +61,9 @@ const SCRUB_SMOOTHING = 24;
 const SNAP_SMOOTHING = 8.5;
 const FLING_FACTOR = 0.32;
 const POP_DURATION = 320;
+const WHEEL_PAGE_THRESHOLD = 40;
+const WHEEL_PAGE_COOLDOWN = 380;
+const WHEEL_GESTURE_GAP = 200;
 const DEFAULT_RELEASE_DELAY = 1200;
 const MAX_FRAME_SECONDS = 0.05;
 
@@ -67,7 +77,13 @@ const MAX_FRAME_SECONDS = 0.05;
  * The 60fps loop writes to the DOM and never sets React state, except for the active
  * slide index, which only changes when a slide boundary is crossed.
  */
-export function useSliderScroll({ itemCount, infinite = false, edgeCharge }: SliderScrollOptions) {
+export function useSliderScroll({
+  itemCount,
+  infinite = false,
+  edgeCharge,
+  wheelStep = 'free',
+  wheelRoot,
+}: SliderScrollOptions) {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
 
@@ -78,11 +94,10 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge }: Sli
   const targetRef = useRef(0);
   const modeRef = useRef<ScrollMode>('idle');
   const loopWidthRef = useRef(0);
-  const tailRef = useRef(-1);
   const maxRef = useRef(0);
   const fractionRef = useRef<number[]>([0]);
   const destinationRef = useRef<number[]>([0]);
-  const rangeRef = useRef<SliderRange>({ start: 0, size: 1, max: 0, edge: null, ready: false });
+  const rangeRef = useRef<SliderRange>({ position: 0, size: 1, max: 0, edge: null, ready: false });
   const frameRef = useRef<number | null>(null);
   const lastFrameRef = useRef(0);
   const writingRef = useRef(false);
@@ -91,6 +106,7 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge }: Sli
   const popTimerRef = useRef<number | null>(null);
   const releaseTimerRef = useRef<number | null>(null);
   const settleTimerRef = useRef<number | null>(null);
+  const wheelRef = useRef({ accumulator: 0, sign: 0 as -1 | 0 | 1, last: 0, lockUntil: 0 });
   const listenersRef = useRef(new Set<(range: SliderRange) => void>());
   const configRef = useRef({ itemCount, infinite, edgeCharge });
 
@@ -115,14 +131,6 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge }: Sli
     }
     const slides = Array.from(track.querySelectorAll<HTMLElement>('.reusable-slider__slide'));
     const offsets = slides.map(slide => slide.offsetLeft);
-    const lastWidth = slides.length ? slides[slides.length - 1].offsetWidth : 0;
-    // Trailing room so the final slide can also come to rest at the left edge, which
-    // keeps every page of the range control reachable and distinct.
-    const tail = hasLoop || slides.length === 0 ? 0 : Math.max(0, Math.round(element.clientWidth - lastWidth));
-    if (tailRef.current !== tail) {
-      tailRef.current = tail;
-      element.style.setProperty('--slider-tail', `${tail}px`);
-    }
 
     const maximum = Math.max(0, element.scrollWidth - element.clientWidth);
     const loopWidth = hasLoop ? track.scrollWidth / 3 : 0;
@@ -173,9 +181,9 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge }: Sli
     const span = looping ? width : maximum;
     const origin = looping ? width * 0.5 : 0;
     const next: SliderRange = !element || span <= 0
-      ? { start: 0, size: 1, max: 0, edge: null, ready: true }
+      ? { position: 0, size: 1, max: 0, edge: null, ready: true }
       : {
-        start: clamp((element.scrollLeft - origin) / span, 0, 1),
+        position: clamp((element.scrollLeft - origin) / span, 0, 1),
         size: clamp(element.clientWidth / (looping ? element.scrollWidth / 3 : element.scrollWidth), 0.06, 1),
         max: maximum,
         edge: edgeAt(targetRef.current, maximum, EDGE_EPSILON),
@@ -186,7 +194,7 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge }: Sli
     if (
       previous.ready !== next.ready
       || previous.edge !== next.edge
-      || Math.abs(previous.start - next.start) > 0.0004
+      || Math.abs(previous.position - next.position) > 0.0004
       || Math.abs(previous.size - next.size) > 0.0004
       || Math.abs(previous.max - next.max) > 0.5
     ) {
@@ -430,8 +438,43 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge }: Sli
   useEffect(() => {
     const element = scrollerRef.current;
     if (!element || itemCount === 0) return;
+    const wheelTarget: HTMLElement = wheelRoot?.current ?? element;
 
     let pointerActive = false;
+
+    /** One wheel gesture, one slide: what a single-item view needs. */
+    const onPagedWheel = (event: WheelEvent, delta: number) => {
+      event.preventDefault();
+      const now = performance.now();
+      const wheel = wheelRef.current;
+      if (now - wheel.last > WHEEL_GESTURE_GAP) wheel.accumulator = 0;
+      const intent = pageWheelIntent(wheel.accumulator, delta, wheel.sign, WHEEL_PAGE_THRESHOLD);
+      wheel.sign = delta > 0 ? 1 : delta < 0 ? -1 : wheel.sign;
+      wheel.accumulator = intent.accumulator;
+      wheel.last = now;
+
+      const count = configRef.current.itemCount;
+      const maximum = maxRef.current;
+      const reference = maximum > 0 ? clamp(targetRef.current / maximum, 0, 1) : 0;
+      const current = nearestIndex(reference);
+      const active = intent.direction !== 0 ? intent.direction > 0 ? 'next' : 'previous' : null;
+
+      if (active && now >= wheel.lockUntil) {
+        const atEnd = active === 'next' ? current >= count - 1 : current <= 0;
+        if (atEnd) {
+          if (canCharge) chargeEdge(active, Math.min(Math.abs(delta) * 2, 220));
+          return;
+        }
+        wheel.lockUntil = now + WHEEL_PAGE_COOLDOWN;
+        nudge(active);
+        return;
+      }
+
+      if (active === null) return;
+      // Locked (the previous slide is still moving): keep charging if we are at an end.
+      const atEnd = active === 'next' ? current >= count - 1 : current <= 0;
+      if (atEnd && canCharge) chargeEdge(active, Math.min(Math.abs(delta) * 2, 220));
+    };
 
     const onWheel = (event: WheelEvent) => {
       if (event.ctrlKey || event.metaKey) return;
@@ -441,6 +484,11 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge }: Sli
       if (!dominant) return;
       const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? element.clientWidth : 1;
       const delta = dominant * unit;
+
+      if (wheelStep === 'page' && !hasLoop) {
+        onPagedWheel(event, delta);
+        return;
+      }
 
       stopFrame();
       if (hasLoop) {
@@ -532,14 +580,14 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge }: Sli
       nudge(event.key === 'ArrowLeft' ? 'previous' : 'next');
     };
 
-    element.addEventListener('wheel', onWheel, { passive: false });
+    wheelTarget.addEventListener('wheel', onWheel, { passive: false });
     element.addEventListener('pointerdown', onPointerDown);
     element.addEventListener('pointerup', onPointerUp);
     element.addEventListener('pointercancel', onPointerUp);
     element.addEventListener('scroll', onScroll, { passive: true });
     element.addEventListener('keydown', onKeyDown);
     return () => {
-      element.removeEventListener('wheel', onWheel);
+      wheelTarget.removeEventListener('wheel', onWheel);
       element.removeEventListener('pointerdown', onPointerDown);
       element.removeEventListener('pointerup', onPointerUp);
       element.removeEventListener('pointercancel', onPointerUp);
@@ -562,6 +610,8 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge }: Sli
     scheduleSettle,
     startFrame,
     stopFrame,
+    wheelRoot,
+    wheelStep,
   ]);
 
   /* ------------------------------------------------------------------ *
