@@ -49,7 +49,9 @@ export interface SliderScrollOptions {
 
 type ScrollMode = 'idle' | 'follow' | 'scrub' | 'snap' | 'drag';
 
-const EDGE_EPSILON = 0.75;
+const EDGE_EPSILON = 2;
+/** Below this a scroll offset counts as applied: the element rounds to device pixels. */
+const CLAMP_EPSILON = 0.75;
 /** Listeners are told about any change above this — one style write per frame. */
 const RANGE_EPSILON = 0.00002;
 const SETTLED_EPSILON = 0.4;
@@ -94,6 +96,8 @@ export function useSliderScroll({
   const frameRef = useRef<number | null>(null);
   const lastFrameRef = useRef(0);
   const writingRef = useRef(false);
+  /** The offset the element last accepted — it rounds to whole pixels. */
+  const appliedRef = useRef(0);
   const sampleRef = useRef({ value: 0, time: 0, velocity: 0 });
   const chargeRef = useRef({ direction: null as SliderDirection | null, progress: 0 });
   const popTimerRef = useRef<number | null>(null);
@@ -123,8 +127,19 @@ export function useSliderScroll({
     const slides = Array.from(track.querySelectorAll<HTMLElement>('.reusable-slider__slide'));
     const offsets = slides.map(slide => slide.offsetLeft);
 
-    const maximum = Math.max(0, element.scrollWidth - element.clientWidth);
-    const loopWidth = hasLoop ? track.scrollWidth / 3 : 0;
+    // The travel is read from the layout boxes rather than `scrollWidth`: a slide
+    // translated by the entrance animation inflates the scrollable area for a moment,
+    // and a measurement taken then would leave the end of the strip unreachable.
+    const last = slides[slides.length - 1];
+    const laidOutEnd = last ? last.offsetLeft + last.offsetWidth : 0;
+    const contentWidth = laidOutEnd > 0 ? laidOutEnd : element.scrollWidth;
+    // The element's own travel is the honest limit, but a transformed slide inflates
+    // scrollWidth for the length of the entrance animation, so the layout boxes decide
+    // the width and the element can only ever take away from it, never add.
+    const layoutMax = Math.max(0, Math.round(contentWidth) - element.clientWidth);
+    const scrollMax = Math.max(0, element.scrollWidth - element.clientWidth);
+    const maximum = Math.min(layoutMax, scrollMax);
+    const loopWidth = hasLoop ? contentWidth / 3 : 0;
 
     maxRef.current = maximum;
     loopWidthRef.current = loopWidth;
@@ -205,12 +220,20 @@ export function useSliderScroll({
    * Writing scroll positions
    * ------------------------------------------------------------------ */
 
+  /**
+   * Writes a scroll position and returns the one the element actually took.
+   *
+   * The element clamps to the range it really has, which can be shorter than the engine
+   * assumes (fonts and images settle after the first measurement), so the value that
+   * comes back — not the one requested — is the truth the caller should keep.
+   */
   const write = useCallback((value: number) => {
     const element = scrollerRef.current;
-    if (!element) return;
+    if (!element) return value;
     writingRef.current = true;
     element.scrollLeft = value;
     writingRef.current = false;
+    return element.scrollLeft;
   }, []);
 
   /* ------------------------------------------------------------------ *
@@ -242,9 +265,21 @@ export function useSliderScroll({
     if (mode === 'follow' || mode === 'scrub' || mode === 'snap') {
       const smoothing = mode === 'snap' ? SNAP_SMOOTHING : mode === 'scrub' ? SCRUB_SMOOTHING : FOLLOW_SMOOTHING;
       const next = damp(valueRef.current, targetRef.current, smoothing, deltaSeconds);
-      valueRef.current = Math.abs(targetRef.current - next) < SETTLED_EPSILON ? targetRef.current : next;
+      const wanted = Math.abs(targetRef.current - next) < SETTLED_EPSILON ? targetRef.current : next;
       normalizeLoop();
-      write(valueRef.current);
+      const applied = write(wanted);
+      // A whole frame of movement that changed nothing means the element has run out of
+      // room — it rounds offsets to whole pixels and stops at its own end. Only then is
+      // the target pulled back; sub-pixel rounding must never stall the approach.
+      const outOfRoom = Math.abs(applied - wanted) > CLAMP_EPSILON
+        && Math.abs(applied - appliedRef.current) < 0.01;
+      if (outOfRoom) {
+        valueRef.current = applied;
+        targetRef.current = applied;
+      } else {
+        valueRef.current = wanted;
+      }
+      appliedRef.current = applied;
       emitRange();
       reportIndex(valueRef.current);
       if (Math.abs(targetRef.current - valueRef.current) > SETTLED_EPSILON) {
@@ -273,7 +308,11 @@ export function useSliderScroll({
     valueRef.current = destination;
     targetRef.current = destination;
     normalizeLoop();
-    write(valueRef.current);
+    appliedRef.current = write(valueRef.current);
+    if (Math.abs(appliedRef.current - valueRef.current) > CLAMP_EPSILON) {
+      valueRef.current = appliedRef.current;
+      targetRef.current = appliedRef.current;
+    }
     emitRange();
     reportIndex(valueRef.current);
   }, [emitRange, normalizeLoop, reportIndex, write]);
@@ -291,8 +330,11 @@ export function useSliderScroll({
     }
     targetRef.current = destination;
     if (immediate) {
-      valueRef.current = destination;
-      write(valueRef.current);
+      appliedRef.current = write(destination);
+      if (Math.abs(appliedRef.current - destination) > CLAMP_EPSILON) {
+        valueRef.current = appliedRef.current;
+        targetRef.current = appliedRef.current;
+      }
     }
     modeRef.current = 'snap';
     startFrame();
@@ -434,13 +476,11 @@ export function useSliderScroll({
         targetRef.current += delta;
         normalizeLoop();
       } else {
-        const next = clamp(targetRef.current + delta, 0, maximum);
-        if (next === targetRef.current) {
-          const direction: SliderDirection = delta > 0 ? 'next' : 'previous';
-          const atEnd = direction === 'next'
-            ? targetRef.current >= maximum - EDGE_EPSILON
-            : targetRef.current <= EDGE_EPSILON;
-          if (canCharge && atEnd) {
+        const direction: SliderDirection = delta > 0 ? 'next' : 'previous';
+        const limit = direction === 'next' ? maximum : 0;
+        if (Math.abs(limit - targetRef.current) <= EDGE_EPSILON) {
+          // No room left in this direction: open the space for the matching arrow.
+          if (canCharge) {
             event.preventDefault();
             chargeEdge(direction, Math.abs(delta));
           }
@@ -448,7 +488,7 @@ export function useSliderScroll({
         }
         dropCharge();
         event.preventDefault();
-        targetRef.current = next;
+        targetRef.current = clamp(targetRef.current + delta, 0, maximum);
       }
 
       if (prefersReducedMotion()) {

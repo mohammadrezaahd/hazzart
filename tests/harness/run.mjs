@@ -52,6 +52,13 @@ Object.defineProperties(window.HTMLElement.prototype, {
       return index === null || index === undefined ? 0 : Number(index) * VIEWPORT_WIDTH;
     },
   },
+  offsetWidth: {
+    configurable: true,
+    get() {
+      const index = this.getAttribute?.('data-base-index');
+      return index === null || index === undefined ? TRACK_WIDTH : VIEWPORT_WIDTH;
+    },
+  },
   scrollLeft: {
     configurable: true,
     get() { return this.__scrollLeft ?? 0; },
@@ -81,19 +88,11 @@ check('the range rail exists and is subscribed', rail?.dataset.ready === 'true',
 check('the dot is a slider role', dot?.getAttribute('role') === 'slider');
 check('a bounded strip reserves no trailing room', !document.querySelector('.reusable-slider__tail'));
 
-const paintLog = [];
-let writeCount = 0;
 Object.defineProperty(viewport, 'scrollLeft', {
   configurable: true,
   get() { return this.__scrollLeft ?? 0; },
-  set(value) { this.__scrollLeft = value; writeCount += 1; if (paintLog.length < 400) paintLog.push([writeCount, 'write', Number(value.toFixed(3))]); },
+  set(value) { this.__scrollLeft = value; },
 });
-const originalSet = rail.style.setProperty.bind(rail.style);
-rail.style.setProperty = (name, value) => {
-  if (name === '--range-position' && paintLog.length < 400) paintLog.push([writeCount, 'paint', value]);
-  return originalSet(name, value);
-};
-
 const wheel = deltaY => {
   const event = new window.WheelEvent('wheel', { deltaY, bubbles: true, cancelable: true });
   main.dispatchEvent(event);
@@ -118,8 +117,6 @@ check('a second wheel gesture moves it further', viewport.__scrollLeft > afterFo
 wheel(-3000);
 await sleep(500);
 check('scrolling back returns to the start', viewport.__scrollLeft === 0, `scrollLeft=${Math.round(viewport.__scrollLeft)}`);
-console.log('   last 14 write/paint events:');
-for (const entry of paintLog.slice(-14)) console.log('    ', entry.join('  '));
 check('the dot returns with it', railPosition() === 0, `--range-position=${railPosition()}`);
 
 // Pushing further past the start charges the previous arrow instead of moving the strip.
