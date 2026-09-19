@@ -3,10 +3,8 @@ import assert from 'node:assert/strict';
 import {
   edgeAt,
   nearestSlideIndex,
-  pageWheelIntent,
   projectMomentum,
-  railPositionToSlider,
-  thumbGeometry,
+  rangePositionFromPointer,
 } from '../utils/slider.ts';
 import { clamp, damp, prefersReducedMotion } from '../utils/motion.ts';
 
@@ -30,47 +28,27 @@ test('projectMomentum carries the release velocity and stays inside the track', 
   assert.equal(projectMomentum(0, 0, 0), 0);
 });
 
-test('the range thumb keeps both ends exact and lines up with the page cells', () => {
-  assert.deepEqual(thumbGeometry(0, 0.5), { start: 0, size: 0.5 });
-  assert.deepEqual(thumbGeometry(1, 0.25), { start: 0.75, size: 0.25 });
-  assert.deepEqual(thumbGeometry(0.5, 0.4), { start: 0.3, size: 0.4 });
-  assert.deepEqual(thumbGeometry(-1, 0.02), { start: 0, size: 0.06 });
-  assert.deepEqual(thumbGeometry(2, 4), { start: 0, size: 1 });
-
-  // Four projects: one page per cell, so every resting position sits on its cell.
-  const size = 1 / 4;
-  for (let index = 0; index < 4; index++) {
-    const { start } = thumbGeometry(index / 3, size);
-    assert.ok(Math.abs(start - index / 4) < 1e-9, `page ${index} should sit on its cell`);
-  }
-});
-
-test('railPositionToSlider mirrors thumbGeometry while the control is dragged', () => {
-  const size = 0.25;
-  for (const position of [0, 0.25, 0.5, 0.75, 1]) {
-    const { start } = thumbGeometry(position, size);
-    const centre = start + size / 2;
-    assert.ok(Math.abs(railPositionToSlider(centre, size) - position) < 1e-9);
-  }
-  assert.equal(railPositionToSlider(0.5, 1), 0);
-});
-
-test('pageWheelIntent turns a gesture into exactly one step', () => {
-  let state = { direction: 0 as -1 | 1 | 0, accumulator: 0 };
-  assert.deepEqual(pageWheelIntent(0, 12, 0, 40), { direction: 0, accumulator: 12 });
-  assert.deepEqual(pageWheelIntent(12, 12, 1, 40), { direction: 0, accumulator: 24 });
-  state = pageWheelIntent(24, 20, 1, 40);
-  assert.deepEqual(state, { direction: 1, accumulator: 0 });
-  // A new direction never reuses the old intent.
-  assert.deepEqual(pageWheelIntent(30, -12, 1, 40), { direction: 0, accumulator: -12 });
-  assert.deepEqual(pageWheelIntent(-35, -10, -1, 40), { direction: -1, accumulator: 0 });
-});
-
 test('edgeAt only reports the ends of a bounded slider', () => {
   assert.equal(edgeAt(0, 1200), 'previous');
   assert.equal(edgeAt(1200, 1200), 'next');
   assert.equal(edgeAt(600, 1200), null);
   assert.equal(edgeAt(0, 0), null);
+});
+
+test('the range dot follows the pointer and keeps its grab offset', () => {
+  const rect = { left: 100, width: 400 };
+  const close = (input: number, expected: number) => {
+    assert.ok(Math.abs(input - expected) < 1e-6, `${input} should be ${expected}`);
+  };
+  close(rangePositionFromPointer(100, rect), 0);
+  close(rangePositionFromPointer(300, rect), 0.5);
+  close(rangePositionFromPointer(500, rect), 1);
+  close(rangePositionFromPointer(900, rect), 1);
+  close(rangePositionFromPointer(0, rect), 0);
+  // Grabbed off centre: the dot stays under the finger instead of jumping to it.
+  close(rangePositionFromPointer(340, rect, 0.1), 0.7);
+  close(rangePositionFromPointer(340, rect, -0.05), 0.55);
+  close(rangePositionFromPointer(300, { left: 0, width: 0 }), 0);
 });
 
 test('damp is frame-rate independent and converges on its target', () => {

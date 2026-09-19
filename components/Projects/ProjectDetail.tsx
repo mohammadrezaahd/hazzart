@@ -4,38 +4,31 @@ import type { Project } from '@/interfaces/Portfolio';
 
 interface ProjectDetailProps {
   project: Project;
-  index: number;
-  total: number;
 }
 
 /**
- * The data of the project that is currently on screen. It sits above the slider, which
- * is why the slider itself only shows the work.
+ * The written side of the project. The page tells one project's story, so this block
+ * stays still while the strip below walks through the project's images.
  */
-export function ProjectDetail({ project, index, total }: ProjectDetailProps) {
+export function ProjectDetail({ project }: ProjectDetailProps) {
   const metadata = Object.entries(project.dynamicFields);
 
   return (
-    <section className="projects-detail" aria-label={`${project.name} details`}>
+    <section className="projects-detail" aria-labelledby="project-title">
       <div className="projects-detail__lead">
         <p className="projects-detail__eyebrow">
-          <span>{String(index + 1).padStart(2, '0')}</span>
-          <span aria-hidden="true">/</span>
-          <span>{String(total).padStart(2, '0')}</span>
-          <span aria-hidden="true">·</span>
           <span>{project.discipline}</span>
+          <span aria-hidden="true">·</span>
+          <span>{project.year}</span>
         </p>
-        <h2 className="projects-detail__title">{project.name}</h2>
-        <p className="projects-detail__tagline">{project.tagline}</p>
-        <p className="projects-detail__description">{project.description}</p>
+        <h1 className="projects-detail__title" id="project-title">{project.name}</h1>
       </div>
 
-      <div className="projects-detail__aside">
+      <div className="projects-detail__body">
+        <p className="projects-detail__tagline">{project.tagline}</p>
+        <p className="projects-detail__description">{project.description}</p>
+
         <dl className="projects-detail__meta">
-          <div>
-            <dt>Year</dt>
-            <dd>{project.year}</dd>
-          </div>
           <div>
             <dt>Client</dt>
             <dd>{project.client}</dd>
@@ -45,7 +38,7 @@ export function ProjectDetail({ project, index, total }: ProjectDetailProps) {
             <dd>{project.myRole.join(', ')}</dd>
           </div>
           {metadata.map(([key, value]) => (
-            <div key={`${project.id}-${key}`}>
+            <div key={key}>
               <dt>{key}</dt>
               <dd>{value}</dd>
             </div>

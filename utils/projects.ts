@@ -1,14 +1,16 @@
-import type { Project } from '@/interfaces/Portfolio';
+import type { Project, ProjectMedia } from '@/interfaces/Portfolio';
 
-/** Every distinct visual asset of a project, cover first. */
-export function getProjectMedia(project: Project) {
-  return [project.cover, ...project.gallery];
+/** Every image of the project, in the order the strip shows them. */
+export function getProjectImages(project: Project): ProjectMedia[] {
+  return project.images;
 }
 
-export function countProjectMedia(projects: Project[]): number {
-  return projects.reduce((total, project) => total + 1 + project.gallery.length, 0);
+export function countProjectImages(project: Project): number {
+  return project.images.length;
 }
 
-export function getProjectMediaCount(project: Project): number {
-  return 1 + project.gallery.length;
+/** width / height of an image, with a safe fallback for entries without one. */
+export function getProjectImageRatio(image: ProjectMedia): number {
+  if (image.aspectRatio > 0) return image.aspectRatio;
+  return image.width / Math.max(image.height, 1);
 }

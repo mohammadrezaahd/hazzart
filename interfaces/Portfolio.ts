@@ -42,9 +42,8 @@ export interface Project {
   discipline: string;
   client: string;
   myRole: string[];
-  cover: ProjectMedia;
-  /** Small process / detail shots shown next to the written information. */
-  gallery: ProjectMedia[];
+  /** Every image of the project, in the order the strip shows them. */
+  images: ProjectMedia[];
   links: ProjectLink[];
   dynamicFields: ProjectDynamicFields;
 }
@@ -54,7 +53,8 @@ export interface FooterItem { id: TableOrder | 'medium'; label: string }
 export interface PortfolioData {
   artist: { name: string; description: string };
   artworks: Artwork[];
-  projects: Project[];
+  /** The site shows one project at a time — the projects page is that project. */
+  project: Project;
   mediums: Medium[];
   paintingCategories: PaintingCategory[];
 }

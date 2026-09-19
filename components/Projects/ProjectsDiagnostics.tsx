@@ -15,35 +15,40 @@ export function ProjectsDiagnostics() {
     setEnabled(true);
     const read = () => {
       const next: string[] = [];
-      const viewport = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-      next.push(`window      ${viewport} × ${viewportHeight}`);
+      next.push(`window      ${window.innerWidth} × ${window.innerHeight}`);
+      const page = document.querySelector<HTMLElement>('.projects-experience');
       const slider = document.querySelector<HTMLElement>('.projects-slider');
       const scroller = document.querySelector<HTMLElement>('.projects-slider .reusable-slider__viewport');
       const rail = document.querySelector<HTMLElement>('.slider-pagination__rail');
+      const dot = document.querySelector<HTMLElement>('.slider-pagination__dot');
       const slides = document.querySelectorAll('.projects-slider .reusable-slider__slide');
+
       if (!slider || !scroller) {
         next.push('slider      not found');
         setLines(next);
         return;
       }
-      const badge = slider.getBoundingClientRect();
-      next.push(`slider box  ${Math.round(badge.width)} × ${Math.round(badge.height)} @ ${Math.round(badge.left)},${Math.round(badge.top)}`);
+      const pageBox = page?.getBoundingClientRect();
+      next.push(`page        ${pageBox ? `${Math.round(pageBox.width)} × ${Math.round(pageBox.height)}` : '-'}`);
+      const box = slider.getBoundingClientRect();
+      next.push(`slider box  ${Math.round(box.width)} × ${Math.round(box.height)} @ ${Math.round(box.left)},${Math.round(box.top)}`);
       next.push(`client      ${scroller.clientWidth}  scroll ${scroller.scrollWidth}  left ${Math.round(scroller.scrollLeft)}`);
       next.push(`max         ${scroller.scrollWidth - scroller.clientWidth}  slides ${slides.length}`);
       next.push(`offsets     ${Array.from(slides).map(node => Math.round((node as HTMLElement).offsetLeft)).join(', ')}`);
       next.push(`edge        ${slider.dataset.edge}  progress ${slider.style.getPropertyValue('--edge-progress') || '0'}`);
       if (rail) {
-        next.push(`rail        ${Math.round(rail.getBoundingClientRect().width)} px  ready ${rail.dataset.ready}`);
-        next.push(`thumb       start ${rail.style.getPropertyValue('--thumb-start') || '-'}  size ${rail.style.getPropertyValue('--thumb-size') || '-'}`);
-        const thumb = rail.querySelector<HTMLElement>('[data-slider-thumb]');
-        if (thumb) {
-          const box = thumb.getBoundingClientRect();
-          next.push(`thumb box   ${Math.round(box.width)} px wide @ ${Math.round(box.left)} (visible ${getComputedStyle(thumb).opacity})`);
+        const railBox = rail.getBoundingClientRect();
+        next.push(`rail box    ${Math.round(railBox.width)} × ${Math.round(railBox.height)} @ ${Math.round(railBox.left)},${Math.round(railBox.top)}  ready ${rail.dataset.ready}`);
+        next.push(`range pos   ${rail.style.getPropertyValue('--range-position') || '-'}`);
+        if (dot) {
+          const dotBox = dot.getBoundingClientRect();
+          next.push(`dot box     ${Math.round(dotBox.width)} px @ ${Math.round(dotBox.left)}`);
         }
+      } else {
+        next.push('rail        not found');
       }
-      const railBox = rail?.getBoundingClientRect();
-      next.push(`rail box    ${railBox ? `${Math.round(railBox.width)} × ${Math.round(railBox.height)} @ ${Math.round(railBox.left)},${Math.round(railBox.top)}` : '-'}`);
+      const bottom = rail?.getBoundingClientRect().bottom ?? box.bottom;
+      next.push(`inside page ${bottom <= window.innerHeight ? 'yes' : `no (${Math.round(bottom - window.innerHeight)}px past the fold)`}`);
       setLines(next);
     };
     read();

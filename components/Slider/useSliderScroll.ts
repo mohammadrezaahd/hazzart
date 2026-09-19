@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 import { clamp, damp, prefersReducedMotion } from '@/utils/motion';
-import { edgeAt, nearestSlideIndex, pageWheelIntent, projectMomentum } from '@/utils/slider';
+import { edgeAt, nearestSlideIndex, projectMomentum } from '@/utils/slider';
 
 export type SliderDirection = 'previous' | 'next';
 export type SliderEdge = SliderDirection | null;
@@ -43,11 +43,6 @@ export interface SliderScrollOptions {
   itemCount: number;
   infinite?: boolean;
   edgeCharge?: SliderEdgeChargeConfig;
-  /**
-   * `free` follows the wheel pixel by pixel (paintings). `page` turns one wheel gesture
-   * into one slide (projects), which is what a single-item view needs.
-   */
-  wheelStep?: 'free' | 'page';
   /** Wheel is listened for on this element instead of the scrolling viewport. */
   wheelRoot?: RefObject<HTMLElement | null>;
 }
@@ -61,9 +56,6 @@ const SCRUB_SMOOTHING = 24;
 const SNAP_SMOOTHING = 8.5;
 const FLING_FACTOR = 0.32;
 const POP_DURATION = 320;
-const WHEEL_PAGE_THRESHOLD = 40;
-const WHEEL_PAGE_COOLDOWN = 380;
-const WHEEL_GESTURE_GAP = 200;
 const DEFAULT_RELEASE_DELAY = 1200;
 const MAX_FRAME_SECONDS = 0.05;
 
@@ -81,7 +73,6 @@ export function useSliderScroll({
   itemCount,
   infinite = false,
   edgeCharge,
-  wheelStep = 'free',
   wheelRoot,
 }: SliderScrollOptions) {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
@@ -105,8 +96,6 @@ export function useSliderScroll({
   const chargeRef = useRef({ direction: null as SliderDirection | null, progress: 0 });
   const popTimerRef = useRef<number | null>(null);
   const releaseTimerRef = useRef<number | null>(null);
-  const settleTimerRef = useRef<number | null>(null);
-  const wheelRef = useRef({ accumulator: 0, sign: 0 as -1 | 0 | 1, last: 0, lockUntil: 0 });
   const listenersRef = useRef(new Set<(range: SliderRange) => void>());
   const configRef = useRef({ itemCount, infinite, edgeCharge });
 
@@ -352,24 +341,11 @@ export function useSliderScroll({
     if (releaseTimerRef.current !== null) { window.clearTimeout(releaseTimerRef.current); releaseTimerRef.current = null; }
   }, []);
 
-  const clearSettleTimer = useCallback(() => {
-    if (settleTimerRef.current !== null) { window.clearTimeout(settleTimerRef.current); settleTimerRef.current = null; }
-  }, []);
-
   const resetCharge = useCallback(() => {
     clearTimers();
     chargeRef.current = { direction: null, progress: 0 };
     setEdgeState(previous => (previous === null ? previous : null));
   }, [clearTimers]);
-
-  /** A bounded slider always comes to rest on a slide once the wheel stops. */
-  const scheduleSettle = useCallback((delay = 150) => {
-    clearSettleTimer();
-    settleTimerRef.current = window.setTimeout(() => {
-      settleTimerRef.current = null;
-      settle();
-    }, delay);
-  }, [clearSettleTimer, settle]);
 
   /** Play the release animation, then close the space and re-anchor on the last slide. */
   const releaseCharge = useCallback((direction: SliderDirection) => {
@@ -403,7 +379,6 @@ export function useSliderScroll({
 
   const chargeEdge = useCallback((direction: SliderDirection, magnitude: number) => {
     clearTimers();
-    clearSettleTimer();
     const distance = Math.max(80, configRef.current.edgeCharge?.distance ?? 720);
     const sameDirection = chargeRef.current.direction === direction;
     const progress = clamp((sameDirection ? chargeRef.current.progress : 0) + magnitude / distance, 0, 1);
@@ -412,7 +387,7 @@ export function useSliderScroll({
     setEdgeState({ direction, progress, armed, popping: false });
     if (progress >= 1) releaseCharge(direction);
     else scheduleRelease(direction);
-  }, [clearSettleTimer, clearTimers, releaseCharge, scheduleRelease]);
+  }, [clearTimers, releaseCharge, scheduleRelease]);
 
   /** A new gesture drops any charge without the release animation. */
   const dropCharge = useCallback(() => {
@@ -442,40 +417,6 @@ export function useSliderScroll({
 
     let pointerActive = false;
 
-    /** One wheel gesture, one slide: what a single-item view needs. */
-    const onPagedWheel = (event: WheelEvent, delta: number) => {
-      event.preventDefault();
-      const now = performance.now();
-      const wheel = wheelRef.current;
-      if (now - wheel.last > WHEEL_GESTURE_GAP) wheel.accumulator = 0;
-      const intent = pageWheelIntent(wheel.accumulator, delta, wheel.sign, WHEEL_PAGE_THRESHOLD);
-      wheel.sign = delta > 0 ? 1 : delta < 0 ? -1 : wheel.sign;
-      wheel.accumulator = intent.accumulator;
-      wheel.last = now;
-
-      const count = configRef.current.itemCount;
-      const maximum = maxRef.current;
-      const reference = maximum > 0 ? clamp(targetRef.current / maximum, 0, 1) : 0;
-      const current = nearestIndex(reference);
-      const active = intent.direction !== 0 ? intent.direction > 0 ? 'next' : 'previous' : null;
-
-      if (active && now >= wheel.lockUntil) {
-        const atEnd = active === 'next' ? current >= count - 1 : current <= 0;
-        if (atEnd) {
-          if (canCharge) chargeEdge(active, Math.min(Math.abs(delta) * 2, 220));
-          return;
-        }
-        wheel.lockUntil = now + WHEEL_PAGE_COOLDOWN;
-        nudge(active);
-        return;
-      }
-
-      if (active === null) return;
-      // Locked (the previous slide is still moving): keep charging if we are at an end.
-      const atEnd = active === 'next' ? current >= count - 1 : current <= 0;
-      if (atEnd && canCharge) chargeEdge(active, Math.min(Math.abs(delta) * 2, 220));
-    };
-
     const onWheel = (event: WheelEvent) => {
       if (event.ctrlKey || event.metaKey) return;
       const maximum = maxRef.current;
@@ -484,11 +425,6 @@ export function useSliderScroll({
       if (!dominant) return;
       const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? element.clientWidth : 1;
       const delta = dominant * unit;
-
-      if (wheelStep === 'page' && !hasLoop) {
-        onPagedWheel(event, delta);
-        return;
-      }
 
       stopFrame();
       if (hasLoop) {
@@ -511,7 +447,6 @@ export function useSliderScroll({
         dropCharge();
         event.preventDefault();
         targetRef.current = next;
-        scheduleSettle();
       }
 
       if (prefersReducedMotion()) {
@@ -525,7 +460,6 @@ export function useSliderScroll({
     const onPointerDown = () => {
       pointerActive = true;
       stopFrame();
-      clearSettleTimer();
       dropCharge();
       modeRef.current = 'drag';
       const now = performance.now();
@@ -598,7 +532,6 @@ export function useSliderScroll({
     applyImmediate,
     canCharge,
     chargeEdge,
-    clearSettleTimer,
     dropCharge,
     emitRange,
     hasLoop,
@@ -607,11 +540,9 @@ export function useSliderScroll({
     normalizeLoop,
     nudge,
     reportIndex,
-    scheduleSettle,
     startFrame,
     stopFrame,
     wheelRoot,
-    wheelStep,
   ]);
 
   /* ------------------------------------------------------------------ *
@@ -657,9 +588,8 @@ export function useSliderScroll({
   useEffect(() => () => {
     stopFrame();
     clearTimers();
-    clearSettleTimer();
     listenersRef.current.clear();
-  }, [clearSettleTimer, clearTimers, stopFrame]);
+  }, [clearTimers, stopFrame]);
 
   useEffect(() => {
     if (activeIndex <= itemCount - 1) return;
