@@ -21,7 +21,11 @@ export interface ProjectMedia {
   alt: string;
   width: number;
   height: number;
+  /** width / height — drives the slide width, exactly like the paintings slider. */
   aspectRatio: number;
+  /** Optional CSS object-position, used when a cover needs a specific crop. */
+  focalPoint?: string;
+  caption?: string;
 }
 export interface ProjectLink {
   id: string;
@@ -33,8 +37,14 @@ export interface Project {
   id: string;
   name: string;
   tagline: string;
+  description: string;
+  year: number;
+  discipline: string;
+  client: string;
   myRole: string[];
   cover: ProjectMedia;
+  /** Small process / detail shots shown next to the written information. */
+  gallery: ProjectMedia[];
   links: ProjectLink[];
   dynamicFields: ProjectDynamicFields;
 }
