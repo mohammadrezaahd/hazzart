@@ -57,7 +57,7 @@ export function ProjectsExperience() {
         )}
       />
 
-      <ProjectsDiagnostics />
+      {/* <ProjectsDiagnostics /> */}
     </main>
   );
 }

@@ -53,8 +53,8 @@ export function SliderPagination({
     const rail = railRef.current;
     if (!rail) return;
     if (rail.dataset.ready !== String(range.ready)) rail.dataset.ready = String(range.ready);
-    // While the visitor is dragging, the pointer owns the dot: ignore the engine echo.
-    if (dragRef.current) return;
+    // The accepted scroll position owns the dot, including during a scrub. Painting
+    // the pointer's target separately makes the dot jump back when a drag ends.
     paint(range.position);
   }, [paint]);
 
@@ -78,13 +78,12 @@ export function SliderPagination({
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
     const rail = railRef.current;
-    if (!rail || event.button !== 0) return;
+    if (!rail || event.button !== 0 || dragRef.current) return;
     const { rect, offset } = offsetFromEvent(event);
     const position = rangePositionFromPointer(event.clientX, rect, offset);
     dragRef.current = { pointerId: event.pointerId, offset, position };
     rail.setPointerCapture(event.pointerId);
     setScrubbing(true);
-    paint(position);
     onScrub(position);
   };
 
@@ -94,7 +93,6 @@ export function SliderPagination({
     const rail = railRef.current;
     if (!rail) return;
     drag.position = rangePositionFromPointer(event.clientX, rail.getBoundingClientRect(), drag.offset);
-    paint(drag.position);
     onScrub(drag.position);
   };
 
@@ -105,7 +103,6 @@ export function SliderPagination({
     setScrubbing(false);
     const rail = railRef.current;
     if (rail?.hasPointerCapture(event.pointerId)) rail.releasePointerCapture(event.pointerId);
-    paint(drag.position);
     onScrubEnd(drag.position);
   };
 
@@ -148,6 +145,7 @@ export function SliderPagination({
         onPointerMove={handlePointerMove}
         onPointerUp={endScrub}
         onPointerCancel={endScrub}
+        onLostPointerCapture={endScrub}
       >
         <span className="slider-pagination__line" aria-hidden="true" />
         <span className="slider-pagination__fill" aria-hidden="true" />

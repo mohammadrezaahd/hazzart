@@ -139,14 +139,14 @@ export function useSliderScroll({
     const layoutMax = Math.max(0, Math.round(contentWidth) - element.clientWidth);
     const scrollMax = Math.max(0, element.scrollWidth - element.clientWidth);
     const maximum = Math.min(layoutMax, scrollMax);
-    const loopWidth = hasLoop ? contentWidth / 3 : 0;
+    const loopWidth = hasLoop ? (offsets[count] ?? 0) - (offsets[0] ?? 0) : 0;
 
     maxRef.current = maximum;
     loopWidthRef.current = loopWidth;
     fractionRef.current = Array.from({ length: count }, (_, index) => {
       if (hasLoop && loopWidth > 0) {
         const offset = offsets[count + index];
-        return offset === undefined ? 0 : clamp((offset - loopWidth * 0.5) / loopWidth, 0, 1);
+        return offset === undefined ? 0 : clamp((offset - loopWidth) / loopWidth, 0, 1);
       }
       return maximum > 0 ? clamp((offsets[index] ?? 0) / maximum, 0, 1) : 0;
     });
@@ -161,16 +161,22 @@ export function useSliderScroll({
 
   const nearestIndex = useCallback((position: number) => nearestSlideIndex(fractionRef.current, position), []);
 
+  // Pagination, active-index reporting and snapping must use the same coordinates.
+  // A loop's range is one copy, not the entire three-copy scrollable track.
+  const rangePosition = useCallback((value: number) => {
+    const width = hasLoop ? loopWidthRef.current : 0;
+    const span = width || maxRef.current;
+    return span > 0 ? clamp((value - width) / span, 0, 1) : 0;
+  }, [hasLoop]);
+
   /** Keep the looping track inside its middle copy so both directions stay open. */
   const normalizeLoop = useCallback(() => {
     const width = loopWidthRef.current;
     if (!hasLoop || width <= 0) return;
-    if (valueRef.current < width * 0.5) {
-      valueRef.current += width;
-      targetRef.current += width;
-    } else if (valueRef.current > width * 1.5) {
-      valueRef.current -= width;
-      targetRef.current -= width;
+    if (valueRef.current < width || valueRef.current > width * 2) {
+      const shift = Math.floor((valueRef.current - width) / width) * width;
+      valueRef.current -= shift;
+      targetRef.current -= shift;
     }
   }, [hasLoop]);
 
@@ -185,14 +191,13 @@ export function useSliderScroll({
     const width = loopWidthRef.current;
     const looping = hasLoop && width > 0;
     const span = looping ? width : maximum;
-    const origin = looping ? width * 0.5 : 0;
     const next: SliderRange = !element || span <= 0
       ? { position: 0, size: 1, max: 0, edge: null, ready: true }
       : {
-        position: clamp((element.scrollLeft - origin) / span, 0, 1),
+        position: rangePosition(element.scrollLeft),
         size: clamp(element.clientWidth / (looping ? element.scrollWidth / 3 : element.scrollWidth), 0.06, 1),
         max: maximum,
-        edge: edgeAt(targetRef.current, maximum, EDGE_EPSILON),
+        edge: looping ? null : edgeAt(element.scrollLeft, maximum, EDGE_EPSILON),
         ready: true,
       };
     const previous = rangeRef.current;
@@ -206,7 +211,7 @@ export function useSliderScroll({
     ) {
       listenersRef.current.forEach(listener => listener(next));
     }
-  }, [hasLoop]);
+  }, [hasLoop, rangePosition]);
 
   const subscribeRange = useCallback((listener: (range: SliderRange) => void) => {
     listenersRef.current.add(listener);
@@ -249,11 +254,9 @@ export function useSliderScroll({
 
   const reportIndex = useCallback((value: number) => {
     if (configRef.current.itemCount <= 0) return;
-    const maximum = maxRef.current;
-    const position = maximum > 0 ? clamp(value / maximum, 0, 1) : 0;
-    const index = nearestIndex(position);
+    const index = nearestIndex(rangePosition(value));
     setActiveIndex(previous => (previous === index ? previous : index));
-  }, [nearestIndex]);
+  }, [nearestIndex, rangePosition]);
 
   const frame = useCallback((time: number) => {
     const element = scrollerRef.current;
@@ -266,22 +269,22 @@ export function useSliderScroll({
       const smoothing = mode === 'snap' ? SNAP_SMOOTHING : mode === 'scrub' ? SCRUB_SMOOTHING : FOLLOW_SMOOTHING;
       const next = damp(valueRef.current, targetRef.current, smoothing, deltaSeconds);
       const wanted = Math.abs(targetRef.current - next) < SETTLED_EPSILON ? targetRef.current : next;
+      valueRef.current = wanted;
       normalizeLoop();
-      const applied = write(wanted);
+      const normalized = valueRef.current;
+      const applied = write(normalized);
       // A whole frame of movement that changed nothing means the element has run out of
       // room — it rounds offsets to whole pixels and stops at its own end. Only then is
       // the target pulled back; sub-pixel rounding must never stall the approach.
-      const outOfRoom = Math.abs(applied - wanted) > CLAMP_EPSILON
+      const outOfRoom = Math.abs(applied - normalized) > CLAMP_EPSILON
         && Math.abs(applied - appliedRef.current) < 0.01;
       if (outOfRoom) {
         valueRef.current = applied;
         targetRef.current = applied;
-      } else {
-        valueRef.current = wanted;
       }
       appliedRef.current = applied;
       emitRange();
-      reportIndex(valueRef.current);
+      reportIndex(applied);
       if (Math.abs(targetRef.current - valueRef.current) > SETTLED_EPSILON) {
         frameRef.current = requestAnimationFrame(frame);
         return;
@@ -299,6 +302,17 @@ export function useSliderScroll({
     lastFrameRef.current = 0;
     frameRef.current = requestAnimationFrame(frame);
   }, [frame]);
+
+  const clearTimers = useCallback(() => {
+    if (popTimerRef.current !== null) { window.clearTimeout(popTimerRef.current); popTimerRef.current = null; }
+    if (releaseTimerRef.current !== null) { window.clearTimeout(releaseTimerRef.current); releaseTimerRef.current = null; }
+  }, []);
+
+  const resetCharge = useCallback(() => {
+    clearTimers();
+    chargeRef.current = { direction: null, progress: 0 };
+    setEdgeState(previous => (previous === null ? previous : null));
+  }, [clearTimers]);
 
   /* ------------------------------------------------------------------ *
    * Navigating
@@ -320,30 +334,28 @@ export function useSliderScroll({
   const scrollToIndex = useCallback((index: number, immediate = false) => {
     const count = Math.max(configRef.current.itemCount, 0);
     if (count === 0) return;
+    resetCharge();
     const safeIndex = clamp(Math.round(index), 0, count - 1);
     const destination = destinationRef.current[safeIndex] ?? 0;
-    if (prefersReducedMotion() || maxRef.current <= 0) {
+    if (prefersReducedMotion() || immediate || maxRef.current <= 0) {
+      stopFrame();
       modeRef.current = 'idle';
       applyImmediate(destination);
       setActiveIndex(safeIndex);
       return;
     }
     targetRef.current = destination;
-    if (immediate) {
-      appliedRef.current = write(destination);
-      if (Math.abs(appliedRef.current - destination) > CLAMP_EPSILON) {
-        valueRef.current = appliedRef.current;
-        targetRef.current = appliedRef.current;
-      }
-    }
     modeRef.current = 'snap';
     startFrame();
-  }, [applyImmediate, startFrame, write]);
+  }, [applyImmediate, resetCharge, startFrame, stopFrame]);
 
   /** Follow a continuous position (0..1) — used while the range control is dragged. */
   const scrollToPosition = useCallback((position: number, immediate = false) => {
-    const destination = clamp(position, 0, 1) * maxRef.current;
+    resetCharge();
+    const width = hasLoop ? loopWidthRef.current : 0;
+    const destination = width + clamp(position, 0, 1) * (width || maxRef.current);
     if (prefersReducedMotion() || immediate || maxRef.current <= 0) {
+      stopFrame();
       modeRef.current = 'idle';
       applyImmediate(destination);
       return;
@@ -351,22 +363,21 @@ export function useSliderScroll({
     targetRef.current = destination;
     modeRef.current = 'scrub';
     startFrame();
-  }, [applyImmediate, startFrame]);
+  }, [applyImmediate, hasLoop, resetCharge, startFrame, stopFrame]);
 
   /** Snap to the slide closest to a position (0..1, defaults to where the visitor aimed). */
   const settle = useCallback((position?: number) => {
     if (maxRef.current <= 0) return;
-    const maximum = maxRef.current;
-    const reference = position === undefined ? targetRef.current / maximum : clamp(position, 0, 1);
+    const reference = position === undefined ? rangePosition(targetRef.current) : clamp(position, 0, 1);
     scrollToIndex(nearestIndex(reference));
-  }, [nearestIndex, scrollToIndex]);
+  }, [nearestIndex, rangePosition, scrollToIndex]);
 
   /** Move one or more slides from the position the visitor last aimed at. */
   const nudge = useCallback((direction: SliderDirection, slides = 1) => {
     if (maxRef.current <= 0 || configRef.current.itemCount === 0) return;
     const count = configRef.current.itemCount;
     const fractions = fractionRef.current;
-    const reference = clamp(targetRef.current / maxRef.current, 0, 1);
+    const reference = rangePosition(targetRef.current);
     const current = nearestIndex(reference);
     const atFirst = reference <= (fractions[0] ?? 0) + 1e-6;
     const atLast = reference >= (fractions[count - 1] ?? 1) - 1e-6;
@@ -374,22 +385,11 @@ export function useSliderScroll({
     if (direction === 'previous' && atFirst) next = hasLoop ? count - 1 : 0;
     if (direction === 'next' && atLast) next = hasLoop ? 0 : count - 1;
     scrollToIndex(clamp(next, 0, count - 1));
-  }, [hasLoop, nearestIndex, scrollToIndex]);
+  }, [hasLoop, nearestIndex, rangePosition, scrollToIndex]);
 
   /* ------------------------------------------------------------------ *
    * Edge charge — pushing past an end of a bounded slider opens the space
    * ------------------------------------------------------------------ */
-
-  const clearTimers = useCallback(() => {
-    if (popTimerRef.current !== null) { window.clearTimeout(popTimerRef.current); popTimerRef.current = null; }
-    if (releaseTimerRef.current !== null) { window.clearTimeout(releaseTimerRef.current); releaseTimerRef.current = null; }
-  }, []);
-
-  const resetCharge = useCallback(() => {
-    clearTimers();
-    chargeRef.current = { direction: null, progress: 0 };
-    setEdgeState(previous => (previous === null ? previous : null));
-  }, [clearTimers]);
 
   /** Play the release animation, then close the space and re-anchor on the last slide. */
   const releaseCharge = useCallback((direction: SliderDirection) => {
@@ -470,7 +470,6 @@ export function useSliderScroll({
       const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? element.clientWidth : 1;
       const delta = dominant * unit;
 
-      stopFrame();
       if (hasLoop) {
         event.preventDefault();
         targetRef.current += delta;
@@ -478,7 +477,8 @@ export function useSliderScroll({
       } else {
         const direction: SliderDirection = delta > 0 ? 'next' : 'previous';
         const limit = direction === 'next' ? maximum : 0;
-        if (Math.abs(limit - targetRef.current) <= EDGE_EPSILON) {
+        if (Math.abs(limit - element.scrollLeft) <= EDGE_EPSILON
+          && Math.abs(limit - targetRef.current) <= EDGE_EPSILON) {
           // No room left in this direction: open the space for the matching arrow.
           if (canCharge) {
             event.preventDefault();
@@ -492,6 +492,8 @@ export function useSliderScroll({
       }
 
       if (prefersReducedMotion()) {
+        stopFrame();
+        modeRef.current = 'idle';
         applyImmediate(targetRef.current);
         return;
       }
@@ -521,7 +523,7 @@ export function useSliderScroll({
         return;
       }
       const projected = projectMomentum(element.scrollLeft, velocity, maximum, FLING_FACTOR);
-      targetRef.current = destinationRef.current[nearestIndex(maximum > 0 ? projected / maximum : 0)] ?? 0;
+      targetRef.current = destinationRef.current[nearestIndex(rangePosition(projected))] ?? 0;
       modeRef.current = 'snap';
       startFrame();
     };
@@ -537,8 +539,12 @@ export function useSliderScroll({
         valueRef.current = value;
         targetRef.current = value;
         normalizeLoop();
+        if (valueRef.current !== value) {
+          appliedRef.current = write(valueRef.current);
+          sampleRef.current.value = appliedRef.current;
+        }
         emitRange();
-        reportIndex(value);
+        reportIndex(element.scrollLeft);
         return;
       }
       if (modeRef.current !== 'idle') return;
@@ -546,6 +552,7 @@ export function useSliderScroll({
       valueRef.current = element.scrollLeft;
       targetRef.current = valueRef.current;
       normalizeLoop();
+      if (valueRef.current !== element.scrollLeft) appliedRef.current = write(valueRef.current);
       emitRange();
       reportIndex(valueRef.current);
     };
@@ -581,10 +588,12 @@ export function useSliderScroll({
     nearestIndex,
     normalizeLoop,
     nudge,
+    rangePosition,
     reportIndex,
     startFrame,
     stopFrame,
     wheelRoot,
+    write,
   ]);
 
   /* ------------------------------------------------------------------ *
@@ -600,9 +609,9 @@ export function useSliderScroll({
     if (hasLoop && loopWidthRef.current > 0) {
       const width = loopWidthRef.current;
       const position = previousLoopWidth > 0 ? valueRef.current - previousLoopWidth : valueRef.current;
-      valueRef.current = width + clamp(position, -width * 0.5, width * 0.5);
+      valueRef.current = width + clamp(position, 0, width);
       targetRef.current = valueRef.current;
-      write(valueRef.current);
+      appliedRef.current = write(valueRef.current);
     } else {
       valueRef.current = clamp(element.scrollLeft, 0, maxRef.current);
       targetRef.current = clamp(targetRef.current, 0, maxRef.current);
