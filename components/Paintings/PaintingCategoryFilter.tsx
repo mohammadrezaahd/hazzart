@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import type { PaintingCategory } from '@/interfaces/Portfolio';
 import { getExpandedCategoryId } from '@/utils/categories';
 
@@ -26,8 +27,19 @@ export function PaintingCategoryFilter({ categories, value, onChange }: Painting
                 aria-pressed={value === category.id}
                 aria-expanded={hasChildren ? expanded : undefined}
                 onClick={() => onChange(category.id)}
+                className={hasChildren ? 'painting-filter__trigger' : ''}
               >
-                {category.label}
+                <span>{category.label}</span>
+                {hasChildren && (
+                  <Image
+                    src="/icons/angle.svg"
+                    alt=""
+                    width={10}
+                    height={12}
+                    className={`painting-filter__angle ${expanded ? 'is-open' : ''}`}
+                    aria-hidden="true"
+                  />
+                )}
               </button>
               {hasChildren && (
                 <div className="painting-filter__children" aria-hidden={!expanded}>

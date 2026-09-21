@@ -67,9 +67,24 @@ a:focus-visible {
   flex-shrink: 0;
 }
 .desktop-navigation {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 9px;
+  overflow: hidden;
+}
+.nav-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background: currentColor;
+  opacity: 0;
+  transition:
+    left 0.45s var(--motion-ease),
+    width 0.45s var(--motion-ease),
+    opacity 0.2s ease;
+  pointer-events: none;
 }
 .navigation-link {
   width: 90px;
@@ -78,28 +93,28 @@ a:focus-visible {
   line-height: 32px;
   position: relative;
 }
-.navigation-link::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 18%;
-  width: 64%;
-  height: 1px;
-  background: currentColor;
-  transform: scaleX(0);
-  transition: transform 0.3s var(--motion-ease);
-}
-.navigation-link:hover::after,
-.navigation-link[aria-current="page"]::after {
-  transform: scaleX(1);
-}
 .table-link {
-  width: 45px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   transition: opacity 0.25s;
+}
+.table-link img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  object-position: center;
 }
 .table-link:hover {
   opacity: 0.55;
+}
+.navigation-link:hover,
+.table-link:hover {
+  opacity: 0.7;
 }
 .menu-toggle {
   display: none;
@@ -199,9 +214,7 @@ a:focus-visible {
 .footer-options button[aria-pressed="true"] {
   color: white;
 }
-.footer-options button:not([aria-pressed="true"]):hover {
-  background: #0000000a;
-}
+
 .footer-indicator {
   position: absolute;
   top: 0;
@@ -421,13 +434,28 @@ dialog {
     background-color 0.3s var(--motion-ease),
     opacity 0.25s;
 }
-.painting-filter button:hover {
-  background: #0000000a;
+.painting-filter__trigger {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
 }
+.painting-filter__trigger span {
+  display: inline-block;
+}
+.painting-filter__angle {
+  width: 10px;
+  height: 12px;
+  flex-shrink: 0;
+  transform: rotate(180deg);
+}
+
 .painting-filter button[aria-pressed="true"],
 .painting-filter__branch[data-expanded="true"] > button {
-  color: white;
-  background: black;
+  /* background: black; */
+  font-weight: bold;
 }
 .painting-filter__children {
   display: flex;
@@ -440,6 +468,7 @@ dialog {
     width 0.55s var(--motion-ease),
     opacity 0.35s ease,
     transform 0.55s var(--motion-ease);
+  overflow: visible;
 }
 .painting-filter__branch[data-expanded="true"] .painting-filter__children {
   width: 180px;
@@ -454,8 +483,7 @@ dialog {
 .painting-filter__branch[data-expanded="true"]
   .painting-filter__children
   button[aria-pressed="true"] {
-  color: black;
-  background: #e7e7e7;
+  font-weight: bold;
 }
 /* ------------------------------------------------------------------ *
  * Slider — shared by Paintings and Projects
@@ -635,11 +663,14 @@ dialog {
 }
 /* ring lives on ::before so the arrow inside is never masked */
 .reusable-slider__edge-cta::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: conic-gradient(#111 calc(var(--edge-progress) * 1turn), #00000024 0);
+  background: conic-gradient(
+    #111 calc(var(--edge-progress) * 1turn),
+    #00000024 0
+  );
   mask: radial-gradient(circle at center, transparent 0 62%, black 63%);
 }
 .reusable-slider__edge-cta:hover {
@@ -911,6 +942,9 @@ dialog {
     display: block;
   }
   .desktop-navigation {
+    display: none;
+  }
+  .nav-indicator {
     display: none;
   }
   .menu-toggle {

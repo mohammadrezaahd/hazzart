@@ -139,9 +139,9 @@ export function useSliderScroll({
     const layoutMax = Math.max(0, Math.round(contentWidth) - element.clientWidth);
     const scrollMax = Math.max(0, element.scrollWidth - element.clientWidth);
     const maximum = Math.min(layoutMax, scrollMax);
-    const loopWidth = hasLoop ? (offsets[count] ?? 0) - (offsets[0] ?? 0) : 0;
+    const loopWidth = hasLoop ? Math.max((offsets[count] ?? 0) - (offsets[0] ?? 0), 1) : 0;
 
-    maxRef.current = maximum;
+    maxRef.current = hasLoop ? Math.max(maximum, loopWidth) : maximum;
     loopWidthRef.current = loopWidth;
     fractionRef.current = Array.from({ length: count }, (_, index) => {
       if (hasLoop && loopWidth > 0) {
@@ -337,7 +337,7 @@ export function useSliderScroll({
     resetCharge();
     const safeIndex = clamp(Math.round(index), 0, count - 1);
     const destination = destinationRef.current[safeIndex] ?? 0;
-    if (prefersReducedMotion() || immediate || maxRef.current <= 0) {
+    if (prefersReducedMotion() || immediate || (!hasLoop && maxRef.current <= 0)) {
       stopFrame();
       modeRef.current = 'idle';
       applyImmediate(destination);
@@ -347,14 +347,14 @@ export function useSliderScroll({
     targetRef.current = destination;
     modeRef.current = 'snap';
     startFrame();
-  }, [applyImmediate, resetCharge, startFrame, stopFrame]);
+  }, [applyImmediate, hasLoop, resetCharge, startFrame, stopFrame]);
 
   /** Follow a continuous position (0..1) — used while the range control is dragged. */
   const scrollToPosition = useCallback((position: number, immediate = false) => {
     resetCharge();
     const width = hasLoop ? loopWidthRef.current : 0;
     const destination = width + clamp(position, 0, 1) * (width || maxRef.current);
-    if (prefersReducedMotion() || immediate || maxRef.current <= 0) {
+    if (prefersReducedMotion() || immediate || (!hasLoop && maxRef.current <= 0)) {
       stopFrame();
       modeRef.current = 'idle';
       applyImmediate(destination);
@@ -367,23 +367,32 @@ export function useSliderScroll({
 
   /** Snap to the slide closest to a position (0..1, defaults to where the visitor aimed). */
   const settle = useCallback((position?: number) => {
-    if (maxRef.current <= 0) return;
+    if (!hasLoop && maxRef.current <= 0) return;
     const reference = position === undefined ? rangePosition(targetRef.current) : clamp(position, 0, 1);
     scrollToIndex(nearestIndex(reference));
-  }, [nearestIndex, rangePosition, scrollToIndex]);
+  }, [hasLoop, nearestIndex, rangePosition, scrollToIndex]);
 
   /** Move one or more slides from the position the visitor last aimed at. */
   const nudge = useCallback((direction: SliderDirection, slides = 1) => {
-    if (maxRef.current <= 0 || configRef.current.itemCount === 0) return;
+    if (configRef.current.itemCount === 0) return;
+    if (!hasLoop && maxRef.current <= 0) return;
     const count = configRef.current.itemCount;
-    const fractions = fractionRef.current;
     const reference = rangePosition(targetRef.current);
     const current = nearestIndex(reference);
+
+    if (hasLoop) {
+      const delta = direction === 'next' ? slides : -slides;
+      const next = (current + delta + count) % count;
+      scrollToIndex(next);
+      return;
+    }
+
+    const fractions = fractionRef.current;
     const atFirst = reference <= (fractions[0] ?? 0) + 1e-6;
     const atLast = reference >= (fractions[count - 1] ?? 1) - 1e-6;
     let next = current + (direction === 'next' ? slides : -slides);
-    if (direction === 'previous' && atFirst) next = hasLoop ? count - 1 : 0;
-    if (direction === 'next' && atLast) next = hasLoop ? 0 : count - 1;
+    if (direction === 'previous' && atFirst) next = 0;
+    if (direction === 'next' && atLast) next = count - 1;
     scrollToIndex(clamp(next, 0, count - 1));
   }, [hasLoop, nearestIndex, rangePosition, scrollToIndex]);
 
@@ -464,7 +473,7 @@ export function useSliderScroll({
     const onWheel = (event: WheelEvent) => {
       if (event.ctrlKey || event.metaKey) return;
       const maximum = maxRef.current;
-      if (maximum <= 0) return;
+      if (!hasLoop && maximum <= 0) return;
       const dominant = Math.abs(event.deltaY) >= Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
       if (!dominant) return;
       const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? element.clientWidth : 1;
@@ -517,7 +526,7 @@ export function useSliderScroll({
       pointerActive = false;
       const velocity = sampleRef.current.velocity;
       const maximum = maxRef.current;
-      if (prefersReducedMotion() || maximum <= 0) {
+      if (prefersReducedMotion() || (!hasLoop && maximum <= 0)) {
         modeRef.current = 'idle';
         applyImmediate(clamp(element.scrollLeft, 0, Math.max(maximum, 0)));
         return;

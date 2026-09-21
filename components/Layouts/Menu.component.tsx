@@ -14,10 +14,20 @@ export function MenuComponent({ onClose }: { onClose: () => void }) {
   return <dialog ref={ref} className="mobile-menu" aria-label="Main navigation" onCancel={event => { event.preventDefault(); close(); }}>
     <button type="button" className="close-button" aria-label="Close menu" onClick={close}><Image src="/icons/close.svg" width={32} height={32} alt="" /></button>
     <nav aria-label="Mobile navigation">
-      {navigationItems.map((item, index) => <Link key={item.id} href={item.href} aria-label={item.label} aria-current={pathname === item.href ? 'page' : undefined} style={{ animationDelay: `${index * 40}ms` }} onClick={event => {
-        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-        event.preventDefault(); destination.current = item.href; close();
-      }}>{item.icon ? <Image src={item.icon} width={82} height={56} alt="" /> : item.label}</Link>)}
+      {navigationItems.map((item, index) => {
+        const isActive = item.href !== '/' && pathname === item.href;
+        return <Link
+          key={item.id}
+          href={item.href}
+          aria-label={item.label}
+          aria-current={isActive ? 'page' : undefined}
+          style={{ animationDelay: `${index * 40}ms` }}
+          onClick={event => {
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            event.preventDefault(); destination.current = item.href; close();
+          }}
+        >{item.icon ? <Image src={item.icon} width={82} height={56} alt="" /> : item.label}</Link>;
+      })}
     </nav>
   </dialog>;
 }

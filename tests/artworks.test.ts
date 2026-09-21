@@ -53,6 +53,20 @@ test('navigation and footer IDs are unique and routes are local', () => {
   assert.equal(new Set(footerItems.map(item => item.id)).size, footerItems.length);
   for (const item of navigationItems) assert.match(item.href, /^\/(?:[a-z-]+)?$/);
 });
+test('desktop navigation keeps the underline hidden until the active item, and mobile hides it completely', () => {
+  const css = readFileSync('app/globals.css', 'utf8');
+  assert.match(css, /\.nav-indicator\s*\{[\s\S]*?opacity:\s*0/);
+  assert.match(css, /@media\s*\(max-width:\s*767px\)\s*\{[\s\S]*?\.nav-indicator\s*\{[\s\S]*?display:\s*none/);
+});
+test('painting category angle icons stay in the rotated-open state beside the label', () => {
+  const css = readFileSync('app/globals.css', 'utf8');
+  assert.match(css, /\.painting-filter__angle\s*\{[\s\S]*?transform:\s*rotate\(180deg\)/);
+});
+test('the active home table item shows the nav underline on the root route', () => {
+  const activeIndex = navigationItems.findIndex(item => item.href === '/');
+  assert.notEqual(activeIndex, -1);
+  assert.equal(navigationItems[activeIndex].id, 'table');
+});
 test('paper sound is a valid nonempty PCM WAV file', () => {
   const sound = readFileSync('public/audio/paper-drop.wav');
   assert.equal(sound.toString('ascii', 0, 4), 'RIFF');
