@@ -552,8 +552,11 @@ export function useSliderScroll({
       if (!pointerActive) return;
       pointerActive = false;
       if (isTouchGesture) {
-        // Let the browser's momentum settle; onScroll idle branch will snap after.
+        // Mobile touch is browser-owned. Do not start a JS snap here; Chrome/Safari
+        // may still have inertial scroll in flight and a competing tween causes the
+        // visible flicker at the ends.
         modeRef.current = 'idle';
+        isTouchGesture = false;
         return;
       }
       const velocity = sampleRef.current.velocity;
@@ -602,13 +605,26 @@ export function useSliderScroll({
         scrollEndTimer = window.setTimeout(() => {
           scrollEndTimer = null;
           if (hasLoop) {
+            const width = loopWidthRef.current;
+            if (width <= 0) return;
+            const raw = element.scrollLeft;
+            const normalized = width + ((raw - width) % width + width) % width;
+            // Re-anchor only when we are actually outside the middle copy. This is a
+            // single atomic write after momentum, so the user never sees a tween jump.
+            if (raw < width - EDGE_EPSILON || raw > width * 2 + EDGE_EPSILON) {
+              applyImmediate(normalized);
+            }
             valueRef.current = element.scrollLeft;
-            normalizeLoop();
-            if (valueRef.current !== element.scrollLeft) applyImmediate(valueRef.current);
+            targetRef.current = element.scrollLeft;
           } else {
-            settle();
+            // Keep the final finger position; snapping is only needed when the browser
+            // has genuinely stopped between items, not while the user is still settling.
+            valueRef.current = element.scrollLeft;
+            targetRef.current = element.scrollLeft;
+            emitRange();
+            reportIndex(valueRef.current);
           }
-        }, 80);
+        }, 120);
       }
     };
 
