@@ -469,7 +469,9 @@ export function useSliderScroll({
     const wheelTarget: HTMLElement = wheelRoot?.current ?? element;
 
     let pointerActive = false;
+    let isTouchGesture = false;
     let lastTouchX = 0;
+    let scrollEndTimer: number | null = null;
 
     const onWheel = (event: WheelEvent) => {
       if (event.ctrlKey || event.metaKey) return;
@@ -513,6 +515,8 @@ export function useSliderScroll({
 
     const onPointerDown = (event: PointerEvent) => {
       if (!event.isPrimary) return;
+      isTouchGesture = event.pointerType === 'touch';
+      if (scrollEndTimer !== null) { window.clearTimeout(scrollEndTimer); scrollEndTimer = null; }
       pointerActive = true;
       stopFrame();
       dropCharge();
@@ -540,13 +544,18 @@ export function useSliderScroll({
       const direction: SliderDirection = deltaX < 0 ? 'next' : 'previous';
       const limit = direction === 'next' ? maximum : 0;
       if (Math.abs(limit - element.scrollLeft) <= EDGE_EPSILON) {
-        chargeEdge(direction, Math.abs(deltaX) * 8);
+        chargeEdge(direction, Math.abs(deltaX) * 4);
       }
     };
 
     const onPointerUp = () => {
       if (!pointerActive) return;
       pointerActive = false;
+      if (isTouchGesture) {
+        // Let the browser's momentum settle; onScroll idle branch will snap after.
+        modeRef.current = 'idle';
+        return;
+      }
       const velocity = sampleRef.current.velocity;
       const maximum = maxRef.current;
       if (prefersReducedMotion() || (!hasLoop && maximum <= 0)) {
@@ -570,23 +579,37 @@ export function useSliderScroll({
         sampleRef.current = { value, time: now, velocity: sampleRef.current.velocity * 0.55 + instant * 0.45 };
         valueRef.current = value;
         targetRef.current = value;
-        normalizeLoop();
-        if (valueRef.current !== value) {
-          appliedRef.current = write(valueRef.current);
-          sampleRef.current.value = appliedRef.current;
+        // Don't write normalizeLoop during native touch scroll — it cancels momentum.
+        if (!isTouchGesture) {
+          normalizeLoop();
+          if (valueRef.current !== value) {
+            appliedRef.current = write(valueRef.current);
+            sampleRef.current.value = appliedRef.current;
+          }
         }
         emitRange();
         reportIndex(element.scrollLeft);
         return;
       }
       if (modeRef.current !== 'idle') return;
-      // Scroll the engine did not start (browser find, keyboard scroll, touch flick).
       valueRef.current = element.scrollLeft;
       targetRef.current = valueRef.current;
-      normalizeLoop();
-      if (valueRef.current !== element.scrollLeft) appliedRef.current = write(valueRef.current);
       emitRange();
       reportIndex(valueRef.current);
+      // After touch momentum settles, snap or re-anchor.
+      if (isTouchGesture) {
+        if (scrollEndTimer !== null) window.clearTimeout(scrollEndTimer);
+        scrollEndTimer = window.setTimeout(() => {
+          scrollEndTimer = null;
+          if (hasLoop) {
+            valueRef.current = element.scrollLeft;
+            normalizeLoop();
+            if (valueRef.current !== element.scrollLeft) applyImmediate(valueRef.current);
+          } else {
+            settle();
+          }
+        }, 80);
+      }
     };
 
     const onKeyDown = (event: KeyboardEvent) => {
@@ -604,6 +627,7 @@ export function useSliderScroll({
     element.addEventListener('scroll', onScroll, { passive: true });
     element.addEventListener('keydown', onKeyDown);
     return () => {
+      if (scrollEndTimer !== null) window.clearTimeout(scrollEndTimer);
       wheelTarget.removeEventListener('wheel', onWheel);
       element.removeEventListener('pointerdown', onPointerDown);
       element.removeEventListener('pointerup', onPointerUp);

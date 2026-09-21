@@ -959,6 +959,9 @@ dialog {
   .slider-pagination__rail {
     height: 20px;
   }
+  .projects-slider .slider-pagination {
+    width: min(520px, calc(100% - 80px));
+  }
 }
 @media (max-width: 767px) {
   .projects-experience {
@@ -967,6 +970,9 @@ dialog {
     --projects-pagination-bottom: max(14px, env(safe-area-inset-bottom));
     --projects-pagination-height: 28px;
     --projects-pagination-gap: 8px;
+  }
+  .projects-slider .slider-pagination {
+    width: min(260px, calc(100% - 80px));
   }
   .site-header {
     left: 10px;
@@ -1069,30 +1075,42 @@ dialog {
   .paintings-experience,
   .paintings-experience[data-series-expanded="true"] {
     --paintings-filter-top: 116px;
-    --paintings-slider-top: 174px;
-    --paintings-slider-height: calc(100dvh - var(--paintings-slider-top) - max(18px, env(safe-area-inset-bottom)) - 14px);
+    --paintings-slider-top: 220px;
+    --paintings-slider-height: min(57.8dvh, calc(100dvh - var(--paintings-slider-top) - max(18px, env(safe-area-inset-bottom)) - 14px));
     min-height: 520px;
   }
   .painting-filter {
     left: 10px;
     right: 0;
     max-width: none;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .painting-filter::-webkit-scrollbar {
-    display: none;
+    overflow: visible;
   }
   .painting-filter__primary {
     width: max-content;
     padding-right: 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .painting-filter__primary::-webkit-scrollbar {
+    display: none;
+  }
+  /* Children drop below the filter row instead of expanding inline. */
+  .painting-filter__children {
+    position: absolute;
+    top: 38px;
+    left: 0;
+    width: auto;
+    overflow: visible;
+    transform: translateY(-6px);
+    transition: opacity 0.25s ease, transform 0.3s var(--motion-ease);
+  }
+  .painting-filter__branch[data-expanded="true"] .painting-filter__children {
+    width: auto;
+    transform: translateY(0);
   }
   .painting-filter button {
     padding-inline: 13px;
     font-size: 14px;
-  }
-  .painting-filter__branch[data-expanded="true"] .painting-filter__children {
-    width: 164px;
   }
   .painting-filter__children button {
     flex-basis: 82px;
