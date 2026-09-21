@@ -353,7 +353,6 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
     let pointerActive = false;
     let isTouchGesture = false;
     let lastTouchX = 0;
-    let scrollEndTimer: number | null = null;
 
     const onWheel = (event: WheelEvent) => {
       if (event.ctrlKey || event.metaKey) return;
@@ -383,7 +382,6 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
     const onPointerDown = (event: PointerEvent) => {
       if (!event.isPrimary) return;
       isTouchGesture = event.pointerType === 'touch';
-      if (scrollEndTimer !== null) { window.clearTimeout(scrollEndTimer); scrollEndTimer = null; }
       pointerActive = true; stopFrame(); dropCharge(); modeRef.current = 'drag';
       const now = performance.now(); sampleRef.current = { value: element.scrollLeft, time: now, velocity: 0 }; valueRef.current = element.scrollLeft; targetRef.current = element.scrollLeft;
     };
@@ -417,27 +415,35 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
         emitRange(); reportIndex(element.scrollLeft); return;
       }
       if (modeRef.current !== 'idle') return;
-      valueRef.current = element.scrollLeft; targetRef.current = valueRef.current; emitRange(); reportIndex(valueRef.current);
-      if (isTouchGesture) {
-        if (scrollEndTimer !== null) window.clearTimeout(scrollEndTimer);
-        scrollEndTimer = window.setTimeout(() => {
-          scrollEndTimer = null;
-          if (hasLoop) {
-            const width = loopWidthRef.current; if (width <= 0) return;
-            const raw = element.scrollLeft; const normalized = width + ((raw - width) % width + width) % width;
-            if (raw < width - EDGE_EPSILON || raw > width * 2 + EDGE_EPSILON) applyImmediate(normalized);
-            valueRef.current = element.scrollLeft; targetRef.current = element.scrollLeft;
-          } else {
-            valueRef.current = element.scrollLeft; targetRef.current = element.scrollLeft; emitRange(); reportIndex(valueRef.current);
-          }
-        }, 120);
+
+      // Re-anchor the native touch scroller immediately when it crosses the
+      // middle-copy boundary. Waiting for momentum to finish leaves a tiny
+      // pause at the end of every loop. The normalized position represents
+      // the exact same artwork, so the correction is visually continuous.
+      if (isTouchGesture && hasLoop) {
+        const width = loopWidthRef.current;
+        const raw = element.scrollLeft;
+        if (width > 0 && (raw < width - EDGE_EPSILON || raw > width * 2 + EDGE_EPSILON)) {
+          const normalized = width + ((raw - width) % width + width) % width;
+          appliedRef.current = write(normalized);
+          valueRef.current = appliedRef.current;
+          targetRef.current = appliedRef.current;
+          emitRange();
+          reportIndex(appliedRef.current);
+          return;
+        }
       }
+
+      valueRef.current = element.scrollLeft;
+      targetRef.current = valueRef.current;
+      emitRange();
+      reportIndex(valueRef.current);
     };
     const onKeyDown = (event: KeyboardEvent) => { if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return; event.preventDefault(); nudge(event.key === 'ArrowLeft' ? 'previous' : 'next'); };
     wheelTarget.addEventListener('wheel', onWheel, { passive: false });
     element.addEventListener('pointerdown', onPointerDown); element.addEventListener('pointerup', onPointerUp); element.addEventListener('pointercancel', onPointerUp);
     element.addEventListener('touchstart', onTouchStart, { passive: true }); element.addEventListener('touchmove', onTouchMove, { passive: true }); element.addEventListener('scroll', onScroll, { passive: true }); element.addEventListener('keydown', onKeyDown);
-    return () => { if (scrollEndTimer !== null) window.clearTimeout(scrollEndTimer); wheelTarget.removeEventListener('wheel', onWheel); element.removeEventListener('pointerdown', onPointerDown); element.removeEventListener('pointerup', onPointerUp); element.removeEventListener('pointercancel', onPointerUp); element.removeEventListener('touchstart', onTouchStart); element.removeEventListener('touchmove', onTouchMove); element.removeEventListener('scroll', onScroll); element.removeEventListener('keydown', onKeyDown); };
+    return () => { wheelTarget.removeEventListener('wheel', onWheel); element.removeEventListener('pointerdown', onPointerDown); element.removeEventListener('pointerup', onPointerUp); element.removeEventListener('pointercancel', onPointerUp); element.removeEventListener('touchstart', onTouchStart); element.removeEventListener('touchmove', onTouchMove); element.removeEventListener('scroll', onScroll); element.removeEventListener('keydown', onKeyDown); };
   }, [applyImmediate, canCharge, chargeEdge, dropCharge, emitRange, hasLoop, itemCount, nearestIndex, normalizeLoop, nudge, rangePosition, reportIndex, startFrame, stopFrame, wheelRoot, write]);
 
   const reinit = useCallback(() => {
