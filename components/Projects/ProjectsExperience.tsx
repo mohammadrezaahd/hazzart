@@ -6,7 +6,7 @@ import { fakeData } from '@/consts/fakeData';
 import { ReusableSlider } from '@/components/Slider';
 import { getProjectImageRatio, getProjectImages } from '@/utils/projects';
 import { ProjectDetail } from './ProjectDetail';
-import { ProjectsDiagnostics } from './ProjectsDiagnostics';
+// import { ProjectsDiagnostics } from './ProjectsDiagnostics';
 
 /**
  * Projects page — one project, told in full.

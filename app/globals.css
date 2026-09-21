@@ -531,8 +531,9 @@ dialog {
   position: relative;
   flex: 0 0 auto;
   height: 100%;
-  min-width: 220px;
-  max-width: min(64vw, 680px);
+  width: auto;
+  min-width: 0;
+  max-width: none;
   aspect-ratio: var(--slide-ratio, 1);
   margin: 0;
   overflow: hidden;
@@ -558,7 +559,7 @@ dialog {
   pointer-events: none;
 }
 .artwork-slider__image img {
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
   transition:
     transform 0.7s var(--motion-ease),
@@ -719,22 +720,26 @@ dialog {
  * dot tracking the strip underneath
  * ------------------------------------------------------------------ */
 .projects-experience {
-  --projects-top: 108px;
+  --projects-detail-top: 108px;
+  --projects-slider-top: 328px;
+  --projects-pagination-bottom: max(20px, env(safe-area-inset-bottom));
+  --projects-pagination-height: 34px;
+  --projects-pagination-gap: 14px;
   --projects-gutter: clamp(12px, 2.4vw, 34px);
   --project-edge-shift: 60px;
-  display: flex;
-  flex-direction: column;
-  gap: clamp(12px, 2.2vh, 30px);
+  position: relative;
   height: 100svh;
   height: 100dvh;
   min-height: 460px;
-  padding: var(--projects-top) var(--projects-gutter) 20px;
-  /* Separate declaration: if env() is unavailable the line above still holds. */
-  padding-bottom: max(20px, env(safe-area-inset-bottom));
   overflow: hidden;
   background: #fff;
 }
 .projects-detail {
+  position: absolute;
+  z-index: 2;
+  top: var(--projects-detail-top);
+  left: var(--projects-gutter);
+  right: var(--projects-gutter);
   display: grid;
   grid-template-columns: clamp(100px, 14vw, 180px) 1fr;
   gap: 0 clamp(40px, 7vw, 132px);
@@ -771,14 +776,32 @@ dialog {
 }
 
 .projects-slider {
-  position: relative;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--projects-slider-top);
+  bottom: 0;
+  height: auto;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  flex: 1 1 auto;
   grid-template-rows: minmax(0, 1fr) auto;
-  gap: clamp(10px, 1.6vh, 20px);
+  gap: 0;
   min-width: 0;
   min-height: 0;
+}
+.projects-slider .reusable-slider__frame {
+  height: calc(
+    100% - var(--projects-pagination-height) - var(--projects-pagination-gap) - var(--projects-pagination-bottom)
+  );
+}
+.projects-slider .slider-pagination {
+  position: absolute;
+  left: 50%;
+  right: auto;
+  bottom: var(--projects-pagination-bottom);
+  width: min(860px, calc(100% - (var(--projects-gutter) * 2)));
+  transform: translateX(-50%);
+  margin-inline: 0;
 }
 .projects-slider[data-edge="next"] {
   --project-edge-shift: -60px;
@@ -790,7 +813,9 @@ dialog {
 }
 /* Images are flush: each slide is exactly one image ratio wide, with no gap between. */
 .projects-slider .reusable-slider__slide {
+  width: auto;
   min-width: 0;
+  max-width: none;
   padding: 0;
   background: #eeeeec;
 }
@@ -812,7 +837,7 @@ dialog {
   overflow: hidden;
 }
 .projects-piece__image img {
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
 }
 .projects-slider .paintings-empty {
@@ -883,19 +908,23 @@ dialog {
 }
 @media (max-height: 820px) and (min-width: 900px) {
   .projects-experience {
-    --projects-top: 92px;
+    --projects-detail-top: 92px;
+    --projects-slider-top: 300px;
   }
 }
 @media (max-height: 620px) and (min-width: 900px) {
   .projects-experience {
-    --projects-top: 84px;
+    --projects-detail-top: 84px;
+    --projects-slider-top: 278px;
   }
 }
 @media (max-width: 899px) {
   .projects-experience {
-    --projects-top: 96px;
+    --projects-detail-top: 96px;
+    --projects-slider-top: 250px;
+    --projects-pagination-height: 30px;
+    --projects-pagination-gap: 10px;
     --project-edge-shift: 30px;
-    gap: 12px;
   }
   .projects-slider[data-edge="next"] {
     --project-edge-shift: -30px;
@@ -911,7 +940,7 @@ dialog {
     font-size: 14px;
   }
   .projects-slider .reusable-slider__slide {
-    max-width: 72vw;
+    max-width: none;
   }
   .reusable-slider__edge-cta {
     width: 34px;
@@ -925,6 +954,13 @@ dialog {
   }
 }
 @media (max-width: 767px) {
+  .projects-experience {
+    --projects-detail-top: 132px;
+    --projects-slider-top: 174px;
+    --projects-pagination-bottom: max(14px, env(safe-area-inset-bottom));
+    --projects-pagination-height: 28px;
+    --projects-pagination-gap: 8px;
+  }
   .site-header {
     left: 10px;
     right: 10px;
@@ -1056,8 +1092,8 @@ dialog {
     padding-inline: 7px;
   }
   .artwork-slider__slide {
-    min-width: 180px;
-    max-width: 78vw;
+    min-width: 0;
+    max-width: none;
   }
 }
 @media (max-height: 570px) and (max-width: 767px) {

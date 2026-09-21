@@ -469,6 +469,8 @@ export function useSliderScroll({
     const wheelTarget: HTMLElement = wheelRoot?.current ?? element;
 
     let pointerActive = false;
+    let activePointerId: number | null = null;
+    let lastPointerX = 0;
 
     const onWheel = (event: WheelEvent) => {
       if (event.ctrlKey || event.metaKey) return;
@@ -510,8 +512,11 @@ export function useSliderScroll({
       startFrame();
     };
 
-    const onPointerDown = () => {
+    const onPointerDown = (event: PointerEvent) => {
+      if (!event.isPrimary) return;
       pointerActive = true;
+      activePointerId = event.pointerId;
+      lastPointerX = event.clientX;
       stopFrame();
       dropCharge();
       modeRef.current = 'drag';
@@ -521,9 +526,31 @@ export function useSliderScroll({
       targetRef.current = element.scrollLeft;
     };
 
+    const onPointerMove = (event: PointerEvent) => {
+      if (!pointerActive || activePointerId !== event.pointerId) return;
+      const deltaX = event.clientX - lastPointerX;
+      lastPointerX = event.clientX;
+      if (!canCharge || hasLoop || Math.abs(deltaX) < 0.1) return;
+      const maximum = maxRef.current;
+      if (maximum <= 0) return;
+
+      const direction: SliderDirection = deltaX < 0 ? 'next' : 'previous';
+      const limit = direction === 'next' ? maximum : 0;
+      const atLimit = Math.abs(limit - element.scrollLeft) <= EDGE_EPSILON;
+
+      if (atLimit) {
+        // Keep charging while the finger pushes outward at either end.
+        chargeEdge(direction, Math.abs(deltaX));
+        return;
+      }
+
+      dropCharge();
+    };
+
     const onPointerUp = () => {
       if (!pointerActive) return;
       pointerActive = false;
+      activePointerId = null;
       const velocity = sampleRef.current.velocity;
       const maximum = maxRef.current;
       if (prefersReducedMotion() || (!hasLoop && maximum <= 0)) {
@@ -574,6 +601,7 @@ export function useSliderScroll({
 
     wheelTarget.addEventListener('wheel', onWheel, { passive: false });
     element.addEventListener('pointerdown', onPointerDown);
+    element.addEventListener('pointermove', onPointerMove);
     element.addEventListener('pointerup', onPointerUp);
     element.addEventListener('pointercancel', onPointerUp);
     element.addEventListener('scroll', onScroll, { passive: true });
@@ -581,6 +609,7 @@ export function useSliderScroll({
     return () => {
       wheelTarget.removeEventListener('wheel', onWheel);
       element.removeEventListener('pointerdown', onPointerDown);
+      element.removeEventListener('pointermove', onPointerMove);
       element.removeEventListener('pointerup', onPointerUp);
       element.removeEventListener('pointercancel', onPointerUp);
       element.removeEventListener('scroll', onScroll);
