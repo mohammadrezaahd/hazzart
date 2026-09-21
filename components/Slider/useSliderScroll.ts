@@ -556,7 +556,8 @@ export function useSliderScroll({
         // may still have inertial scroll in flight and a competing tween causes the
         // visible flicker at the ends.
         modeRef.current = 'idle';
-        isTouchGesture = false;
+        // Keep the touch flag alive until the delayed scroll-settle callback so
+        // native momentum remains browser-owned and the loop is re-anchored once.
         return;
       }
       const velocity = sampleRef.current.velocity;
