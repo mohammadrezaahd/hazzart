@@ -469,8 +469,7 @@ export function useSliderScroll({
     const wheelTarget: HTMLElement = wheelRoot?.current ?? element;
 
     let pointerActive = false;
-    let activePointerId: number | null = null;
-    let lastPointerX = 0;
+    let lastTouchX = 0;
 
     const onWheel = (event: WheelEvent) => {
       if (event.ctrlKey || event.metaKey) return;
@@ -515,8 +514,6 @@ export function useSliderScroll({
     const onPointerDown = (event: PointerEvent) => {
       if (!event.isPrimary) return;
       pointerActive = true;
-      activePointerId = event.pointerId;
-      lastPointerX = event.clientX;
       stopFrame();
       dropCharge();
       modeRef.current = 'drag';
@@ -526,31 +523,30 @@ export function useSliderScroll({
       targetRef.current = element.scrollLeft;
     };
 
-    const onPointerMove = (event: PointerEvent) => {
-      if (!pointerActive || activePointerId !== event.pointerId) return;
-      const deltaX = event.clientX - lastPointerX;
-      lastPointerX = event.clientX;
-      if (!canCharge || hasLoop || Math.abs(deltaX) < 0.1) return;
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return;
+      lastTouchX = e.touches[0].clientX;
+    };
+
+    // touchmove fires even after the browser issues pointercancel for a native
+    // scroll gesture — the only reliable edge-charge source on mobile.
+    const onTouchMove = (e: TouchEvent) => {
+      if (!canCharge || hasLoop || e.touches.length !== 1) return;
+      const deltaX = e.touches[0].clientX - lastTouchX;
+      lastTouchX = e.touches[0].clientX;
+      if (Math.abs(deltaX) < 0.5) return;
       const maximum = maxRef.current;
       if (maximum <= 0) return;
-
       const direction: SliderDirection = deltaX < 0 ? 'next' : 'previous';
       const limit = direction === 'next' ? maximum : 0;
-      const atLimit = Math.abs(limit - element.scrollLeft) <= EDGE_EPSILON;
-
-      if (atLimit) {
-        // Keep charging while the finger pushes outward at either end.
-        chargeEdge(direction, Math.abs(deltaX));
-        return;
+      if (Math.abs(limit - element.scrollLeft) <= EDGE_EPSILON) {
+        chargeEdge(direction, Math.abs(deltaX) * 8);
       }
-
-      dropCharge();
     };
 
     const onPointerUp = () => {
       if (!pointerActive) return;
       pointerActive = false;
-      activePointerId = null;
       const velocity = sampleRef.current.velocity;
       const maximum = maxRef.current;
       if (prefersReducedMotion() || (!hasLoop && maximum <= 0)) {
@@ -601,17 +597,19 @@ export function useSliderScroll({
 
     wheelTarget.addEventListener('wheel', onWheel, { passive: false });
     element.addEventListener('pointerdown', onPointerDown);
-    element.addEventListener('pointermove', onPointerMove);
     element.addEventListener('pointerup', onPointerUp);
     element.addEventListener('pointercancel', onPointerUp);
+    element.addEventListener('touchstart', onTouchStart, { passive: true });
+    element.addEventListener('touchmove', onTouchMove, { passive: true });
     element.addEventListener('scroll', onScroll, { passive: true });
     element.addEventListener('keydown', onKeyDown);
     return () => {
       wheelTarget.removeEventListener('wheel', onWheel);
       element.removeEventListener('pointerdown', onPointerDown);
-      element.removeEventListener('pointermove', onPointerMove);
       element.removeEventListener('pointerup', onPointerUp);
       element.removeEventListener('pointercancel', onPointerUp);
+      element.removeEventListener('touchstart', onTouchStart);
+      element.removeEventListener('touchmove', onTouchMove);
       element.removeEventListener('scroll', onScroll);
       element.removeEventListener('keydown', onKeyDown);
     };

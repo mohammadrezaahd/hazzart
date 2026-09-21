@@ -94,8 +94,8 @@ a:focus-visible {
   position: relative;
 }
 .table-link {
-  width: 28px;
-  height: 28px;
+  width: 16px;
+  height: 16px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -121,8 +121,8 @@ a:focus-visible {
   width: 44px;
   height: 44px;
   padding: 0;
-  justify-content: flex-end;
-  align-items: flex-start;
+  justify-content: center;
+  align-items: center;
 }
 .table-experience {
   height: 100svh;
@@ -301,6 +301,13 @@ dialog {
 }
 .mobile-menu nav a:first-child {
   height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mobile-menu nav a img {
+  height: 20px;
+  width: auto;
 }
 @keyframes menu-enter {
   from {
@@ -921,7 +928,7 @@ dialog {
 @media (max-width: 899px) {
   .projects-experience {
     --projects-detail-top: 96px;
-    --projects-slider-top: 250px;
+    --projects-slider-top: 310px;
     --projects-pagination-height: 30px;
     --projects-pagination-gap: 10px;
     --project-edge-shift: 30px;
@@ -955,8 +962,8 @@ dialog {
 }
 @media (max-width: 767px) {
   .projects-experience {
-    --projects-detail-top: 132px;
-    --projects-slider-top: 174px;
+    --projects-detail-top: 116px;
+    --projects-slider-top: 328px;
     --projects-pagination-bottom: max(14px, env(safe-area-inset-bottom));
     --projects-pagination-height: 28px;
     --projects-pagination-gap: 8px;
@@ -1063,7 +1070,7 @@ dialog {
   .paintings-experience[data-series-expanded="true"] {
     --paintings-filter-top: 116px;
     --paintings-slider-top: 174px;
-    --paintings-slider-height: min(58dvh, 520px);
+    --paintings-slider-height: calc(100dvh - var(--paintings-slider-top) - max(18px, env(safe-area-inset-bottom)) - 14px);
     min-height: 520px;
   }
   .painting-filter {
