@@ -15,23 +15,32 @@ function NavigationIndicator() {
   const [indicator, setIndicator] = useState({ left: 0, width: 0, opacity: 0 });
 
   useLayoutEffect(() => {
-    const nav = navRef.current;
-    const activeIndex = navigationItems.findIndex(item => item.href === pathname);
-    const activeItem = activeIndex >= 0 ? itemRefs.current[activeIndex] : null;
+    const calculate = () => {
+      const nav = navRef.current;
+      const activeIndex = navigationItems.findIndex(item => item.href === pathname);
+      const activeItem = activeIndex >= 0 ? itemRefs.current[activeIndex] : null;
 
-    if (!nav || !activeItem) {
-      setIndicator(prev => ({ ...prev, opacity: 0 }));
-      return;
-    }
+      if (!nav || !activeItem) {
+        setIndicator(prev => ({ ...prev, opacity: 0 }));
+        return;
+      }
 
-    const navRect = nav.getBoundingClientRect();
-    const itemRect = activeItem.getBoundingClientRect();
+      const navRect = nav.getBoundingClientRect();
+      // Prefer inner <span> so the indicator matches the text glyph width exactly
+      const target = (activeItem.querySelector('span') ?? activeItem);
+      const targetRect = target.getBoundingClientRect();
 
-    setIndicator({
-      left: itemRect.left - navRect.left,
-      width: itemRect.width,
-      opacity: 1,
-    });
+      setIndicator({
+        left: targetRect.left - navRect.left,
+        width: targetRect.width,
+        opacity: 1,
+      });
+    };
+
+    calculate();
+    document.fonts.ready.then(calculate);
+    window.addEventListener('resize', calculate);
+    return () => window.removeEventListener('resize', calculate);
   }, [pathname]);
 
   return <nav ref={navRef} className="desktop-navigation" aria-label="Main navigation">
@@ -46,7 +55,7 @@ function NavigationIndicator() {
         aria-current={isActive ? 'page' : undefined}
         className={item.icon ? 'table-link' : 'navigation-link'}
       >
-        {item.icon ? <Image src={item.icon} alt="" width={32} height={32} /> : item.label}
+        {item.icon ? <Image src={item.icon} alt="" width={32} height={32} /> : <span>{item.label}</span>}
       </Link>;
     })}
   </nav>;

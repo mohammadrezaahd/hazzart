@@ -56,26 +56,25 @@ a:focus-visible {
   height: 32px;
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 20px;
   z-index: 30;
 }
 .artist-name {
   font-size: 32px;
   line-height: 1.1;
   white-space: nowrap;
-  width: 260px;
   flex-shrink: 0;
 }
 .desktop-navigation {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 20px;
   overflow: hidden;
 }
 .nav-indicator {
   position: absolute;
-  bottom: 0;
+  bottom: 5px;
   left: 0;
   height: 1px;
   background: currentColor;
@@ -87,8 +86,6 @@ a:focus-visible {
   pointer-events: none;
 }
 .navigation-link {
-  width: 90px;
-  text-align: center;
   font-size: 16px;
   line-height: 32px;
   position: relative;
@@ -630,7 +627,6 @@ dialog {
   margin: -5px 0 0 -5px;
   border-radius: 50%;
   background: #111;
-  box-shadow: 0 0 0 3px #fff;
   opacity: 0;
   transition:
     opacity 0.5s ease,
@@ -728,7 +724,8 @@ dialog {
  * ------------------------------------------------------------------ */
 .projects-experience {
   --projects-detail-top: 108px;
-  --projects-slider-top: 328px;
+  /* Push slider down on tall viewports so the frame stays ≤ 504px */
+  --projects-slider-top: max(328px, calc(100dvh - 572px));
   --projects-pagination-bottom: max(20px, env(safe-area-inset-bottom));
   --projects-pagination-height: 34px;
   --projects-pagination-gap: 14px;
@@ -903,13 +900,11 @@ dialog {
   }
   .artist-name {
     font-size: 26px;
-    width: 220px;
   }
   .desktop-navigation {
-    gap: 3px;
+    gap: 4px;
   }
   .navigation-link {
-    width: 75px;
     font-size: 14px;
   }
 }
@@ -928,7 +923,7 @@ dialog {
 @media (max-width: 899px) {
   .projects-experience {
     --projects-detail-top: 96px;
-    --projects-slider-top: 310px;
+    --projects-slider-top: max(310px, calc(100dvh - 564px));
     --projects-pagination-height: 30px;
     --projects-pagination-gap: 10px;
     --project-edge-shift: 30px;
