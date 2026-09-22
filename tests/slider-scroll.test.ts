@@ -371,3 +371,46 @@ test('loop normalization moves the current position and destination together', (
   assert.equal(engine.api.getRange().edge, null);
   engine.cleanup();
 });
+
+
+test('touch end does not start a competing snap animation', () => {
+  const engine = createSlider({ infinite: true });
+  engine.wheel(320);
+  engine.flush();
+  assert.equal(engine.pendingFrames, 0);
+
+  const element = engine.viewport;
+  element.dispatchEvent(Object.assign(new Event('pointerdown'), {
+    isPrimary: true,
+    pointerType: 'touch',
+  }));
+  element.scrollLeft = 0;
+  element.dispatchEvent(new Event('scroll'));
+  element.dispatchEvent(new Event('pointerup'));
+
+  assert.equal(engine.pendingFrames, 0);
+  engine.step();
+  assert.equal(engine.pendingFrames, 0);
+  engine.cleanup();
+});
+
+test('touch scrolling remains inside the browser-owned path until the delayed loop re-anchor', () => {
+  const engine = createSlider({ infinite: true });
+  engine.api.scrollToPosition(0.95, true);
+  assert.equal(engine.viewport.scrollLeft, 3120);
+
+  const element = engine.viewport;
+  element.dispatchEvent(Object.assign(new Event('pointerdown'), {
+    isPrimary: true,
+    pointerType: 'touch',
+  }));
+  element.scrollLeft = 3180;
+  element.dispatchEvent(new Event('scroll'));
+  assert.equal(engine.viewport.scrollLeft, 3180);
+  assert.equal(engine.pendingFrames, 0);
+
+  element.dispatchEvent(new Event('pointerup'));
+  engine.step();
+  assert.equal(engine.pendingFrames, 0);
+  engine.cleanup();
+});

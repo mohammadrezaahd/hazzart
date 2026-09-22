@@ -966,10 +966,21 @@ dialog {
 @media (max-width: 767px) {
   .projects-experience {
     --projects-detail-top: 116px;
-    --projects-slider-top: 328px;
+    --projects-slider-top: 300px;
     --projects-pagination-bottom: max(14px, env(safe-area-inset-bottom));
     --projects-pagination-height: 28px;
-    --projects-pagination-gap: 8px;
+    --projects-pagination-gap: 10px;
+  }
+
+  /* Match the paintings artwork height on mobile while leaving a deliberate
+   * breathing space before the pagination. */
+  .projects-slider .reusable-slider__frame {
+    height: calc(
+      100dvh - var(--projects-slider-top) -
+        var(--projects-pagination-height) -
+        var(--projects-pagination-gap) -
+        var(--projects-pagination-bottom)
+    );
   }
   .projects-slider .slider-pagination {
     width: min(260px, calc(100% - 80px));
@@ -1116,9 +1127,26 @@ dialog {
     flex-basis: 82px;
     padding-inline: 7px;
   }
+  .artwork-slider {
+    top: var(--paintings-slider-top);
+    height: var(--paintings-slider-height);
+  }
+
   .artwork-slider__slide {
     min-width: 0;
     max-width: none;
+  }
+
+  /* Touch scrolling is intentionally native; the engine only re-anchors after momentum. */
+  .reusable-slider__viewport {
+    overscroll-behavior-x: contain;
+    scroll-snap-type: none;
+  }
+
+  /* Keep the bounded-slider edge affordance: when the user pushes past
+   * an end, the strip still opens toward the arrow instead of staying rigid. */
+  .projects-slider .reusable-slider__viewport {
+    will-change: transform;
   }
 }
 @media (max-height: 570px) and (max-width: 767px) {
