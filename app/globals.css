@@ -909,12 +909,35 @@ dialog {
   }
 }
 @media (max-height: 820px) and (min-width: 900px) {
+  /*
+   * Short desktop/laptop viewports use the same vertical budget on both
+   * gallery pages. Projects reserves its pagination area below the image
+   * strip; Paintings has no visible pagination, so the same amount of space
+   * is reserved here to keep the two pages visually aligned.
+   */
+  .paintings-experience {
+    --paintings-filter-top: 92px;
+    --paintings-slider-top: 300px;
+    --paintings-slider-height: calc(
+      100dvh - var(--paintings-slider-top) - 68px
+    );
+  }
+
   .projects-experience {
     --projects-detail-top: 92px;
     --projects-slider-top: 300px;
   }
 }
+
 @media (max-height: 620px) and (min-width: 900px) {
+  .paintings-experience {
+    --paintings-filter-top: 84px;
+    --paintings-slider-top: 278px;
+    --paintings-slider-height: calc(
+      100dvh - var(--paintings-slider-top) - 68px
+    );
+  }
+
   .projects-experience {
     --projects-detail-top: 84px;
     --projects-slider-top: 278px;
