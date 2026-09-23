@@ -1101,3 +1101,95 @@ dialog {
     font-size: 18px;
     line-height: 1.4;
   }
+  .paintings-experience,
+  .paintings-experience[data-series-expanded="true"] {
+    --paintings-filter-top: 116px;
+    --paintings-slider-top: 220px;
+    --paintings-slider-height: min(57.8dvh, calc(100dvh - var(--paintings-slider-top) - max(18px, env(safe-area-inset-bottom)) - 14px));
+    min-height: 520px;
+  }
+  .painting-filter {
+    left: 10px;
+    right: 0;
+    max-width: none;
+    overflow: visible;
+  }
+  .painting-filter__primary {
+    width: max-content;
+    padding-right: 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .painting-filter__primary::-webkit-scrollbar {
+    display: none;
+  }
+  /* Children drop below the filter row instead of expanding inline. */
+  .painting-filter__children {
+    position: absolute;
+    top: 38px;
+    left: 0;
+    width: auto;
+    overflow: visible;
+    transform: translateY(-6px);
+    transition: opacity 0.25s ease, transform 0.3s var(--motion-ease);
+  }
+  .painting-filter__branch[data-expanded="true"] .painting-filter__children {
+    width: auto;
+    transform: translateY(0);
+  }
+  .painting-filter button {
+    padding-inline: 13px;
+    font-size: 14px;
+  }
+  .painting-filter__children button {
+    flex-basis: 82px;
+    padding-inline: 7px;
+  }
+  .artwork-slider {
+    top: var(--paintings-slider-top);
+    height: var(--paintings-slider-height);
+  }
+
+  .artwork-slider__slide {
+    min-width: 0;
+    max-width: none;
+  }
+
+  /* Touch scrolling is intentionally native; the engine only re-anchors after momentum. */
+  .reusable-slider__viewport {
+    overscroll-behavior-x: contain;
+    scroll-snap-type: none;
+  }
+
+  /* Keep the bounded-slider edge affordance: when the user pushes past
+   * an end, the strip still opens toward the arrow instead of staying rigid. */
+  .projects-slider .reusable-slider__viewport {
+    will-change: transform;
+  }
+}
+@media (max-height: 570px) and (max-width: 767px) {
+  .viewer-image {
+    left: 6%;
+    top: 16%;
+    height: 72dvh;
+    width: auto;
+    max-height: none;
+    max-width: 42%;
+  }
+  .artwork-description {
+    left: 54%;
+    width: 39%;
+    bottom: 14%;
+    font-size: 15px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
