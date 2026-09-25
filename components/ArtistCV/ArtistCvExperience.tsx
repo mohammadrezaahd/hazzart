@@ -19,6 +19,7 @@ function CvScrollBar({
   const railRef = useRef<HTMLDivElement | null>(null);
   const [position, setPosition] = useState(0);
   const dragging = useRef(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const updateFromScroll = useCallback(() => {
     const element = scrollRef.current;
@@ -60,7 +61,7 @@ function CvScrollBar({
     <div
       className="artist-cv-scrollbar"
       data-ready={hasOverflow}
-      data-dragging={dragging.current}
+      data-dragging={isDragging}
       style={{ '--cv-scroll-position': position } as React.CSSProperties}
     >
       <div
@@ -76,6 +77,7 @@ function CvScrollBar({
         onPointerDown={(event) => {
           if (!hasOverflow || event.button !== 0) return;
           dragging.current = true;
+          setIsDragging(true);
           event.currentTarget.setPointerCapture(event.pointerId);
           seek(event.clientX);
         }}
@@ -85,12 +87,14 @@ function CvScrollBar({
         }}
         onPointerUp={(event) => {
           dragging.current = false;
+          setIsDragging(false);
           if (event.currentTarget.hasPointerCapture(event.pointerId)) {
             event.currentTarget.releasePointerCapture(event.pointerId);
           }
         }}
         onPointerCancel={() => {
           dragging.current = false;
+          setIsDragging(false);
         }}
         onKeyDown={(event) => {
           const element = scrollRef.current;
