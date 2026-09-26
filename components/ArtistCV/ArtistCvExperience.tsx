@@ -25,7 +25,7 @@ function CvScrollBar({
     const element = scrollRef.current;
     if (!element) return;
     const max = element.scrollHeight - element.clientHeight;
-    setPosition(max > 0 ? element.scrollTop / max : 0);
+    setPosition(max > 0 ? element.scrollTop / max : 1);
   }, [scrollRef]);
 
   useEffect(() => {
@@ -144,9 +144,8 @@ export function ArtistCvExperience() {
   return (
     <main className="artist-cv-experience" id="main-content">
       <div className="artist-cv__part">
-        <div className="artist-cv__title">CV</div>
-
         <div className="artist-cv__body" ref={bodyRef} tabIndex={0}>
+          <div className="artist-cv__title">CV</div>
           <div className="artist-cv__copy">
             {CV_TEXT.map((paragraph) => (
               <p key={paragraph}>{paragraph}</p>
