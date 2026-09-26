@@ -57,10 +57,15 @@ export function ProjectsExperience() {
         <ReusableSlider
           items={images}
           ariaLabel={project.name + ' images'}
-          className="projects-slider"
+          className={
+            "projects-slider" +
+            (projectIndex === 0 ? " projects-slider--no-previous" : "") +
+            (projectIndex === projects.length - 1 ? " projects-slider--no-next" : "")
+          }
           infinite={false}
           wheelRoot={wheelRoot}
           animateEntrance={false}
+          allowEdgeWithoutOverflow
           emptyMessage="No images added yet."
           pagination={{
             enabled: true,
