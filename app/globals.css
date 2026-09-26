@@ -1072,6 +1072,7 @@ dialog {
     width: min(520px, calc(100% - 80px));
   }
 }
+/*  */
 @media (max-width: 767px) {
   .projects-experience {
     --projects-detail-top: 116px;
