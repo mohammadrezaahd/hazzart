@@ -33,12 +33,23 @@ export function ArtworkSlider({ items, ariaLabel = 'Paintings', infinite = true 
           style={{ transform: artwork.image.flipX ? 'scaleX(-1)' : undefined }}
         >
           <Image
+            className="artwork-slider__image-primary"
             src={artwork.image.src}
             alt={artwork.image.alt}
             fill
             sizes="(max-width: 767px) 78vw, 46vw"
             priority={index < 4}
             draggable={false}
+          />
+          <Image
+            className="artwork-slider__image-hover"
+            src={artwork.hoverImage.src}
+            alt=""
+            fill
+            sizes="(max-width: 767px) 78vw, 46vw"
+            priority={index < 4}
+            draggable={false}
+            aria-hidden="true"
           />
         </span>
       )}
