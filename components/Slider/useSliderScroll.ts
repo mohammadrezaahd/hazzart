@@ -363,7 +363,14 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
 
     const onWheel = (event: WheelEvent) => {
       if (event.ctrlKey || event.metaKey) return;
-      const maximum = maxRef.current;
+      let maximum = maxRef.current;
+      // A newly mounted project can receive the first wheel event before the
+      // ResizeObserver has delivered its layout measurement. Re-measure here
+      // so a valid multi-image project never becomes temporarily wheel-locked.
+      if (!hasLoop && maximum <= 0) {
+        measure();
+        maximum = maxRef.current;
+      }
       if (!hasLoop && maximum <= 0) return;
       const dominant = Math.abs(event.deltaY) >= Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
       if (!dominant) return;
