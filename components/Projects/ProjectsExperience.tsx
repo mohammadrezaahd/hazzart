@@ -74,7 +74,7 @@ export function ProjectsExperience() {
           }}
           edgeOverflow={{
             enabled: !boundaryDirection,
-            chargeWheelDistance: 720,
+            chargeWheelDistance: 560,
             releaseDelay: 1400,
             onCommit: handleEdgeCommit,
           }}
