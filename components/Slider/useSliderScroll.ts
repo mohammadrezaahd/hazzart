@@ -335,9 +335,13 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
     if (releaseTimerRef.current !== null) window.clearTimeout(releaseTimerRef.current);
     releaseTimerRef.current = window.setTimeout(() => {
       releaseTimerRef.current = null;
-      if (chargeRef.current.direction === direction && chargeRef.current.progress > 0) releaseCharge(direction);
+      // A partial charge is only visual feedback. It must never navigate by itself.
+      // Navigation happens exclusively when the charge reaches 100%.
+      if (chargeRef.current.direction === direction && chargeRef.current.progress > 0) {
+        resetCharge();
+      }
     }, delay);
-  }, [releaseCharge]);
+  }, [releaseCharge, resetCharge]);
 
   const chargeEdge = useCallback((direction: SliderDirection, magnitude: number) => {
     clearTimers();
@@ -411,10 +415,15 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
       if (!canCharge || hasLoop || e.touches.length !== 1) return;
       const deltaX = e.touches[0].clientX - lastTouchX; lastTouchX = e.touches[0].clientX;
       if (Math.abs(deltaX) < 0.5) return;
-      const maximum = maxRef.current; if (maximum <= 0) return;
+      const maximum = maxRef.current;
+      const noOverflow = maximum <= 0;
+      if (noOverflow && !allowEdgeWithoutOverflow) return;
       const direction: SliderDirection = deltaX < 0 ? 'next' : 'previous';
       const limit = direction === 'next' ? maximum : 0;
-      if (Math.abs(limit - element.scrollLeft) <= EDGE_EPSILON) chargeEdge(direction, Math.abs(deltaX) * 4);
+      if (noOverflow || Math.abs(limit - element.scrollLeft) <= EDGE_EPSILON) {
+        e.preventDefault();
+        chargeEdge(direction, Math.abs(deltaX) * 4);
+      }
     };
     const onPointerUp = () => {
       if (!pointerActive) return;
@@ -463,7 +472,7 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
     const onKeyDown = (event: KeyboardEvent) => { if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return; event.preventDefault(); nudge(event.key === 'ArrowLeft' ? 'previous' : 'next'); };
     wheelTarget.addEventListener('wheel', onWheel, { passive: false });
     element.addEventListener('pointerdown', onPointerDown); element.addEventListener('pointerup', onPointerUp); element.addEventListener('pointercancel', onPointerUp);
-    element.addEventListener('touchstart', onTouchStart, { passive: true }); element.addEventListener('touchmove', onTouchMove, { passive: true }); element.addEventListener('scroll', onScroll, { passive: true }); element.addEventListener('keydown', onKeyDown);
+    element.addEventListener('touchstart', onTouchStart, { passive: true }); element.addEventListener('touchmove', onTouchMove, { passive: false }); element.addEventListener('scroll', onScroll, { passive: true }); element.addEventListener('keydown', onKeyDown);
     return () => { wheelTarget.removeEventListener('wheel', onWheel); element.removeEventListener('pointerdown', onPointerDown); element.removeEventListener('pointerup', onPointerUp); element.removeEventListener('pointercancel', onPointerUp); element.removeEventListener('touchstart', onTouchStart); element.removeEventListener('touchmove', onTouchMove); element.removeEventListener('scroll', onScroll); element.removeEventListener('keydown', onKeyDown); };
   }, [allowEdgeWithoutOverflow, applyImmediate, canCharge, chargeEdge, dropCharge, emitRange, hasLoop, itemCount, measure, nearestIndex, normalizeLoop, nudge, rangePosition, reportIndex, startFrame, stopFrame, wheelRoot, write]);
 
