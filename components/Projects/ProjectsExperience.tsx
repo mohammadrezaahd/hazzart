@@ -24,7 +24,7 @@ export function ProjectsExperience() {
 
   if (!project) {
     return (
-      <main className={"projects-experience" + (isTransitioning ? " projects-experience--changing" : "")} id="main-content" ref={wheelRoot}>
+      <main className="projects-experience" id="main-content" ref={wheelRoot}>
         <p className="paintings-empty">No projects added yet.</p>
       </main>
     );
@@ -44,7 +44,7 @@ export function ProjectsExperience() {
 
   return (
     <main className="projects-experience" id="main-content" ref={wheelRoot}>
-      <div key={project.id} className={"projects-scene" + (isTransitioning ? " projects-scene--changing" : "")}>
+      <div\n        key={project.id}\n        className="projects-scene"\n      >
         <ProjectDetail project={project} />
 
       <ReusableSlider
@@ -60,7 +60,7 @@ export function ProjectsExperience() {
           getLabel: (image, index) => image.caption ?? ('Image ' + (index + 1)),
         }}
         edgeOverflow={{
-          enabled: !boundaryDirection && !isTransitioning,
+          enabled: !boundaryDirection,
           chargeWheelDistance: 560,
           releaseDelay: 1400,
           onCommit: handleEdgeCommit,
