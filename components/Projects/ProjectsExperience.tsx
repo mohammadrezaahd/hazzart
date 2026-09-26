@@ -24,7 +24,7 @@ export function ProjectsExperience() {
 
   if (!project) {
     return (
-      <main className="projects-experience" id="main-content" ref={wheelRoot}>
+      <main\n      className={\n        "projects-experience" +\n        (boundaryDirection ? " projects-experience--boundary-" + boundaryDirection : "")\n      }\n      id="main-content"\n      ref={wheelRoot}\n    >
         <p className="paintings-empty">No projects added yet.</p>
       </main>
     );
