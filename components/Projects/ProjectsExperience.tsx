@@ -11,7 +11,6 @@ export function ProjectsExperience() {
   const { projects } = fakeData;
   const [projectIndex, setProjectIndex] = useState(0);
   const [boundaryDirection, setBoundaryDirection] = useState<'previous' | 'next' | null>(null);
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const wheelRoot = useRef<HTMLElement | null>(null);
 
   const project = projects[projectIndex] ?? projects[0];
@@ -36,11 +35,7 @@ export function ProjectsExperience() {
 
     if (nextIndex >= 0 && nextIndex < projects.length) {
       setBoundaryDirection(null);
-      setIsTransitioning(true);
       setProjectIndex(nextIndex);
-      window.requestAnimationFrame(() => {
-        window.requestAnimationFrame(() => setIsTransitioning(false));
-      });
       return;
     }
 
