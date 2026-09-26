@@ -227,7 +227,18 @@ export function ReusableSlider<TItem>({
             <span
               className={`reusable-slider__edge-arrow reusable-slider__edge-arrow--${edgeState.direction}`}
             >
-              <span aria-hidden="true" />
+              <Image
+                src="/icons/angle.svg"
+                alt=""
+                aria-hidden="true"
+                width="15"
+                height="15"
+                style={
+                  edgeState.direction === "next"
+                    ? { transform: "rotate(180deg)" }
+                    : undefined
+                }
+              />
             </span>
           </button>
         )}
