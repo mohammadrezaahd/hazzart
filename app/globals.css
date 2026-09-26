@@ -819,8 +819,13 @@ dialog {
 .projects-slider[data-edge="next"] {
   --project-edge-shift: -104px;
 }
-/* The strip glides aside while an edge is charged, opening the space for the arrow. */
+/* Keep the viewport fixed. The image strip itself moves past the edge,
+ * exposing real blank space inside the slider for the edge arrow. */
 .projects-slider .reusable-slider__viewport {
+  will-change: auto;
+}
+
+.projects-slider .reusable-slider__track {
   transform: translate3d(calc(var(--edge-progress) * var(--project-edge-shift)), 0, 0);
   will-change: transform;
   transition: transform 0.08s linear;
