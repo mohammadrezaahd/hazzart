@@ -11,6 +11,7 @@ import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/utils/motion";
 import { SliderPagination } from "./SliderPagination";
 import { useSliderScroll, type SliderDirection } from "./useSliderScroll";
+import Image from "next/image";
 
 export interface SliderEdgeOverflowConfig {
   enabled?: boolean;
@@ -72,7 +73,6 @@ export function ReusableSlider<TItem>({
   getSlideA11yLabel,
   renderSlide,
   animateEntrance = true,
-  allowEdgeWithoutOverflow = false,
 }: ReusableSliderProps<TItem>) {
   const hasLoop = infinite && items.length > 1;
 
@@ -97,7 +97,6 @@ export function ReusableSlider<TItem>({
       enabled: !!edgeOverflow?.enabled,
       distance: edgeOverflow?.chargeWheelDistance,
       releaseDelay: edgeOverflow?.releaseDelay,
-      allowWithoutOverflow: allowEdgeWithoutOverflow,
       onCommit: ({ direction, progress }) =>
         edgeOverflow?.onCommit?.({ direction, progress, activeIndex }),
     },
