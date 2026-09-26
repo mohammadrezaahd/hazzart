@@ -47,7 +47,7 @@ export interface ReusableSliderProps<TItem> {
   getSlideAspectRatio: (item: TItem) => number;
   getSlideA11yLabel?: (item: TItem, index: number) => string;
   renderSlide: (item: TItem, index: number) => ReactNode;
-  animateEntrance?: boolean;
+  animateEntrance?: boolean;\n  allowEdgeWithoutOverflow?: boolean;
 }
 
 /**
