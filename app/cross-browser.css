@@ -35,6 +35,15 @@ a:focus:not(:focus-visible) {
   background-color: transparent;
 }
 
+.close-button:focus-visible,
+.medium-options button:focus-visible,
+.menu-toggle:focus-visible,
+.footer-options button:focus-visible,
+.painting-filter button:focus-visible,
+.reusable-slider__edge-cta:focus-visible {
+  outline: none;
+}
+
 /* Keep native dialog controls from introducing platform-specific borders. */
 dialog,
 dialog::backdrop {
