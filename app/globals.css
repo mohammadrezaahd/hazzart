@@ -13,9 +13,17 @@ body {
   min-height: 100%;
 }
 body {
-  font-family: var(--font-alef), Arial, sans-serif;
+  font-family: var(--font-inter), Inter, Arial, sans-serif;
   color: var(--ink);
   background: var(--paper);
+}
+
+.site-header,
+.mobile-menu,
+.site-footer,
+.medium-picker,
+.painting-filter {
+  font-family: var(--font-alef), Arial, sans-serif;
 }
 button,
 a {
