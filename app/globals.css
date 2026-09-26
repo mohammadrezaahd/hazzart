@@ -741,7 +741,7 @@ dialog {
   --projects-pagination-height: 34px;
   --projects-pagination-gap: 14px;
   --projects-gutter: clamp(12px, 2.4vw, 34px);
-  --project-edge-shift: 72px;
+  --project-edge-shift: 60px;
   position: relative;
   height: 100svh;
   height: 100dvh;
@@ -822,10 +822,6 @@ dialog {
   --project-edge-shift: -60px;
 }
 /* The strip glides aside while an edge is charged, opening the space for the arrow. */
-.projects-slider .reusable-slider__frame {
-  overflow: visible;
-}
-
 .projects-slider .reusable-slider__viewport {
   transform: translateX(calc(var(--edge-progress) * var(--project-edge-shift)));
   will-change: transform;
