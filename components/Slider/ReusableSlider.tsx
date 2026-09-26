@@ -73,6 +73,7 @@ export function ReusableSlider<TItem>({
   getSlideA11yLabel,
   renderSlide,
   animateEntrance = true,
+  allowEdgeWithoutOverflow = false,
 }: ReusableSliderProps<TItem>) {
   const hasLoop = infinite && items.length > 1;
 
