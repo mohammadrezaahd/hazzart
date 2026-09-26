@@ -500,6 +500,9 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
   }, [itemCount, reinit]);
   useEffect(() => () => { stopFrame(); clearTimers(); listenersRef.current.clear(); }, [clearTimers, stopFrame]);
   useEffect(() => { if (activeIndex <= itemCount - 1) return; setActiveIndex(Math.max(0, itemCount - 1)); }, [activeIndex, itemCount]);
-  const popEdge = useCallback((direction: SliderDirection) => { if (!canCharge) return; releaseCharge(direction); }, [canCharge, releaseCharge]);
+  const popEdge = useCallback((direction: SliderDirection) => {
+    if (!canCharge || chargeRef.current.direction !== direction || chargeRef.current.progress < 1) return;
+    releaseCharge(direction);
+  }, [canCharge, releaseCharge]);
   return { scrollerRef, trackRef, activeIndex, edgeState, canCharge, hasLoop, getRange, subscribeRange, scrollToIndex, scrollToPosition, settle, nudge, nearestIndex, popEdge, dropCharge, holdCharge, resumeCharge };
 }
