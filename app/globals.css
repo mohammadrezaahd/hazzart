@@ -675,7 +675,7 @@ dialog {
     #111 calc(var(--edge-progress) * 1turn),
     #00000024 0
   );
-  mask: radial-gradient(circle at center, transparent 0 62%, black 63%);
+  mask: radial-gradient(circle at center, transparent 0 62%, black 62.25%);
 }
 .reusable-slider__edge-cta:hover {
   transform: translateY(-50%) scale(1.07);
@@ -804,7 +804,8 @@ dialog {
 }
 .projects-slider .reusable-slider__frame {
   height: calc(
-    100% - var(--projects-pagination-height) - var(--projects-pagination-gap) - var(--projects-pagination-bottom)
+    100% - var(--projects-pagination-height) - var(--projects-pagination-gap) -
+      var(--projects-pagination-bottom)
   );
 }
 .projects-slider .slider-pagination {
@@ -826,7 +827,11 @@ dialog {
 }
 
 .projects-slider .reusable-slider__track {
-  transform: translate3d(calc(var(--edge-progress) * var(--project-edge-shift)), 0, 0);
+  transform: translate3d(
+    calc(var(--edge-progress) * var(--project-edge-shift)),
+    0,
+    0
+  );
   will-change: transform;
   transition: transform 0.08s linear;
 }
@@ -1014,10 +1019,8 @@ dialog {
    * breathing space before the pagination. */
   .projects-slider .reusable-slider__frame {
     height: calc(
-      100dvh - var(--projects-slider-top) -
-        var(--projects-pagination-height) -
-        var(--projects-pagination-gap) -
-        var(--projects-pagination-bottom)
+      100dvh - var(--projects-slider-top) - var(--projects-pagination-height) -
+        var(--projects-pagination-gap) - var(--projects-pagination-bottom)
     );
   }
   .projects-slider .slider-pagination {
@@ -1125,7 +1128,13 @@ dialog {
   .paintings-experience[data-series-expanded="true"] {
     --paintings-filter-top: 116px;
     --paintings-slider-top: 220px;
-    --paintings-slider-height: min(57.8dvh, calc(100dvh - var(--paintings-slider-top) - max(18px, env(safe-area-inset-bottom)) - 14px));
+    --paintings-slider-height: min(
+      57.8dvh,
+      calc(
+        100dvh - var(--paintings-slider-top) -
+          max(18px, env(safe-area-inset-bottom)) - 14px
+      )
+    );
     min-height: 520px;
   }
   .painting-filter {
@@ -1151,7 +1160,9 @@ dialog {
     width: auto;
     overflow: visible;
     transform: translateY(-6px);
-    transition: opacity 0.25s ease, transform 0.3s var(--motion-ease);
+    transition:
+      opacity 0.25s ease,
+      transform 0.3s var(--motion-ease);
   }
   .painting-filter__branch[data-expanded="true"] .painting-filter__children {
     width: auto;
@@ -1214,7 +1225,6 @@ dialog {
   }
 }
 
-
 /* ------------------------------------------------------------------ *
  * Artist CV — Figma frame 157:378
  * The copy is intentionally clipped inside a viewport. On narrow screens
@@ -1232,14 +1242,13 @@ dialog {
   height: 100dvh;
   min-height: 460px;
   overflow: hidden;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(241, 241, 241, 0) 73.077%,
-      rgba(126, 126, 126, 0.545) 99.97%,
-      rgba(75, 75, 75, 0.789) 99.98%,
-      #1e1e1e 99.99%
-    );
+  background: linear-gradient(
+    180deg,
+    rgba(241, 241, 241, 0) 73.077%,
+    rgba(126, 126, 126, 0.545) 99.97%,
+    rgba(75, 75, 75, 0.789) 99.98%,
+    #1e1e1e 99.99%
+  );
 }
 
 .artist-cv__part {
