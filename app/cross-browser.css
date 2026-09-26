@@ -188,3 +188,34 @@ dialog::backdrop {
     right: 48px;
   }
 }
+
+/* Projects navigation transition */
+.projects-experience--changing .projects-detail,
+.projects-experience--changing .projects-slider {
+  pointer-events: none;
+}
+
+.projects-experience--changing .projects-detail {
+  animation: projects-scene-out 0.32s var(--motion-ease) both;
+}
+
+.projects-experience--changing .projects-slider {
+  animation: projects-scene-out 0.32s var(--motion-ease) both;
+}
+
+@keyframes projects-scene-out {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-14px); }
+}
+
+/* Boundary feedback replaces the arrow with a small bounce. */
+.projects-boundary-message {
+  animation: projects-boundary-bounce 0.56s var(--motion-ease) both;
+}
+
+@keyframes projects-boundary-bounce {
+  0% { opacity: 0; transform: translateY(-50%) scale(0.78); }
+  42% { opacity: 1; transform: translateY(-50%) scale(1.08); }
+  68% { transform: translateY(-50%) scale(0.96); }
+  100% { opacity: 1; transform: translateY(-50%) scale(1); }
+}
