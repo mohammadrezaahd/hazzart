@@ -1073,84 +1073,474 @@ dialog {
   }
 }
 @media (max-width: 767px) {
-  .contact-experience {
-    min-height: 100svh;
-    min-height: 100dvh;
-    padding: 0 12px;
-    background: white;
+  .projects-experience {
+    --projects-detail-top: 116px;
+    --projects-slider-top: 300px;
+    --projects-pagination-bottom: max(14px, env(safe-area-inset-bottom));
+    --projects-pagination-height: 28px;
+    --projects-pagination-gap: 10px;
   }
 
-  .contact-content {
-    width: 100%;
-    margin-top: 104px;
+  /* Match the paintings artwork height on mobile while leaving a deliberate
+   * breathing space before the pagination. */
+  .projects-slider .reusable-slider__frame {
+    height: calc(
+      100dvh - var(--projects-slider-top) - var(--projects-pagination-height) -
+        var(--projects-pagination-gap) - var(--projects-pagination-bottom)
+    );
   }
-
-  .contact-title {
-    width: auto;
-    height: auto;
-    margin: 0 0 4px;
-    justify-content: flex-start;
-    font-size: 11px;
-    line-height: 1.15;
-    font-weight: 300;
+  .projects-slider .slider-pagination {
+    width: min(260px, calc(100% - 80px));
   }
-
-  .contact-body {
-    width: 100%;
-    max-width: 210px;
-    min-height: 0;
-    font-size: 11px;
-    line-height: 1.34;
+  .site-header {
+    left: 10px;
+    right: 10px;
+    top: max(10px, env(safe-area-inset-top));
+    height: 66px;
+    justify-content: space-between;
+    align-items: flex-start;
   }
-
-  .contact-body p {
-    margin: 0 0 17px;
+  .artist-name {
+    white-space: normal;
+    width: 170px;
+    font-size: 32px;
   }
-
-  .contact-body p:nth-child(2) {
-    margin-bottom: 29px;
+  .artist-name span {
+    display: block;
   }
-
-  .contact-email {
-    font-size: 11px;
-  }
-
-  /* The large decorative ArtStation mark is desktop-only.
-     It must not appear or affect the mobile layout. */
-  .contact-artstation-mark {
+  .desktop-navigation {
     display: none;
   }
-
-  .contact-socials {
-    left: 12px;
-    right: 12px;
-    bottom: max(15px, env(safe-area-inset-bottom));
-    width: calc(100% - 24px);
-    transform: none;
+  .nav-indicator {
+    display: none;
+  }
+  .menu-toggle {
+    display: flex;
+  }
+  .table-experience {
+    background: white;
+  }
+  .desk-stage {
+    inset: 90px 0 76px;
+    --card-height: min(51.69vw, 27dvh);
+  }
+  .site-footer {
+    width: 100%;
+    bottom: max(18px, env(safe-area-inset-bottom));
+    gap: 9px;
+  }
+  .footer-options {
+    width: calc(100% - 50px);
+    max-width: 400px;
+  }
+  .footer-options button {
+    height: 32px;
+    font-size: 14px;
+  }
+  .footer-indicator {
+    height: 32px;
+    width: calc((100% - 40px) / var(--item-count));
+    margin-left: 5px;
+  }
+  /* Full grid cell movement with 10px visual gaps between the pills. */
+  .footer-indicator {
+    width: calc(100% / var(--item-count));
+    margin-left: 0;
+    clip-path: inset(0 5px round 10px);
+  }
+  .footer-rule {
+    width: min(280px, 72%);
+  }
+  .sound-toggle {
+    right: 10px;
+    bottom: 73px;
+    font-size: 11px;
+  }
+  .close-button {
+    right: 4px;
+    top: max(4px, env(safe-area-inset-top));
+  }
+  .medium-picker {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    border-radius: 20px 20px 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .viewer-image {
+    --viewer-width: min(84vw, calc(61dvh * var(--art-ratio)));
+    left: calc((100% - var(--viewer-width)) / 2);
+    top: max(86px, 10dvh);
+    height: auto;
+    width: var(--viewer-width);
+    max-width: none;
+  }
+  .viewer-image.viewer-landscape {
+    left: 8%;
+    width: 84%;
+    top: 22dvh;
+    margin-top: 0;
+  }
+  .artwork-description {
+    left: 8%;
+    top: auto;
+    bottom: max(8dvh, 40px);
+    width: 84%;
+    font-size: 18px;
+    line-height: 1.4;
+  }
+  .paintings-experience {
+    --paintings-filter-top: 100px;
+    --paintings-slider-top: 220px;
+    --paintings-slider-height: min(
+      57.8dvh,
+      calc(
+        100dvh - var(--paintings-slider-top) -
+          max(18px, env(safe-area-inset-bottom)) - 14px
+      )
+    );
+    min-height: 520px;
+  }
+  .painting-filter {
+    left: 10px;
+    right: 0;
+    max-width: none;
+    overflow: visible;
+  }
+  .painting-filter__primary {
+    width: auto;
+    height: auto;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-right: 10px;
+    overflow: visible;
+  }
+  .painting-filter__branch {
     flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 0;
+    align-items: flex-start;
   }
-
-  .contact-socials-label {
+  .painting-filter__children {
+    position: static;
+    top: auto;
+    left: auto;
+    flex-direction: row;
     width: auto;
-    margin-right: 36px;
-    font-size: 9px;
-    line-height: 12px;
-    text-align: left;
+    overflow: visible;
+    transform: translateX(-4px);
   }
-
-  .contact-socials-list {
+  .painting-filter__branch[data-expanded="true"] .painting-filter__children {
     width: auto;
-    justify-content: flex-start;
-    gap: 11px;
+    transform: translateY(0);
+  }
+  .painting-filter button {
+    height: 20px;
+    padding-inline: 7px;
+    border-radius: 6px;
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .painting-filter__children button {
+    flex: 0 0 auto;
+    padding-inline: 7px;
+  }
+  .artwork-slider {
+    top: var(--paintings-slider-top);
+    height: var(--paintings-slider-height);
   }
 
-  .contact-social-link,
-  .contact-social-link img {
-    width: 12px;
-    height: 12px;
+  .artwork-slider__slide {
+    min-width: 0;
+    max-width: none;
+  }
+
+  /* Touch scrolling is intentionally native; the engine only re-anchors after momentum. */
+  .reusable-slider__viewport {
+    overscroll-behavior-x: contain;
+    scroll-snap-type: none;
+  }
+
+  /* Keep the bounded-slider edge affordance: when the user pushes past
+   * an end, the strip still opens toward the arrow instead of staying rigid. */
+  .projects-slider .reusable-slider__viewport {
+    will-change: transform;
+  }
+}
+@media (max-height: 570px) and (max-width: 767px) {
+  .viewer-image {
+    left: 6%;
+    top: 16%;
+    height: 72dvh;
+    width: auto;
+    max-height: none;
+    max-width: 42%;
+  }
+  .artwork-description {
+    left: 54%;
+    width: 39%;
+    bottom: 14%;
+    font-size: 15px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Artist CV — Figma frame 157:378
+ * The copy is intentionally clipped inside a viewport. On narrow screens
+ * it becomes vertically scrollable; the lower edge fades into the page.
+ * ------------------------------------------------------------------ */
+.artist-cv-experience {
+  --cv-content-width: min(1086px, calc(100% - 56px));
+  --cv-part-top: 108px;
+  --cv-body-top: 304px;
+  --cv-part-height: 806px;
+  --cv-body-height: 502px;
+  position: relative;
+  width: 100%;
+  height: 100svh;
+  height: 100dvh;
+  min-height: 460px;
+  overflow: hidden;
+  background: linear-gradient(
+    180deg,
+    rgba(241, 241, 241, 0) 73.077%,
+    rgba(126, 126, 126, 0.545) 99.97%,
+    rgba(75, 75, 75, 0.789) 99.98%,
+    #1e1e1e 99.99%
+  );
+}
+
+.artist-cv__part {
+  position: absolute;
+  top: var(--cv-part-top);
+  left: 50%;
+  width: var(--cv-content-width);
+  height: var(--cv-part-height);
+  transform: translateX(-50%);
+}
+
+.artist-cv__title {
+  position: absolute;
+  top: 247px;
+  left: 0;
+  width: 80px;
+  height: 49px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-inter, Inter, Arial, sans-serif);
+  font-size: 36px;
+  font-style: italic;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.artist-cv__body {
+  position: absolute;
+  top: var(--cv-body-top);
+  left: 50%;
+  width: calc(100% - 22px);
+  height: var(--cv-body-height);
+  transform: translateX(-50%);
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+  overscroll-behavior: contain;
+  outline-offset: -3px;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 calc(100% - 64px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 calc(100% - 64px),
+    transparent 100%
+  );
+}
+
+.artist-cv__body::-webkit-scrollbar {
+  display: none;
+}
+
+.artist-cv__copy {
+  width: 100%;
+  padding-bottom: 42px;
+  font-family: var(--font-inter, Inter, Arial, sans-serif);
+  font-size: clamp(18px, 1.667vw, 24px);
+  font-style: normal;
+  font-weight: 300;
+  line-height: 1.34;
+  color: #000;
+}
+
+.artist-cv__copy p {
+  margin: 0;
+}
+
+.artist-cv__copy p + p {
+  margin-top: 22px;
+}
+
+.artist-cv-scrollbar {
+  position: absolute;
+  left: 50%;
+  bottom: max(38px, env(safe-area-inset-bottom));
+  width: min(1106px, calc(100% - 334px));
+  height: 20px;
+  transform: translateX(-50%);
+  padding-block: 5px;
+}
+
+.artist-cv-scrollbar__rail {
+  position: relative;
+  width: 100%;
+  height: 10px;
+  cursor: default;
+  touch-action: none;
+}
+
+.artist-cv-scrollbar[data-ready="true"] .artist-cv-scrollbar__rail {
+  cursor: grab;
+}
+
+.artist-cv-scrollbar[data-dragging="true"] .artist-cv-scrollbar__rail {
+  cursor: grabbing;
+}
+
+.artist-cv-scrollbar__line,
+.artist-cv-scrollbar__fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  transform: translateY(-50%);
+}
+
+.artist-cv-scrollbar__line {
+  background: #dcdcdc;
+}
+
+.artist-cv-scrollbar__fill {
+  right: auto;
+  width: calc(var(--cv-scroll-position) * 100%);
+  background: #111;
+}
+
+.artist-cv-scrollbar__dot {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--cv-scroll-position) * 100%);
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: #111;
+  opacity: 0.9;
+  transition: transform 0.28s var(--motion-ease);
+}
+
+.artist-cv-scrollbar[data-ready="true"]:focus-within .artist-cv-scrollbar__dot,
+.artist-cv-scrollbar[data-dragging="true"] .artist-cv-scrollbar__dot {
+  transform: scale(1.45);
+}
+
+@media (max-height: 820px) and (min-width: 900px) {
+  .artist-cv-experience {
+    --cv-part-top: 82px;
+    --cv-body-top: 245px;
+    --cv-part-height: calc(100dvh - 82px - 78px);
+    --cv-body-height: calc(100dvh - 82px - 245px - 78px);
+  }
+
+  .artist-cv__title {
+    top: 196px;
+  }
+
+  .artist-cv-scrollbar {
+    bottom: 38px;
+  }
+}
+
+@media (max-height: 620px) and (min-width: 900px) {
+  .artist-cv-experience {
+    --cv-part-top: 70px;
+    --cv-body-top: 208px;
+    --cv-part-height: calc(100dvh - 70px - 70px);
+    --cv-body-height: calc(100dvh - 70px - 208px - 70px);
+  }
+
+  .artist-cv__title {
+    top: 164px;
+  }
+}
+
+@media (max-width: 899px) {
+  .artist-cv-experience {
+    --cv-content-width: min(1086px, calc(100% - 76px));
+    --cv-part-top: clamp(132px, 16.94dvh, 173.5px);
+    --cv-part-height: 529px;
+    --cv-body-top: 32px;
+    --cv-body-height: 497px;
+  }
+
+  .artist-cv__title {
+    top: 0;
+    width: 42px;
+    height: 32px;
+    justify-content: flex-start;
+    font-size: 26px;
+  }
+
+  .artist-cv__body {
+    width: 100%;
+    left: 0;
+    transform: none;
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 calc(100% - 58px),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 calc(100% - 58px),
+      transparent 100%
+    );
+  }
+
+  .artist-cv__copy {
+    font-size: 24px;
+    line-height: 1.34;
+    padding-bottom: 52px;
+  }
+
+  .artist-cv__copy p + p {
+    margin-top: 22px;
+  }
+
+  .artist-cv-scrollbar {
+    width: 245px;
+    height: 29px;
+    bottom: max(20px, env(safe-area-inset-bottom));
+    padding-block: 9px;
+  }
+
+  .artist-cv-scrollbar__rail {
+    height: 11px;
   }
 }
 
@@ -1383,11 +1773,7 @@ dialog {
   }
 
   .contact-artstation-mark {
-    top: auto;
-    bottom: -720px;
-    width: 1500px;
-    height: 1500px;
-    opacity: 0.08;
+    display: none;
   }
 
   .contact-socials {
@@ -1396,21 +1782,29 @@ dialog {
     bottom: max(18px, env(safe-area-inset-bottom));
     width: calc(100% - 20px);
     transform: none;
-    flex-direction: column;
+    display: flex;
+    flex-direction: row;
     align-items: center;
-    gap: 12px;
+    justify-content: flex-start;
+    gap: 36px;
   }
 
   .contact-socials-label {
     width: auto;
+    margin: 0;
+    flex: 0 0 auto;
     font-size: 14px;
     line-height: 20px;
+    text-align: left;
   }
 
   .contact-socials-list {
-    width: 100%;
-    justify-content: center;
-    gap: clamp(22px, 7vw, 42px);
+    width: auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 11px;
   }
 
   .contact-social-link,
@@ -1443,4 +1837,3 @@ dialog {
     transition: none;
   }
 }
-
