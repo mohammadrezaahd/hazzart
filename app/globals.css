@@ -814,6 +814,7 @@ dialog {
 .projects-slider .reusable-slider__viewport {
   transform: translateX(calc(var(--edge-progress) * var(--project-edge-shift)));
   will-change: transform;
+  transition: transform 0.12s linear;
 }
 /* Images are flush: each slide is exactly one image ratio wide, with no gap between. */
 .projects-slider .reusable-slider__slide {
@@ -972,7 +973,12 @@ dialog {
     height: 34px;
   }
   .reusable-slider__edge-arrow {
-    font-size: 19px;
+    width: 11px;
+    height: 11px;
+  }
+  .reusable-slider__edge-arrow > span {
+    width: 8px;
+    height: 8px;
   }
   .slider-pagination__rail {
     height: 20px;
