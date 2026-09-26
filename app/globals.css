@@ -394,8 +394,8 @@ dialog {
   overflow-wrap: anywhere;
 }
 .paintings-experience {
-  --paintings-filter-top: 249px;
-  --paintings-slider-top: 328px;
+  --paintings-filter-top: 228px;
+  --paintings-slider-top: 292px;
   --paintings-slider-height: min(57.8125dvh, 592px);
   position: relative;
   height: 100svh;
@@ -403,10 +403,6 @@ dialog {
   min-height: 620px;
   overflow: hidden;
   background: white;
-}
-.paintings-experience[data-series-expanded="true"] {
-  --paintings-filter-top: 228px;
-  --paintings-slider-top: 292px;
 }
 .painting-filter {
   position: absolute;
@@ -1136,8 +1132,7 @@ dialog {
     font-size: 18px;
     line-height: 1.4;
   }
-  .paintings-experience,
-  .paintings-experience[data-series-expanded="true"] {
+  .paintings-experience {
     --paintings-filter-top: 116px;
     --paintings-slider-top: 220px;
     --paintings-slider-height: min(
@@ -1156,19 +1151,19 @@ dialog {
     overflow: visible;
   }
   .painting-filter__primary {
-    width: max-content;
+    width: auto;
+    height: auto;
+    flex-direction: column;
+    align-items: flex-start;
     padding-right: 10px;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .painting-filter__primary::-webkit-scrollbar {
-    display: none;
+    overflow: visible;
   }
   /* Children drop below the filter row instead of expanding inline. */
   .painting-filter__children {
-    position: absolute;
-    top: 38px;
-    left: 0;
+    position: static;
+    top: auto;
+    left: auto;
+    flex-direction: column;
     width: auto;
     overflow: visible;
     transform: translateY(-6px);
