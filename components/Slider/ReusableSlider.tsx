@@ -98,6 +98,7 @@ export function ReusableSlider<TItem>({
       enabled: !!edgeOverflow?.enabled,
       distance: edgeOverflow?.chargeWheelDistance,
       releaseDelay: edgeOverflow?.releaseDelay,
+      allowWithoutOverflow: allowEdgeWithoutOverflow,
       onCommit: ({ direction, progress }) =>
         edgeOverflow?.onCommit?.({ direction, progress, activeIndex }),
     },
