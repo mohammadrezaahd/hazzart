@@ -71,6 +71,7 @@ export function ReusableSlider<TItem>({
   getSlideAspectRatio,
   getSlideA11yLabel,
   renderSlide,
+  animateEntrance = true,
 }: ReusableSliderProps<TItem>) {
   const hasLoop = infinite && items.length > 1;
 
