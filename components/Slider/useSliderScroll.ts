@@ -77,6 +77,13 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
   const hasLoop = infinite && itemCount > 1;
   const canCharge = !hasLoop && itemCount > 1 && !!edgeCharge?.enabled;
 
+  useEffect(() => {
+    if (edgeCharge?.enabled) return;
+    clearTimers();
+    chargeRef.current = { direction: null, progress: 0 };
+    setEdgeState(null);
+  }, [edgeCharge?.enabled]);
+
   const measure = useCallback(() => {
     const element = scrollerRef.current;
     const track = trackRef.current;
