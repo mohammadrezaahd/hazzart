@@ -203,8 +203,12 @@ dialog::backdrop {
   animation: none;
 }
 
-/* Projects use a bounce at the boundary instead of the generic arrow/ring UI. */
-.projects-slider .reusable-slider__edge-cta {
+/* At a real project boundary, hide only the unavailable direction. */
+.projects-slider--no-previous .reusable-slider__edge-cta--previous {
+  display: none !important;
+}
+
+.projects-slider--no-next .reusable-slider__edge-cta--next {
   display: none !important;
 }
 
