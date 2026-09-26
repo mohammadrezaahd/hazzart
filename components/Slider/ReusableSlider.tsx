@@ -46,7 +46,8 @@ export interface ReusableSliderProps<TItem> {
   /** width / height of the visual inside the slide. */
   getSlideAspectRatio: (item: TItem) => number;
   getSlideA11yLabel?: (item: TItem, index: number) => string;
-  renderSlide: (item: TItem, index: number) => ReactNode;\n  animateEntrance?: boolean;
+  renderSlide: (item: TItem, index: number) => ReactNode;
+  animateEntrance?: boolean;
 }
 
 /**
@@ -158,7 +159,7 @@ export function ReusableSlider<TItem>({
   /** Entrance: the slides rise in whenever the set changes. */
   useEffect(() => {
     const element = scrollerRef.current;
-    if (!element || items.length === 0 || prefersReducedMotion()) return;
+    if (!animateEntrance || !element || items.length === 0 || prefersReducedMotion()) return;
     const nodes = element.querySelectorAll<HTMLElement>(
       ".reusable-slider__slide",
     );
