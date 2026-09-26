@@ -190,59 +190,56 @@ dialog::backdrop {
 }
 
 /* Projects navigation transition */
-.projects-experience--changing .projects-detail,
-.projects-experience--changing .projects-slider {
-  pointer-events: none;
-}
-
-.projects-experience--changing .projects-detail {
-  animation: projects-scene-out 0.32s var(--motion-ease) both;
-}
-
-.projects-experience--changing .projects-slider {
-  animation: projects-scene-out 0.32s var(--motion-ease) both;
-}
-
-@keyframes projects-scene-out {
-  from { opacity: 1; transform: translateY(0); }
-  to { opacity: 0; transform: translateY(-14px); }
-}
-
-/* Boundary feedback replaces the arrow with a small bounce. */
-.projects-boundary-message {
-  animation: projects-boundary-bounce 0.56s var(--motion-ease) both;
-}
-
-@keyframes projects-boundary-bounce {
-  0% { opacity: 0; transform: translateY(-50%) scale(0.78); }
-  42% { opacity: 1; transform: translateY(-50%) scale(1.08); }
-  68% { transform: translateY(-50%) scale(0.96); }
-  100% { opacity: 1; transform: translateY(-50%) scale(1); }
-}
-
-/* Each project is one isolated scene. This prevents the outgoing detail/slider
- * from remaining visually stacked above the newly mounted project. */
 .projects-scene {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  width: 100%;
+  height: 100%;
   min-width: 0;
   min-height: 0;
-  animation: projects-scene-enter 0.62s var(--motion-ease) both;
+  animation: projects-scene-enter 0.56s var(--motion-ease) both;
 }
 
-.projects-scene--changing {
-  animation: projects-scene-enter 0.62s var(--motion-ease) both;
+.projects-scene .projects-detail {
+  animation: none;
 }
 
-.projects-scene .projects-detail,
-.projects-scene .projects-slider {
-  z-index: auto;
+/* Projects use a bounce at the boundary instead of the generic arrow/ring UI. */
+.projects-slider .reusable-slider__edge-cta {
+  display: none !important;
+}
+
+.projects-slider .reusable-slider__viewport {
+  transform: none;
+}
+
+.projects-experience--boundary-previous .projects-slider .reusable-slider__viewport {
+  animation: projects-boundary-bounce-previous 0.56s var(--motion-ease) both;
+}
+
+.projects-experience--boundary-next .projects-slider .reusable-slider__viewport {
+  animation: projects-boundary-bounce-next 0.56s var(--motion-ease) both;
+}
+
+@keyframes projects-boundary-bounce-previous {
+  0% { transform: translateX(0); }
+  32% { transform: translateX(22px); }
+  58% { transform: translateX(-8px); }
+  78% { transform: translateX(4px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes projects-boundary-bounce-next {
+  0% { transform: translateX(0); }
+  32% { transform: translateX(-22px); }
+  58% { transform: translateX(8px); }
+  78% { transform: translateX(-4px); }
+  100% { transform: translateX(0); }
 }
 
 @keyframes projects-scene-enter {
   from {
     opacity: 0;
-    transform: translateY(18px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
