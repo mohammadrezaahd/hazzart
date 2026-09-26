@@ -26,9 +26,7 @@ export const fakeData: PortfolioData = {
     { id: 'roxy-line-study', title: 'Roxy — Line Study', year: 2024, createdAt: '2024-05-09', mediumId: 'charcoal', paintingCategoryIds: ['charcoal', 'roxy-series'], description: 'The original line study for Roxy On A Ride.', dimensions: '3000 × 4000 px', image: { src: '/artworks/artwork-12.png', alt: 'A line drawing of a cat riding in a car', width: 840, height: 1121 }, table: { rotation: 14.96, aspectRatio: 0.75 } },
     { id: 'roxy-on-a-ride', title: 'Roxy On A Ride', year: 2024, createdAt: '2024-06-18', mediumId: 'digital-painting', paintingCategoryIds: ['digital-painting', 'roxy-series'], description: 'Digital Painting based on Original Photography, shadow pass', dimensions: '3000*4000px', image: { src: '/artworks/artwork-19.png', alt: 'Roxy the cat beside a steering wheel, rendered in bold black and white', width: 846, height: 1120, flipX: true }, table: { rotation: 0, aspectRatio: 0.7554 } },
   ],
-  // One project, told as a single story page: the copy at the top stays put while the
-  // strip below walks through the project's own images.
-  project: {
+  projects: [
     id: 'daily-notes',
     name: 'Daily Notes',
     tagline: 'A drawing practice that keeps one small observation a day — a plate, a window, the sea.',
