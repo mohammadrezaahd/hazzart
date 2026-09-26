@@ -27,6 +27,7 @@ export interface SliderEdgeChargeConfig {
   distance?: number;
   releaseDelay?: number;
   onCommit?: (payload: { direction: SliderDirection; progress: number }) => void;
+  allowWithoutOverflow?: boolean;
 }
 
 export interface SliderScrollOptions {
@@ -76,6 +77,7 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
   configRef.current = { itemCount, infinite, edgeCharge };
   const hasLoop = infinite && itemCount > 1;
   const canCharge = !hasLoop && itemCount > 1 && !!edgeCharge?.enabled;
+  const allowEdgeWithoutOverflow = canCharge && !!edgeCharge?.allowWithoutOverflow;
 
   useEffect(() => {
     if (edgeCharge?.enabled) return;
@@ -371,7 +373,8 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
         measure();
         maximum = maxRef.current;
       }
-      if (!hasLoop && maximum <= 0) return;
+      const noOverflow = !hasLoop && maximum <= 0;
+      if (noOverflow && !allowEdgeWithoutOverflow) return;
       const dominant = Math.abs(event.deltaY) >= Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
       if (!dominant) return;
       const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? element.clientWidth : 1;
@@ -380,6 +383,10 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
         event.preventDefault();
         targetRef.current += delta;
         normalizeLoop();
+      } else if (noOverflow) {
+        const direction: SliderDirection = delta > 0 ? 'next' : 'previous';
+        event.preventDefault();
+        chargeEdge(direction, Math.abs(delta));
       } else {
         const direction: SliderDirection = delta > 0 ? 'next' : 'previous';
         const limit = direction === 'next' ? maximum : 0;
@@ -458,7 +465,7 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
     element.addEventListener('pointerdown', onPointerDown); element.addEventListener('pointerup', onPointerUp); element.addEventListener('pointercancel', onPointerUp);
     element.addEventListener('touchstart', onTouchStart, { passive: true }); element.addEventListener('touchmove', onTouchMove, { passive: true }); element.addEventListener('scroll', onScroll, { passive: true }); element.addEventListener('keydown', onKeyDown);
     return () => { wheelTarget.removeEventListener('wheel', onWheel); element.removeEventListener('pointerdown', onPointerDown); element.removeEventListener('pointerup', onPointerUp); element.removeEventListener('pointercancel', onPointerUp); element.removeEventListener('touchstart', onTouchStart); element.removeEventListener('touchmove', onTouchMove); element.removeEventListener('scroll', onScroll); element.removeEventListener('keydown', onKeyDown); };
-  }, [applyImmediate, canCharge, chargeEdge, dropCharge, emitRange, hasLoop, itemCount, measure, nearestIndex, normalizeLoop, nudge, rangePosition, reportIndex, startFrame, stopFrame, wheelRoot, write]);
+  }, [allowEdgeWithoutOverflow, applyImmediate, canCharge, chargeEdge, dropCharge, emitRange, hasLoop, itemCount, measure, nearestIndex, normalizeLoop, nudge, rangePosition, reportIndex, startFrame, stopFrame, wheelRoot, write]);
 
   const reinit = useCallback(() => {
     const element = scrollerRef.current; const track = trackRef.current;
