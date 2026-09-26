@@ -1568,3 +1568,268 @@ dialog {
     bottom: max(12px, env(safe-area-inset-bottom));
   }
 }
+
+
+/* ------------------------------------------------------------------ *
+ * Contact
+ * ------------------------------------------------------------------ */
+.contact-experience {
+  position: relative;
+  width: 100%;
+  height: 100svh;
+  height: 100dvh;
+  min-height: 520px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 23px 28px 38px;
+  background: linear-gradient(
+    180deg,
+    rgba(241, 241, 241, 0) 73.077%,
+    rgba(126, 126, 126, 0.545) 99.97%,
+    rgba(75, 75, 75, 0.789) 99.98%,
+    #1e1e1e 99.99%
+  );
+}
+
+.contact-content {
+  position: relative;
+  z-index: 2;
+  width: min(1082px, calc(100% - 18px));
+  margin-top: 301px;
+}
+
+.contact-title {
+  margin: 0 0 17px;
+  width: 140px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-inter, Inter, Arial, sans-serif);
+  font-size: 36px;
+  font-style: italic;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.contact-body {
+  width: min(741px, 100%);
+  min-height: 238px;
+  font-family: var(--font-inter, Inter, Arial, sans-serif);
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 300;
+  line-height: 1.35;
+}
+
+.contact-body p {
+  margin: 0 0 22px;
+}
+
+.contact-body p:last-child {
+  margin-bottom: 0;
+}
+
+.contact-email {
+  color: #0088ff;
+  text-decoration: underline;
+  text-underline-position: from-font;
+  text-decoration-thickness: 1px;
+}
+
+.contact-artstation-mark {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 610px;
+  width: 2500px;
+  height: 2500px;
+  max-width: none;
+  transform: translateX(-50%);
+  object-fit: contain;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.contact-socials {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: max(38px, env(safe-area-inset-bottom));
+  width: min(1077px, calc(100% - 56px));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.contact-socials-label {
+  width: 114px;
+  flex: 0 0 auto;
+  font-family: var(--font-inter, Inter, Arial, sans-serif);
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 26px;
+  text-align: center;
+}
+
+.contact-socials-list {
+  display: flex;
+  align-items: center;
+  gap: 100px;
+}
+
+.contact-social-link {
+  width: 35px;
+  height: 35px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.25s ease, transform 0.25s var(--motion-ease);
+}
+
+.contact-social-link img {
+  width: 35px;
+  height: 35px;
+  display: block;
+  object-fit: contain;
+}
+
+.contact-social-link:hover {
+  opacity: 0.55;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 1100px) {
+  .contact-content {
+    width: min(1082px, calc(100% - 18px));
+  }
+
+  .contact-socials {
+    width: calc(100% - 56px);
+  }
+
+  .contact-socials-list {
+    gap: clamp(28px, 7vw, 100px);
+  }
+}
+
+@media (max-height: 820px) and (min-width: 900px) {
+  .contact-content {
+    margin-top: 235px;
+  }
+
+  .contact-artstation-mark {
+    top: 515px;
+  }
+}
+
+@media (max-height: 620px) and (min-width: 900px) {
+  .contact-content {
+    margin-top: 180px;
+  }
+
+  .contact-artstation-mark {
+    top: 420px;
+  }
+
+  .contact-body {
+    font-size: 21px;
+  }
+}
+
+@media (max-width: 767px) {
+  .contact-experience {
+    min-height: 620px;
+    padding: 0 10px;
+    background: white;
+  }
+
+  .contact-content {
+    width: calc(100% - 20px);
+    margin-top: 176px;
+  }
+
+  .contact-title {
+    width: 92px;
+    height: 34px;
+    margin-bottom: 22px;
+    justify-content: flex-start;
+    font-size: 30px;
+  }
+
+  .contact-body {
+    width: 100%;
+    max-width: 100%;
+    min-height: 0;
+    font-size: clamp(19px, 5.3vw, 24px);
+    line-height: 1.38;
+  }
+
+  .contact-body p {
+    margin-bottom: 24px;
+  }
+
+  .contact-artstation-mark {
+    top: auto;
+    bottom: -720px;
+    width: 1500px;
+    height: 1500px;
+    opacity: 0.08;
+  }
+
+  .contact-socials {
+    left: 10px;
+    right: 10px;
+    bottom: max(18px, env(safe-area-inset-bottom));
+    width: calc(100% - 20px);
+    transform: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .contact-socials-label {
+    width: auto;
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .contact-socials-list {
+    width: 100%;
+    justify-content: center;
+    gap: clamp(22px, 7vw, 42px);
+  }
+
+  .contact-social-link,
+  .contact-social-link img {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+@media (max-width: 420px) {
+  .contact-content {
+    margin-top: 158px;
+  }
+
+  .contact-title {
+    font-size: 28px;
+  }
+
+  .contact-body {
+    font-size: clamp(18px, 5.2vw, 22px);
+  }
+
+  .contact-socials-list {
+    gap: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-social-link {
+    transition: none;
+  }
+}
