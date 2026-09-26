@@ -453,7 +453,7 @@ dialog {
   width: 10px;
   height: 12px;
   flex-shrink: 0;
-  transform: rotate(180deg);
+  /* transform: rotate(180deg); */
 }
 
 .painting-filter button[aria-pressed="true"],

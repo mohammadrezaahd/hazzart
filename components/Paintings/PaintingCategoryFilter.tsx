@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import type { PaintingCategory } from '@/interfaces/Portfolio';
-import { getExpandedCategoryId } from '@/utils/categories';
+import Image from "next/image";
+import type { PaintingCategory } from "@/interfaces/Portfolio";
+import { getExpandedCategoryId } from "@/utils/categories";
 
 interface PaintingCategoryFilterProps {
   categories: PaintingCategory[];
@@ -10,40 +10,59 @@ interface PaintingCategoryFilterProps {
   onChange: (categoryId: string | null) => void;
 }
 
-export function PaintingCategoryFilter({ categories, value, onChange }: PaintingCategoryFilterProps) {
+export function PaintingCategoryFilter({
+  categories,
+  value,
+  onChange,
+}: PaintingCategoryFilterProps) {
   const expandedId = getExpandedCategoryId(categories, value);
 
   return (
     <nav className="painting-filter" aria-label="Filter paintings">
       <div className="painting-filter__primary">
-        <button type="button" aria-pressed={value === null} onClick={() => onChange(null)}>All</button>
-        {categories.map(category => {
+        <button
+          type="button"
+          aria-pressed={value === null}
+          onClick={() => onChange(null)}
+        >
+          All
+        </button>
+        {categories.map((category) => {
           const hasChildren = Boolean(category.children?.length);
           const expanded = hasChildren && expandedId === category.id;
           return (
-            <div className="painting-filter__branch" data-expanded={expanded} key={category.id}>
+            <div
+              className="painting-filter__branch"
+              data-expanded={expanded}
+              key={category.id}
+            >
               <button
                 type="button"
                 aria-pressed={value === category.id}
                 aria-expanded={hasChildren ? expanded : undefined}
                 onClick={() => onChange(category.id)}
-                className={hasChildren ? 'painting-filter__trigger' : ''}
+                className={hasChildren ? "painting-filter__trigger" : ""}
               >
                 <span>{category.label}</span>
                 {hasChildren && (
                   <Image
-                    src="/icons/angle.svg"
+                    src={
+                      expanded ? "/icons/angle-bold.svg" : "/icons/angle.svg"
+                    }
                     alt=""
                     width={10}
                     height={12}
-                    className={`painting-filter__angle ${expanded ? 'is-open' : ''}`}
+                    className={`painting-filter__angle ${expanded ? "is-open" : ""}`}
                     aria-hidden="true"
                   />
-                )}
+                )}{" "}
               </button>
               {hasChildren && (
-                <div className="painting-filter__children" aria-hidden={!expanded}>
-                  {category.children?.map(child => (
+                <div
+                  className="painting-filter__children"
+                  aria-hidden={!expanded}
+                >
+                  {category.children?.map((child) => (
                     <button
                       type="button"
                       key={child.id}
