@@ -1,0 +1,181 @@
+/* Cross-browser polish + responsive fixes.
+ * Loaded from the root layout so these rules apply consistently in Safari,
+ * Chromium and Firefox without changing the existing design tokens.
+ */
+
+/* Avoid Safari/native button rendering and accidental tap/focus rings. */
+button,
+a {
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.close-button,
+.medium-options button,
+.menu-toggle,
+.footer-options button,
+.painting-filter button,
+.reusable-slider__edge-cta {
+  -webkit-appearance: none;
+  appearance: none;
+  border: 0;
+  box-shadow: none;
+  background-color: transparent;
+}
+
+/* Keep native dialog controls from introducing platform-specific borders. */
+dialog,
+dialog::backdrop {
+  border: 0;
+}
+
+.close-button img,
+.menu-toggle img,
+.table-link img,
+.reusable-slider__edge-cta img {
+  display: block;
+  border: 0;
+  outline: 0;
+  box-shadow: none;
+}
+
+/* ------------------------------------------------------------------ *
+ * Artist CV fixes
+ * ------------------------------------------------------------------ */
+
+/* The CV label now lives inside the scroll container, so it scrolls with
+ * the copy instead of behaving like a sticky element. */
+.artist-cv__body .artist-cv__title {
+  position: relative;
+  top: auto;
+  left: auto;
+  flex: none;
+}
+
+.artist-cv__body .artist-cv__copy {
+  position: relative;
+}
+
+/* Desktop: preserve the existing visual distance between CV and the copy
+ * while making both part of the same scrollable content. */
+@media (min-width: 900px) {
+  .artist-cv__body {
+    top: 247px;
+    height: calc(var(--cv-body-height) + 57px);
+  }
+
+  .artist-cv__body .artist-cv__copy {
+    margin-top: 57px;
+  }
+}
+
+/* Mobile: reserve the scrollbar's full footprint below the text viewport.
+ * This fixes the 386x697-style overlap where the line touched the copy. */
+@media (max-width: 899px) {
+  .artist-cv__body {
+    top: 0;
+    height: min(
+      529px,
+      calc(
+        100dvh - var(--cv-part-top) - 32px -
+        max(29px, env(safe-area-inset-bottom) + 20px) - 18px
+      )
+    );
+  }
+
+  .artist-cv__body .artist-cv__copy {
+    margin-top: 32px;
+  }
+}
+
+@media (max-width: 420px) {
+  .artist-cv__body {
+    height: calc(
+      100dvh - var(--cv-part-top) - 32px -
+      max(29px, env(safe-area-inset-bottom) + 20px) - 18px
+    );
+  }
+}
+
+/* The scrollbar is decorative when there is no overflow, but its marker
+ * intentionally sits at the end of the track rather than pretending the
+ * content is at the beginning. */
+.artist-cv-scrollbar[data-ready="false"] {
+  pointer-events: none;
+}
+
+.artist-cv-scrollbar[data-ready="false"] .artist-cv-scrollbar__fill {
+  width: 100%;
+}
+
+.artist-cv-scrollbar[data-ready="false"] .artist-cv-scrollbar__dot {
+  left: 100%;
+}
+
+/* ------------------------------------------------------------------ *
+ * Projects navigation feedback
+ * ------------------------------------------------------------------ */
+
+.projects-boundary-message {
+  position: absolute;
+  z-index: 8;
+  top: calc(var(--projects-slider-top) + 50%);
+  max-width: min(240px, 50vw);
+  margin: 0;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 3px 18px #00000012;
+  font-size: 13px;
+  line-height: 1.2;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-50%) scale(0.92);
+  animation: projects-boundary-message-in 0.26s var(--motion-ease) forwards;
+}
+
+.projects-boundary-message--previous {
+  left: 56px;
+}
+
+.projects-boundary-message--next {
+  right: 56px;
+}
+
+@keyframes projects-boundary-message-in {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+}
+
+@media (max-width: 767px) {
+  .projects-boundary-message {
+    top: calc(var(--projects-slider-top) + 50%);
+    font-size: 12px;
+  }
+
+  .projects-boundary-message--previous {
+    left: 48px;
+  }
+
+  .projects-boundary-message--next {
+    right: 48px;
+  }
+}
