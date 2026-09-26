@@ -46,7 +46,7 @@ export interface ReusableSliderProps<TItem> {
   /** width / height of the visual inside the slide. */
   getSlideAspectRatio: (item: TItem) => number;
   getSlideA11yLabel?: (item: TItem, index: number) => string;
-  renderSlide: (item: TItem, index: number) => ReactNode;
+  renderSlide: (item: TItem, index: number) => ReactNode;\n  animateEntrance?: boolean;
 }
 
 /**
@@ -178,7 +178,7 @@ export function ReusableSlider<TItem>({
       tween.kill();
       gsap.set(nodes, { clearProps: "opacity,visibility,transform" });
     };
-  }, [items.length, scrollerRef, slides]);
+  }, [animateEntrance, items.length, scrollerRef, slides]);
 
   return (
     <div
