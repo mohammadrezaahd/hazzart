@@ -1,46 +1,72 @@
 'use client';
 
 import Image from 'next/image';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { fakeData } from '@/consts/fakeData';
 import { ReusableSlider } from '@/components/Slider';
 import { getProjectImageRatio, getProjectImages } from '@/utils/projects';
 import { ProjectDetail } from './ProjectDetail';
-// import { ProjectsDiagnostics } from './ProjectsDiagnostics';
 
-/**
- * Projects page — one project, told in full.
- *
- * The copy sits at the top and never changes; the strip below is the project's own
- * images, stuck together exactly like the paintings slider, and the dot on the line
- * under it shows how far along the visitor is. The strip is bounded: pushing past either
- * end opens the space for the matching arrow instead of moving the track.
- */
 export function ProjectsExperience() {
-  const { project } = fakeData;
-  const images = getProjectImages(project);
+  const { projects } = fakeData;
+  const [projectIndex, setProjectIndex] = useState(0);
+  const [boundaryDirection, setBoundaryDirection] = useState<'previous' | 'next' | null>(null);
   const wheelRoot = useRef<HTMLElement | null>(null);
+
+  const project = projects[projectIndex] ?? projects[0];
+  const images = project ? getProjectImages(project) : [];
+
+  useEffect(() => {
+    if (!boundaryDirection) return;
+    const timer = window.setTimeout(() => setBoundaryDirection(null), 900);
+    return () => window.clearTimeout(timer);
+  }, [boundaryDirection]);
+
+  if (!project) {
+    return (
+      <main className="projects-experience" id="main-content" ref={wheelRoot}>
+        <p className="paintings-empty">No projects added yet.</p>
+      </main>
+    );
+  }
+
+  const handleEdgeCommit = ({ direction }: { direction: 'previous' | 'next' }) => {
+    const nextIndex = direction === 'next' ? projectIndex + 1 : projectIndex - 1;
+
+    if (nextIndex >= 0 && nextIndex < projects.length) {
+      window.setTimeout(() => setProjectIndex(nextIndex), 340);
+      return;
+    }
+
+    setBoundaryDirection(direction);
+  };
 
   return (
     <main className="projects-experience" id="main-content" ref={wheelRoot}>
-      <ProjectDetail project={project} />
+      <ProjectDetail project={project} key={project.id} />
 
       <ReusableSlider
+        key={project.id}
         items={images}
-        ariaLabel={`${project.name} images`}
+        ariaLabel={project.name + ' images'}
         className="projects-slider"
         infinite={false}
         wheelRoot={wheelRoot}
         emptyMessage="No images added yet."
         pagination={{
           enabled: true,
-          ariaLabel: `${project.name} images`,
-          getLabel: (image, index) => image.caption ?? `Image ${index + 1}`,
+          ariaLabel: project.name + ' images',
+          getLabel: (image, index) => image.caption ?? ('Image ' + (index + 1)),
         }}
-        edgeOverflow={{ enabled: true, chargeWheelDistance: 560, releaseDelay: 1400 }}
+        edgeOverflow={{
+          enabled: true,
+          chargeWheelDistance: 560,
+          releaseDelay: 1400,
+          onCommit: handleEdgeCommit,
+        }}
         getItemId={image => image.src}
         getSlideAspectRatio={getProjectImageRatio}
-        getSlideA11yLabel={(image, index) => image.caption ?? `Image ${index + 1}`}
+        getSlideA11yLabel={(image, index) => image.caption ?? ('Image ' + (index + 1))}
         renderSlide={(image, index) => (
           <span className="projects-piece">
             <span className="projects-piece__image">
@@ -57,7 +83,15 @@ export function ProjectsExperience() {
         )}
       />
 
-      {/* <ProjectsDiagnostics /> */}
+      {boundaryDirection && (
+        <p
+          className={'projects-boundary-message projects-boundary-message--' + boundaryDirection}
+          role="status"
+          aria-live="polite"
+        >
+          {boundaryDirection === 'previous' ? 'No previous project' : 'No next project'}
+        </p>
+      )}
     </main>
   );
 }
