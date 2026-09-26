@@ -14,6 +14,14 @@ export interface Artwork {
     flipX?: boolean;
     rotate?: number;
   };
+  hoverImage: {
+    src: string;
+    alt: string;
+    width: number;
+    height: number;
+    flipX?: boolean;
+    rotate?: number;
+  };
   dimensions: string;
   table: { rotation: number; aspectRatio: number };
 }
