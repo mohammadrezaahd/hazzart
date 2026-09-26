@@ -691,13 +691,11 @@ dialog {
   justify-content: center;
   color: #111;
 }
-.reusable-slider__edge-arrow > span {
-  width: 9px;
-  height: 9px;
+.reusable-slider__edge-arrow > img {
   display: block;
-  border-right: 1.5px solid currentColor;
-  border-bottom: 1.5px solid currentColor;
-  transform: rotate(135deg);
+  width: 15px;
+  height: 15px;
+  object-fit: contain;
 }
 .reusable-slider__edge-cta--previous {
   left: clamp(8px, 1.4vw, 22px);
