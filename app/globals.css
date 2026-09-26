@@ -1191,7 +1191,7 @@ dialog {
     line-height: 1.4;
   }
   .paintings-experience {
-    --paintings-filter-top: 116px;
+    --paintings-filter-top: 100px;
     --paintings-slider-top: 220px;
     --paintings-slider-height: min(
       57.8dvh,
@@ -1216,29 +1216,32 @@ dialog {
     padding-right: 10px;
     overflow: visible;
   }
-  /* Children drop below the filter row instead of expanding inline. */
+  .painting-filter__branch {
+    flex-direction: row;
+    align-items: flex-start;
+  }
   .painting-filter__children {
     position: static;
     top: auto;
     left: auto;
-    flex-direction: column;
+    flex-direction: row;
     width: auto;
     overflow: visible;
-    transform: translateY(-6px);
-    transition:
-      opacity 0.25s ease,
-      transform 0.3s var(--motion-ease);
+    transform: translateX(-4px);
   }
   .painting-filter__branch[data-expanded="true"] .painting-filter__children {
     width: auto;
     transform: translateY(0);
   }
   .painting-filter button {
-    padding-inline: 13px;
+    height: 20px;
+    padding-inline: 7px;
+    border-radius: 6px;
     font-size: 14px;
+    line-height: 20px;
   }
   .painting-filter__children button {
-    flex-basis: 82px;
+    flex: 0 0 auto;
     padding-inline: 7px;
   }
   .artwork-slider {
