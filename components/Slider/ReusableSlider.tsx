@@ -11,7 +11,6 @@ import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/utils/motion";
 import { SliderPagination } from "./SliderPagination";
 import { useSliderScroll, type SliderDirection } from "./useSliderScroll";
-import Image from "next/image";
 
 export interface SliderEdgeOverflowConfig {
   enabled?: boolean;
@@ -228,18 +227,7 @@ export function ReusableSlider<TItem>({
             <span
               className={`reusable-slider__edge-arrow reusable-slider__edge-arrow--${edgeState.direction}`}
             >
-              <Image
-                src="/icons/angle.svg"
-                alt=""
-                aria-hidden="true"
-                width="15"
-                height="15"
-                style={
-                  edgeState.direction === "next"
-                    ? { transform: "rotate(180deg)" }
-                    : undefined
-                }
-              />
+              <span aria-hidden="true" />
             </span>
           </button>
         )}
