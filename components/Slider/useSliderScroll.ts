@@ -451,7 +451,7 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
     element.addEventListener('pointerdown', onPointerDown); element.addEventListener('pointerup', onPointerUp); element.addEventListener('pointercancel', onPointerUp);
     element.addEventListener('touchstart', onTouchStart, { passive: true }); element.addEventListener('touchmove', onTouchMove, { passive: true }); element.addEventListener('scroll', onScroll, { passive: true }); element.addEventListener('keydown', onKeyDown);
     return () => { wheelTarget.removeEventListener('wheel', onWheel); element.removeEventListener('pointerdown', onPointerDown); element.removeEventListener('pointerup', onPointerUp); element.removeEventListener('pointercancel', onPointerUp); element.removeEventListener('touchstart', onTouchStart); element.removeEventListener('touchmove', onTouchMove); element.removeEventListener('scroll', onScroll); element.removeEventListener('keydown', onKeyDown); };
-  }, [applyImmediate, canCharge, chargeEdge, dropCharge, emitRange, hasLoop, itemCount, nearestIndex, normalizeLoop, nudge, rangePosition, reportIndex, startFrame, stopFrame, wheelRoot, write]);
+  }, [applyImmediate, canCharge, chargeEdge, dropCharge, emitRange, hasLoop, itemCount, measure, nearestIndex, normalizeLoop, nudge, rangePosition, reportIndex, startFrame, stopFrame, wheelRoot, write]);
 
   const reinit = useCallback(() => {
     const element = scrollerRef.current; const track = trackRef.current;
