@@ -47,7 +47,8 @@ export interface ReusableSliderProps<TItem> {
   getSlideAspectRatio: (item: TItem) => number;
   getSlideA11yLabel?: (item: TItem, index: number) => string;
   renderSlide: (item: TItem, index: number) => ReactNode;
-  animateEntrance?: boolean;\n  allowEdgeWithoutOverflow?: boolean;
+  animateEntrance?: boolean;
+  allowEdgeWithoutOverflow?: boolean;
 }
 
 /**
@@ -160,7 +161,13 @@ export function ReusableSlider<TItem>({
   /** Entrance: the slides rise in whenever the set changes. */
   useEffect(() => {
     const element = scrollerRef.current;
-    if (!animateEntrance || !element || items.length === 0 || prefersReducedMotion()) return;
+    if (
+      !animateEntrance ||
+      !element ||
+      items.length === 0 ||
+      prefersReducedMotion()
+    )
+      return;
     const nodes = element.querySelectorAll<HTMLElement>(
       ".reusable-slider__slide",
     );
