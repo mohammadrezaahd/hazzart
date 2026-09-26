@@ -566,10 +566,22 @@ dialog {
   object-fit: contain;
   object-position: center;
   transition:
+    opacity 0.55s var(--motion-ease),
     transform 0.7s var(--motion-ease),
     filter 0.45s ease;
 }
-.artwork-slider__slide:hover .artwork-slider__image img {
+
+.artwork-slider__image-hover {
+  opacity: 0;
+}
+
+.artwork-slider__slide:hover .artwork-slider__image-primary {
+  opacity: 0;
+  transform: scale(1.012);
+}
+
+.artwork-slider__slide:hover .artwork-slider__image-hover {
+  opacity: 1;
   transform: scale(1.012);
 }
 .artwork-slider__image--rotated img {
