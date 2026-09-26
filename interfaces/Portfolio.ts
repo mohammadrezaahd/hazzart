@@ -71,8 +71,8 @@ export interface FooterItem {
 export interface PortfolioData {
   artist: { name: string; description: string };
   artworks: Artwork[];
-  /** The site shows one project at a time — the projects page is that project. */
-  project: Project;
+  /** Projects are shown one at a time; the page navigates between this collection. */
+  projects: Project[];
   mediums: Medium[];
   paintingCategories: PaintingCategory[];
 }
