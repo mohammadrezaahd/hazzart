@@ -37,10 +37,10 @@ export function ProjectsExperience() {
     if (nextIndex >= 0 && nextIndex < projects.length) {
       setBoundaryDirection(null);
       setIsTransitioning(true);
-      window.setTimeout(() => {
-        setProjectIndex(nextIndex);
+      setProjectIndex(nextIndex);
+      window.requestAnimationFrame(() => {
         window.requestAnimationFrame(() => setIsTransitioning(false));
-      }, 320);
+      });
       return;
     }
 
@@ -49,10 +49,10 @@ export function ProjectsExperience() {
 
   return (
     <main className="projects-experience" id="main-content" ref={wheelRoot}>
-      <ProjectDetail project={project} key={project.id} />
+      <div key={project.id} className={"projects-scene" + (isTransitioning ? " projects-scene--changing" : "")}>
+        <ProjectDetail project={project} />
 
       <ReusableSlider
-        key={project.id}
         items={images}
         ariaLabel={project.name + ' images'}
         className="projects-slider"
@@ -88,6 +88,7 @@ export function ProjectsExperience() {
           </span>
         )}
       />
+      </div>
 
       {boundaryDirection && (
         <p
