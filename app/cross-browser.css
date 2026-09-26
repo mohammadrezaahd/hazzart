@@ -219,3 +219,38 @@ dialog::backdrop {
   68% { transform: translateY(-50%) scale(0.96); }
   100% { opacity: 1; transform: translateY(-50%) scale(1); }
 }
+
+/* Each project is one isolated scene. This prevents the outgoing detail/slider
+ * from remaining visually stacked above the newly mounted project. */
+.projects-scene {
+  position: absolute;
+  inset: 0;
+  min-width: 0;
+  min-height: 0;
+  animation: projects-scene-enter 0.62s var(--motion-ease) both;
+}
+
+.projects-scene--changing {
+  animation: projects-scene-enter 0.62s var(--motion-ease) both;
+}
+
+.projects-scene .projects-detail,
+.projects-scene .projects-slider {
+  z-index: auto;
+}
+
+@keyframes projects-scene-enter {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* The edge feedback belongs above the scene. */
+.projects-boundary-message {
+  z-index: 20;
+}
