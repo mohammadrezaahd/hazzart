@@ -24,7 +24,7 @@ export function ProjectsExperience() {
 
   if (!project) {
     return (
-      <main\n      className={\n        "projects-experience" +\n        (boundaryDirection ? " projects-experience--boundary-" + boundaryDirection : "")\n      }\n      id="main-content"\n      ref={wheelRoot}\n    >
+      <main className="projects-experience" id="main-content" ref={wheelRoot}>
         <p className="paintings-empty">No projects added yet.</p>
       </main>
     );
@@ -43,46 +43,54 @@ export function ProjectsExperience() {
   };
 
   return (
-    <main className="projects-experience" id="main-content" ref={wheelRoot}>
-      <div\n        key={project.id}\n        className="projects-scene"\n      >
+    <main
+      className={
+        'projects-experience' +
+        (boundaryDirection ? ' projects-experience--boundary-' + boundaryDirection : '')
+      }
+      id="main-content"
+      ref={wheelRoot}
+    >
+      <div key={project.id} className="projects-scene">
         <ProjectDetail project={project} />
 
-      <ReusableSlider
-        items={images}
-        ariaLabel={project.name + ' images'}
-        className="projects-slider"
-        infinite={false}
-        wheelRoot={wheelRoot}
-        emptyMessage="No images added yet."
-        pagination={{
-          enabled: true,
-          ariaLabel: project.name + ' images',
-          getLabel: (image, index) => image.caption ?? ('Image ' + (index + 1)),
-        }}
-        edgeOverflow={{
-          enabled: !boundaryDirection,
-          chargeWheelDistance: 560,
-          releaseDelay: 1400,
-          onCommit: handleEdgeCommit,
-        }}
-        getItemId={image => image.src}
-        getSlideAspectRatio={getProjectImageRatio}
-        getSlideA11yLabel={(image, index) => image.caption ?? ('Image ' + (index + 1))}
-        renderSlide={(image, index) => (
-          <span className="projects-piece">
-            <span className="projects-piece__image">
-              <Image
-                src={image.src}
-                alt={image.alt}
-                fill
-                sizes="(max-width: 899px) 62vw, 36vw"
-                priority={index < 2}
-                draggable={false}
-              />
+        <ReusableSlider
+          items={images}
+          ariaLabel={project.name + ' images'}
+          className="projects-slider"
+          infinite={false}
+          wheelRoot={wheelRoot}
+          animateEntrance={false}
+          emptyMessage="No images added yet."
+          pagination={{
+            enabled: true,
+            ariaLabel: project.name + ' images',
+            getLabel: (image, index) => image.caption ?? ('Image ' + (index + 1)),
+          }}
+          edgeOverflow={{
+            enabled: !boundaryDirection,
+            chargeWheelDistance: 560,
+            releaseDelay: 1400,
+            onCommit: handleEdgeCommit,
+          }}
+          getItemId={image => image.src}
+          getSlideAspectRatio={getProjectImageRatio}
+          getSlideA11yLabel={(image, index) => image.caption ?? ('Image ' + (index + 1))}
+          renderSlide={(image, index) => (
+            <span className="projects-piece">
+              <span className="projects-piece__image">
+                <Image
+                  src={image.src}
+                  alt={image.alt}
+                  fill
+                  sizes="(max-width: 899px) 62vw, 36vw"
+                  priority={index < 2}
+                  draggable={false}
+                />
+              </span>
             </span>
-          </span>
-        )}
-      />
+          )}
+        />
       </div>
 
       {boundaryDirection && (
