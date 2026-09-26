@@ -739,7 +739,7 @@ dialog {
   --projects-pagination-height: 34px;
   --projects-pagination-gap: 14px;
   --projects-gutter: clamp(12px, 2.4vw, 34px);
-  --project-edge-shift: 72px;
+  --project-edge-shift: 104px;
   position: relative;
   height: 100svh;
   height: 100dvh;
@@ -817,7 +817,7 @@ dialog {
   margin-inline: 0;
 }
 .projects-slider[data-edge="next"] {
-  --project-edge-shift: -60px;
+  --project-edge-shift: -104px;
 }
 /* The strip glides aside while an edge is charged, opening the space for the arrow. */
 .projects-slider .reusable-slider__viewport {
@@ -959,10 +959,10 @@ dialog {
     --projects-slider-top: max(310px, calc(100dvh - 564px));
     --projects-pagination-height: 30px;
     --projects-pagination-gap: 10px;
-    --project-edge-shift: 46px;
+    --project-edge-shift: 68px;
   }
   .projects-slider[data-edge="next"] {
-    --project-edge-shift: -46px;
+    --project-edge-shift: -68px;
   }
   .projects-detail {
     grid-template-columns: 1fr;
