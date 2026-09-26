@@ -11,6 +11,7 @@ export function ProjectsExperience() {
   const { projects } = fakeData;
   const [projectIndex, setProjectIndex] = useState(0);
   const [boundaryDirection, setBoundaryDirection] = useState<'previous' | 'next' | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const wheelRoot = useRef<HTMLElement | null>(null);
 
   const project = projects[projectIndex] ?? projects[0];
@@ -24,7 +25,7 @@ export function ProjectsExperience() {
 
   if (!project) {
     return (
-      <main className="projects-experience" id="main-content" ref={wheelRoot}>
+      <main className={"projects-experience" + (isTransitioning ? " projects-experience--changing" : "")} id="main-content" ref={wheelRoot}>
         <p className="paintings-empty">No projects added yet.</p>
       </main>
     );
@@ -34,7 +35,12 @@ export function ProjectsExperience() {
     const nextIndex = direction === 'next' ? projectIndex + 1 : projectIndex - 1;
 
     if (nextIndex >= 0 && nextIndex < projects.length) {
-      window.setTimeout(() => setProjectIndex(nextIndex), 340);
+      setBoundaryDirection(null);
+      setIsTransitioning(true);
+      window.setTimeout(() => {
+        setProjectIndex(nextIndex);
+        window.requestAnimationFrame(() => setIsTransitioning(false));
+      }, 320);
       return;
     }
 
@@ -59,7 +65,7 @@ export function ProjectsExperience() {
           getLabel: (image, index) => image.caption ?? ('Image ' + (index + 1)),
         }}
         edgeOverflow={{
-          enabled: true,
+          enabled: !boundaryDirection && !isTransitioning,
           chargeWheelDistance: 560,
           releaseDelay: 1400,
           onCommit: handleEdgeCommit,
