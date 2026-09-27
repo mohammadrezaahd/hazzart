@@ -4,8 +4,6 @@ import { clearAdminSession } from "@/lib/admin-auth";
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  await clearAdminSession();
-
   const referer = request.headers.get("referer");
   const origin = request.headers.get("origin");
 
@@ -18,6 +16,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Forbidden." }, { status: 403 });
     }
   }
+
+  await clearAdminSession();
 
   return NextResponse.redirect(new URL("/admin/login", request.url), 303);
 }
