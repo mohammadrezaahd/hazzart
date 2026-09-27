@@ -1,4 +1,5 @@
 import { MongoClient, type Db } from "mongodb";
+import { getDatabaseName } from "@/lib/app-config";
 
 const uri = process.env.MONGODB_URI;
 
@@ -26,5 +27,5 @@ if (process.env.NODE_ENV !== "production") {
 
 export async function getDatabase(): Promise<Db> {
   const client = await clientPromise;
-  return client.db();
+  return client.db(getDatabaseName());
 }
