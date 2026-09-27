@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import localFont from 'next/font/local';
 import { HeaderComponent } from '@/components/Layouts';
 import { fakeData } from '@/consts/fakeData';
+import { getBaseUrl } from '@/lib/app-config';
 import './globals.css';
 import './cross-browser.css';
 
@@ -21,6 +22,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getBaseUrl()),
   title: {
     default: 'Ghazal Shafiei — Artist',
     template: '%s — Ghazal Shafiei',

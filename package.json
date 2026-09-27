@@ -16,7 +16,13 @@
     "next": "15.5.19",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "react-responsive": "^10.0.1"
+    "react-responsive": "^10.0.1",
+    "mongodb": "^6.18.0",
+    "@hookform/resolvers": "^5.2.1",
+    "bcryptjs": "^3.0.2",
+    "jose": "^6.1.0",
+    "react-hook-form": "^7.62.0",
+    "yup": "^1.7.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
