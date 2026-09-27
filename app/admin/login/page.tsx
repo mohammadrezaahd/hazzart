@@ -1,4 +1,5 @@
 import { LoginForm } from "./LoginForm";
+import { getApiUrl } from "@/lib/app-config";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,7 @@ export default function AdminLoginPage() {
         <p className="mt-3 text-sm text-black/60">
           Sign in to manage the artist portfolio.
         </p>
-        <LoginForm />
+        <LoginForm apiUrl={getApiUrl()} />
       </section>
     </main>
   );
