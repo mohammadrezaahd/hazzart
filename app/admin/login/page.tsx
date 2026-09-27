@@ -28,7 +28,7 @@ export default function AdminLoginPage() {
 
         <LoginForm apiUrl={getApiUrl()} />
 
-        <a href="/" className="admin-login-back">
+        <Link href="/" className="admin-login-back">
           <span aria-hidden="true">←</span>
           Back to website
         </Link>
