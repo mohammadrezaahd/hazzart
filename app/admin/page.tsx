@@ -3,11 +3,11 @@ import { requireAdminSession } from "@/lib/admin-auth";
 
 const navigation = [
   { label: "Overview", href: "/admin", icon: "grid", active: true },
-  { label: "Categories", icon: "layers" },
-  { label: "Paintings", icon: "image" },
-  { label: "Projects", icon: "folder" },
-  { label: "Artist", icon: "user" },
-  { label: "Statistics", icon: "chart" },
+  { label: "Categories", href: null, icon: "layers" },
+  { label: "Paintings", href: null, icon: "image" },
+  { label: "Projects", href: null, icon: "folder" },
+  { label: "Artist", href: null, icon: "user" },
+  { label: "Statistics", href: null, icon: "chart" },
 ] as const;
 
 function NavIcon({ type }: { type: (typeof navigation)[number]["icon"] }) {
