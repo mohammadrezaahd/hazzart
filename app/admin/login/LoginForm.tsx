@@ -7,7 +7,11 @@ import { useForm } from "react-hook-form";
 import type { AdminLoginInput } from "@/lib/admin-validation";
 import { adminLoginSchema } from "@/lib/admin-validation";
 
-export function LoginForm() {
+interface LoginFormProps {
+  apiUrl: string;
+}
+
+export function LoginForm({ apiUrl }: LoginFormProps) {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -24,7 +28,8 @@ export function LoginForm() {
     setServerError(null);
 
     try {
-      const response = await fetch("/api/admin/auth/login", {
+      const loginUrl = apiUrl.replace(/\/$/, "") + "/admin/auth/login";
+      const response = await fetch(loginUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
