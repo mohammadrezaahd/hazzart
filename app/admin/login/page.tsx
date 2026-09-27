@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getApiUrl } from "@/lib/app-config";
 import { LoginForm } from "./LoginForm";
 
@@ -13,9 +14,9 @@ export default function AdminLoginPage() {
 
       <section className="admin-login-card" aria-labelledby="admin-login-title">
         <div className="admin-login-brand">
-          <a href="/" className="admin-brand-mark" aria-label="Back to Hazzart website">
+          <Link href="/" className="admin-brand-mark" aria-label="Back to Hazzart website">
             HAZZART
-          </a>
+          </Link>
           <span>ADMIN</span>
         </div>
 
@@ -30,7 +31,7 @@ export default function AdminLoginPage() {
         <a href="/" className="admin-login-back">
           <span aria-hidden="true">←</span>
           Back to website
-        </a>
+        </Link>
       </section>
     </main>
   );
