@@ -10,14 +10,20 @@ function getJwtSecret() {
   const secret = process.env.ADMIN_JWT_SECRET;
 
   if (!secret || secret.length < 32) {
-    throw new Error("ADMIN_JWT_SECRET must be configured with at least 32 characters.");
+    throw new Error(
+      "ADMIN_JWT_SECRET must be configured with at least 32 characters.",
+    );
   }
 
   return new TextEncoder().encode(secret);
 }
 
 export async function createAdminSession(payload: AdminSessionPayload) {
-  const token = await new SignJWT(payload)
+  const token = await new SignJWT({
+    sub: payload.sub,
+    username: payload.username,
+    role: payload.role,
+  })
     .setProtectedHeader({ alg: "HS256", typ: "JWT" })
     .setIssuedAt()
     .setExpirationTime(`${SESSION_DURATION_SECONDS}s`)
@@ -78,6 +84,7 @@ export async function requireAdminSession() {
 
 export async function clearAdminSession() {
   const cookieStore = await cookies();
+
   cookieStore.set({
     name: SESSION_COOKIE,
     value: "",
