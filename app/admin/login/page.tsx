@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 
 export default function AdminLoginPage() {
   return (
-    <main className="min-h-screen bg-white px-6 py-24 text-black">
+    <main className="relative z-50 min-h-screen bg-white px-6 py-24 text-black">
       <section
         className="mx-auto w-full max-w-md"
         aria-labelledby="admin-login-title"
