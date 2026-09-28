@@ -3,7 +3,10 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { AdminSessionPayload } from "@/interfaces/Admin";
 
-const SESSION_COOKIE = "__Host-admin_session";
+const SESSION_COOKIE =
+  process.env.NODE_ENV === "production"
+    ? "__Host-admin_session"
+    : "admin_session";
 const SESSION_DURATION_SECONDS = 60 * 60 * 8;
 
 function getJwtSecret() {
