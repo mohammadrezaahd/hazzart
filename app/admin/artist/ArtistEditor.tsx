@@ -13,7 +13,7 @@ import type {
 const navigation = [
   { label: "Overview", href: "/admin", icon: "grid" },
   { label: "Categories", href: "/admin/categories", icon: "layers" },
-  { label: "Paintings", href: null, icon: "image" },
+  { label: "Paintings", href: "/admin/paintings", icon: "image" },
   { label: "Projects", href: null, icon: "folder" },
   { label: "Artist", href: "/admin/artist", icon: "user" },
   { label: "Statistics", href: null, icon: "chart" },
@@ -78,19 +78,13 @@ export default function ArtistEditor({ username }: { username: string }) {
     setError("");
 
     try {
-      const response = await fetch("/api/admin/artist", { cache: "no-store" });
-      const data = (await response.json()) as ArtistAdminPayload & { error?: string };
-
-      if (!response.ok) {
-        throw new Error(data.error || "Could not load artist content.");
-      }
-
+      const data = await getAdminArtist();
       setPayload(data);
       setCvText(data.content.cvText);
       setContactText(data.content.contactText);
       setSelected(data.content.socials);
     } catch (err) {
-      const text = err instanceof Error ? err.message : "Could not load artist content.";
+      const text = getApiErrorMessage(err, "Could not load artist content.");
       setError(text);
       setToast({ type: "error", text });
     } finally {
@@ -172,34 +166,21 @@ export default function ArtistEditor({ username }: { username: string }) {
     setError("");
 
     try {
-      const response = await fetch("/api/admin/artist", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          cvText,
-          contactText,
-          socials: selected.map((item, order) => ({
-            platformId: item.platformId,
-            url: item.url,
-            order,
-          })),
-        }),
-      });
+      const content = await updateAdminArtist(
+        cvText,
+        contactText,
+        selected.map((item, order) => ({
+          platformId: item.platformId,
+          url: item.url,
+          order,
+        })),
+      );
 
-      const data = (await response.json()) as {
-        content?: ArtistAdminPayload["content"];
-        error?: string;
-      };
-
-      if (!response.ok || !data.content) {
-        throw new Error(data.error || "Could not save artist content.");
-      }
-
-      setSelected(data.content.socials);
+      setSelected(content.socials);
       setMessage("Artist content saved.");
       setToast({ type: "success", text: "Artist content saved successfully." });
     } catch (err) {
-      const text = err instanceof Error ? err.message : "Could not save artist content.";
+      const text = getApiErrorMessage(err, "Could not save artist content.");
       setError(text);
       setToast({ type: "error", text });
     } finally {
@@ -227,23 +208,11 @@ export default function ArtistEditor({ username }: { username: string }) {
       formData.append("defaultUrl", socialUrl);
       formData.append("icon", socialFile);
 
-      const response = await fetch("/api/admin/artist", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = (await response.json()) as {
-        platform?: ArtistSocialPlatform;
-        error?: string;
-      };
-
-      if (!response.ok || !data.platform) {
-        throw new Error(data.error || "Could not add social media.");
-      }
+      const platform = await createArtistSocialPlatform(formData);
 
       setPayload((current) =>
         current
-          ? { ...current, socialPlatforms: [...current.socialPlatforms, data.platform!] }
+          ? { ...current, socialPlatforms: [...current.socialPlatforms, platform] }
           : current,
       );
       setSocialName("");
@@ -253,7 +222,7 @@ export default function ArtistEditor({ username }: { username: string }) {
       setMessage("Social media added to the list.");
       setToast({ type: "success", text: "Social media added successfully." });
     } catch (err) {
-      const text = err instanceof Error ? err.message : "Could not add social media.";
+      const text = getApiErrorMessage(err, "Could not add social media.");
       setError(text);
       setToast({ type: "error", text });
     } finally {
@@ -268,14 +237,7 @@ export default function ArtistEditor({ username }: { username: string }) {
     setError("");
 
     try {
-      const response = await fetch(`/api/admin/artist/social-platforms/${id}`, {
-        method: "DELETE",
-      });
-      const data = (await response.json()) as { error?: string };
-
-      if (!response.ok) {
-        throw new Error(data.error || "Could not delete social media.");
-      }
+      await deleteArtistSocialPlatform(id);
 
       setPayload((current) =>
         current
@@ -289,7 +251,7 @@ export default function ArtistEditor({ username }: { username: string }) {
       setMessage("Social media removed.");
       setToast({ type: "success", text: "Social media removed." });
     } catch (err) {
-      const text = err instanceof Error ? err.message : "Could not delete social media.";
+      const text = getApiErrorMessage(err, "Could not delete social media.");
       setError(text);
       setToast({ type: "error", text });
     }
