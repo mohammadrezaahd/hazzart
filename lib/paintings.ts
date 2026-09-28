@@ -1,16 +1,11 @@
 import { randomUUID } from "node:crypto";
-import { GridFSBucket, ObjectId } from "mongodb";
+import { del, put } from "@vercel/blob";
 import { getDatabase } from "@/lib/mongodb";
 import type { AdminPainting, AdminPaintingImage } from "@/interfaces/Painting";
 
 const COLLECTION = "admin_paintings";
-const BUCKET = "paintingImages";
-const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+const MAX_IMAGE_SIZE = 4 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
-
-async function getPaintingBucket() {
-  return new GridFSBucket(await getDatabase(), { bucketName: BUCKET });
-}
 
 function escapeRegex(value: string) {
   return value.replace(/[.*+?^$()|[\]\\]/g, "\\$&");
@@ -70,39 +65,30 @@ async function validateCategories(categoryIds: string[]) {
   return uniqueIds;
 }
 
+function getSafeFileName(fileName: string) {
+  const name = fileName.trim().replace(/[^a-zA-Z0-9._-]/g, "-");
+  return name || "painting-image";
+}
+
 async function uploadImage(file: File): Promise<AdminPaintingImage> {
   if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
     throw new Error("Only JPG, PNG and WebP images are accepted.");
   }
 
   if (file.size <= 0 || file.size > MAX_IMAGE_SIZE) {
-    throw new Error("Each painting image must be smaller than 10 MB.");
+    throw new Error("Each painting image must be smaller than 4 MB.");
   }
 
-  const bucket = await getPaintingBucket();
-  const fileId = new ObjectId();
-  const stream = bucket.openUploadStream(file.name || "painting-image", {
-    _id: fileId,
-    metadata: {
-      contentType: file.type,
-      size: file.size,
-    },
-  });
-
-  await new Promise<void>(async (resolve, reject) => {
-    stream.once("finish", () => resolve());
-    stream.once("error", reject);
-
-    try {
-      stream.end(Buffer.from(await file.arrayBuffer()));
-    } catch (error) {
-      reject(error);
-    }
+  const pathname = `paintings/${randomUUID()}-${getSafeFileName(file.name)}`;
+  const blob = await put(pathname, file, {
+    access: "public",
+    contentType: file.type,
+    addRandomSuffix: false,
   });
 
   return {
-    fileId: fileId.toHexString(),
-    url: "/api/admin/paintings/images/" + fileId.toHexString(),
+    fileId: blob.pathname,
+    url: blob.url,
     name: file.name || "painting-image",
     contentType: file.type,
     size: file.size,
@@ -110,12 +96,10 @@ async function uploadImage(file: File): Promise<AdminPaintingImage> {
 }
 
 async function deleteImage(fileId: string) {
-  if (!ObjectId.isValid(fileId)) return;
-
-  const bucket = await getPaintingBucket();
+  if (!fileId) return;
 
   try {
-    await bucket.delete(new ObjectId(fileId));
+    await del(fileId);
   } catch {
     // The painting record is still the source of truth if an old image was already removed.
   }
@@ -264,30 +248,4 @@ export async function deletePainting(id: string) {
   await db.collection<AdminPainting>(COLLECTION).deleteOne({ id });
   await Promise.all(current.images.map((image) => deleteImage(image.fileId)));
   return true;
-}
-
-export async function getPaintingImage(fileId: string) {
-  if (!ObjectId.isValid(fileId)) return null;
-
-  const db = await getDatabase();
-  const bucket = new GridFSBucket(db, { bucketName: BUCKET });
-  const id = new ObjectId(fileId);
-  const metadata = await bucket.find({ _id: id }).next();
-
-  if (!metadata) return null;
-
-  const chunks: Buffer[] = [];
-  const stream = bucket.openDownloadStream(id);
-
-  for await (const chunk of stream) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-  }
-
-  return {
-    body: Buffer.concat(chunks),
-    contentType:
-      typeof metadata.metadata?.contentType === "string"
-        ? metadata.metadata.contentType
-        : "application/octet-stream",
-  };
 }
