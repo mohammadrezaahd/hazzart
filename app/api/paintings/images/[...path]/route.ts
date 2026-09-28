@@ -23,7 +23,7 @@ export async function GET(
 
     return new Response(result.stream, {
       headers: {
-        "Content-Type": result.blob.type || "application/octet-stream",
+        "Content-Type": result.blob.contentType || "application/octet-stream",
         "Cache-Control": "public, max-age=31536000, immutable",
         "X-Content-Type-Options": "nosniff",
       },
