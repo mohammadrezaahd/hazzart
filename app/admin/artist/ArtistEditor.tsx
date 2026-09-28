@@ -12,7 +12,7 @@ import type {
 
 const navigation = [
   { label: "Overview", href: "/admin", icon: "grid" },
-  { label: "Categories", href: null, icon: "layers" },
+  { label: "Categories", href: "/admin/categories", icon: "layers" },
   { label: "Paintings", href: null, icon: "image" },
   { label: "Projects", href: null, icon: "folder" },
   { label: "Artist", href: "/admin/artist", icon: "user" },
