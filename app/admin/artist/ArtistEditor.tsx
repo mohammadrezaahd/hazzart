@@ -11,7 +11,7 @@ import type {
 } from "@/interfaces/Artist";
 import { getAdminArtist, updateAdminArtist } from "@/components/api/artist";
 import { getApiErrorMessage } from "@/components/api/client";
-import { createArtistSocialPlatform, deleteArtistSocialPlatform } from "@/lib/artist";
+import { createArtistSocialPlatform, deleteArtistSocialPlatform } from "@/components/api/artist";
 
 const navigation = [
   { label: "Overview", href: "/admin", icon: "grid" },
