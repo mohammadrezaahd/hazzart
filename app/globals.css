@@ -2995,3 +2995,20 @@ body:has(.admin-shell) > .site-header {
     width: 100%;
   }
 }
+
+.admin-social-platform__icon,
+.admin-selected-social__icon,
+.admin-platform-row__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.admin-social-platform__icon svg,
+.admin-selected-social__icon svg,
+.admin-platform-row__icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
