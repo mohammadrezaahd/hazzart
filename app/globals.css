@@ -3596,3 +3596,99 @@ body:has(.admin-shell) > .site-header {
     bottom: 15px;
   }
 }
+
+
+/* Admin / Paintings */
+.admin-painting-form,
+.admin-painting-library { margin-top: 52px; }
+.admin-painting-form { padding: 26px; border: 1px solid #11112; border-radius: 12px; background: #fff; }
+.admin-painting-form-heading,
+.admin-painting-library-heading,
+.admin-painting-section-title { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; }
+.admin-painting-form h2,
+.admin-painting-library h2 { margin: 6px 0 0; font-size: 22px; font-weight: 500; }
+.admin-painting-form-heading > button,
+.admin-painting-library-heading > span,
+.admin-painting-section-title > span { color: #1116; font-size: 10px; }
+.admin-painting-cancel { font-size: 10px; color: #1117; }
+.admin-painting-form-grid { display: grid; grid-template-columns: 1fr 0.55fr; gap: 16px; margin-top: 26px; }
+.admin-painting-form-grid .admin-field { gap: 8px; }
+.admin-painting-form-grid .admin-field > span,
+.admin-painting-filters label > span { font-size: 9px; letter-spacing: .08em; color: #1116; }
+.admin-painting-form-grid input,
+.admin-painting-form-grid textarea,
+.admin-painting-filters input,
+.admin-painting-filters select { width: 100%; border: 1px solid #11118; border-radius: 7px; background: #fff; outline: 0; font: inherit; font-size: 12px; }
+.admin-painting-form-grid input,
+.admin-painting-filters input,
+.admin-painting-filters select { height: 43px; padding: 0 13px; }
+.admin-painting-form-grid textarea { min-height: 118px; resize: vertical; padding: 12px 13px; }
+.admin-painting-form-grid input:focus,
+.admin-painting-form-grid textarea:focus,
+.admin-painting-filters input:focus,
+.admin-painting-filters select:focus { border-color: #1116; }
+.admin-painting-description { grid-column: 1 / -1; }
+.admin-painting-images,
+.admin-painting-categories { margin-top: 28px; padding-top: 24px; border-top: 1px solid #11110; }
+.admin-painting-image-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+.admin-painting-image-field > input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.admin-painting-image-picker { width: 100%; min-height: 185px; display: grid; grid-template-columns: 150px minmax(0, 1fr); align-items: center; gap: 18px; padding: 12px; border: 1px dashed #1113; border-radius: 10px; background: #11102; text-align: left; }
+.admin-painting-image-picker:hover { border-color: #1116; background: #11103; }
+.admin-painting-image-picker img,
+.admin-painting-image-placeholder { width: 150px; height: 150px; display: flex; align-items: center; justify-content: center; object-fit: cover; border-radius: 7px; background: #11108; }
+.admin-painting-image-placeholder { color: #1115; font-size: 25px; }
+.admin-painting-image-picker > span { min-width: 0; }
+.admin-painting-image-picker strong,
+.admin-painting-image-picker small { display: block; }
+.admin-painting-image-picker strong { font-size: 11px; font-weight: 500; }
+.admin-painting-image-picker small { margin-top: 6px; color: #1115; font-size: 9px; line-height: 1.5; }
+.admin-painting-category-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.admin-painting-category-group { min-width: 170px; padding: 10px; border: 1px solid #11110; border-radius: 8px; background: #11101; }
+.admin-painting-category-group label { min-height: 30px; display: flex; align-items: center; gap: 8px; padding: 3px 5px; border-radius: 5px; font-size: 10px; }
+.admin-painting-category-group label:hover { background: #11104; }
+.admin-painting-category-group label.is-child { padding-left: 22px; color: #1117; }
+.admin-painting-category-group input { accent-color: #111; }
+.admin-painting-form-actions { display: flex; justify-content: flex-end; margin-top: 25px; }
+.admin-painting-form-actions .admin-submit { min-width: 190px; }
+.admin-painting-library-heading { margin-bottom: 20px; }
+.admin-painting-filters { display: grid; grid-template-columns: minmax(240px, 1.7fr) 1fr 0.75fr 0.75fr; gap: 9px; margin-bottom: 20px; }
+.admin-painting-filters label { display: flex; flex-direction: column; gap: 7px; }
+.admin-painting-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.admin-painting-card { overflow: hidden; border: 1px solid #11112; border-radius: 12px; background: #fff; }
+.admin-painting-card-images { height: 250px; display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: #1111; }
+.admin-painting-card-images img { width: 100%; height: 100%; display: block; object-fit: cover; background: #11106; }
+.admin-painting-card-body { padding: 17px; }
+.admin-painting-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.admin-painting-card-top h3 { margin: 0; font-size: 14px; font-weight: 500; }
+.admin-painting-card-top div > span,
+.admin-painting-card-top > span { display: block; margin-top: 5px; color: #1115; font-size: 9px; }
+.admin-painting-card-top > span { margin-top: 0; }
+.admin-painting-card-body > p { margin: 13px 0 0; color: #1117; font-size: 10px; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.admin-painting-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 13px; }
+.admin-painting-tags span { padding: 5px 7px; border: 1px solid #11110; border-radius: 999px; color: #1116; font-size: 8px; }
+.admin-painting-card-actions { display: flex; justify-content: flex-end; gap: 5px; margin-top: 15px; padding-top: 12px; border-top: 1px solid #11110; }
+.admin-painting-card-actions button { padding: 7px 10px; border: 1px solid #11112; border-radius: 6px; color: #1117; font-size: 9px; }
+.admin-painting-card-actions button:hover { color: #111; border-color: #1115; }
+.admin-painting-card-actions button:last-child:hover { color: #b42318; }
+.admin-painting-card-actions button:disabled { opacity: .3; }
+.admin-painting-skeleton { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.admin-painting-skeleton span { height: 410px; border-radius: 12px; background: linear-gradient(90deg, #11106 25%, #11112 50%, #11106 75%); background-size: 200% 100%; animation: admin-skeleton-shimmer 1.4s ease-in-out infinite; }
+
+@media (max-width: 900px) {
+  .admin-painting-filters { grid-template-columns: 1fr 1fr; }
+  .admin-painting-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .admin-painting-form,
+  .admin-painting-library { margin-top: 34px; }
+  .admin-painting-form-grid { grid-template-columns: 1fr; }
+  .admin-painting-description { grid-column: auto; }
+  .admin-painting-image-grid,
+  .admin-painting-filters,
+  .admin-painting-skeleton { grid-template-columns: 1fr; }
+  .admin-painting-image-picker { grid-template-columns: 105px minmax(0, 1fr); min-height: 130px; }
+  .admin-painting-image-picker img,
+  .admin-painting-image-placeholder { width: 105px; height: 105px; }
+  .admin-painting-form-actions .admin-submit { width: 100%; }
+}
