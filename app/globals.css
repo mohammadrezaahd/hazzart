@@ -2545,3 +2545,453 @@ body:has(.admin-shell) > .site-header {
     display: none;
   }
 }
+
+
+/* ------------------------------------------------------------------ *
+ * Admin / Artist
+ * ------------------------------------------------------------------ */
+.admin-artist-main {
+  max-width: 1240px;
+}
+
+.admin-artist-loading {
+  margin-top: 70px;
+  color: #1117;
+  font-size: 13px;
+}
+
+.admin-artist-section {
+  margin-top: 70px;
+  padding-top: 28px;
+  border-top: 1px solid #11114;
+}
+
+.admin-artist-section--add {
+  margin-bottom: 20px;
+}
+
+.admin-artist-section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 30px;
+  margin-bottom: 20px;
+}
+
+.admin-artist-section-heading h2 {
+  margin: 12px 0 0;
+  font-size: clamp(24px, 3vw, 34px);
+  font-weight: 300;
+  letter-spacing: -0.045em;
+}
+
+.admin-artist-section-heading > span {
+  color: #1116;
+  font-size: 11px;
+}
+
+.admin-artist-textarea {
+  width: 100%;
+  min-height: 280px;
+  display: block;
+  resize: vertical;
+  padding: 20px;
+  border: 1px solid #11118;
+  border-radius: 12px;
+  outline: 0;
+  background: #fff9;
+  color: #111;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.75;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.admin-artist-textarea--contact {
+  min-height: 190px;
+}
+
+.admin-artist-textarea:focus,
+.admin-artist-input:focus {
+  border-color: #111;
+  background: #fff;
+  box-shadow: 0 0 0 3px #11108;
+}
+
+.admin-social-platforms {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 10px;
+}
+
+.admin-social-platform {
+  min-height: 112px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #11112;
+  border-radius: 12px;
+  background: #fff8;
+  color: #111;
+  text-align: left;
+  opacity: 0.45;
+  transition: opacity 0.2s, border-color 0.2s, background 0.2s, transform 0.2s;
+}
+
+.admin-social-platform:hover {
+  opacity: 0.8;
+  transform: translateY(-2px);
+}
+
+.admin-social-platform.is-selected {
+  opacity: 1;
+  border-color: #111;
+  background: #fff;
+}
+
+.admin-social-platform__icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.admin-social-platform > span {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.admin-social-platform > i {
+  font-size: 8px;
+  font-style: normal;
+  letter-spacing: 0.14em;
+  color: #1116;
+}
+
+.admin-selected-socials {
+  margin-top: 20px;
+  border: 1px solid #11112;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff6;
+}
+
+.admin-selected-socials__heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 17px 18px;
+  border-bottom: 1px solid #11112;
+}
+
+.admin-selected-socials__heading strong {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.admin-selected-socials__heading span {
+  color: #1116;
+  font-size: 10px;
+}
+
+.admin-selected-social {
+  min-height: 68px;
+  display: grid;
+  grid-template-columns: minmax(150px, 0.6fr) minmax(220px, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 18px;
+  border-bottom: 1px solid #11110;
+}
+
+.admin-selected-social:last-child {
+  border-bottom: 0;
+}
+
+.admin-selected-social__identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-selected-social__identity strong {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.admin-selected-social__order {
+  width: 25px;
+  color: #1115;
+  font-size: 9px;
+}
+
+.admin-selected-social__icon,
+.admin-platform-row__icon {
+  width: 25px;
+  height: 25px;
+  object-fit: contain;
+}
+
+.admin-artist-input {
+  width: 100%;
+  height: 43px;
+  padding: 0 13px;
+  border: 1px solid #11118;
+  border-radius: 8px;
+  outline: 0;
+  background: #fff8;
+  color: #111;
+  font: inherit;
+  font-size: 12px;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.admin-selected-social__actions {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.admin-selected-social__actions button {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #11112;
+  border-radius: 50%;
+  color: #1118;
+  font-size: 12px;
+}
+
+.admin-selected-social__actions button:hover:not(:disabled) {
+  border-color: #111;
+  color: #111;
+}
+
+.admin-selected-social__actions button:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.admin-artist-empty {
+  margin: 0;
+  padding: 18px;
+  color: #1116;
+  font-size: 11px;
+}
+
+.admin-social-add-form {
+  display: grid;
+  grid-template-columns: 0.7fr 1fr 1fr auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.admin-social-add-form .admin-field {
+  gap: 8px;
+}
+
+.admin-social-add-form .admin-field > span {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.admin-svg-upload {
+  min-height: 67px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 10px 13px;
+  border: 1px dashed #1113;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #fff6;
+}
+
+.admin-svg-upload input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.admin-svg-upload strong {
+  font-size: 11px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-svg-upload span {
+  margin-top: 4px;
+  color: #1116;
+  font-size: 9px;
+}
+
+.admin-artist-add-button {
+  height: 43px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 25px;
+  padding: 0 13px;
+  border-radius: 8px;
+  background: #111;
+  color: #fff;
+  font-size: 11px;
+}
+
+.admin-artist-add-button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.admin-platform-list {
+  margin-top: 20px;
+  border-top: 1px solid #11112;
+}
+
+.admin-platform-row {
+  min-height: 56px;
+  display: grid;
+  grid-template-columns: 30px 130px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid #11110;
+}
+
+.admin-platform-row strong {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.admin-platform-row > span {
+  min-width: 0;
+  overflow: hidden;
+  color: #1116;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-platform-row > button {
+  font-size: 10px;
+  color: #1116;
+}
+
+.admin-platform-row > button:hover {
+  color: #b42318;
+}
+
+.admin-artist-savebar {
+  min-height: 92px;
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 25px;
+  margin-top: 60px;
+  padding: 16px 0;
+  border-top: 1px solid #11114;
+  background: #f4f4f1ee;
+  backdrop-filter: blur(10px);
+}
+
+.admin-artist-savebar > div {
+  min-width: 0;
+}
+
+.admin-artist-success {
+  margin: 0;
+  color: #111;
+  font-size: 11px;
+}
+
+.admin-artist-save {
+  width: auto;
+  min-width: 205px;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 900px) {
+  .admin-artist-section {
+    margin-top: 55px;
+  }
+
+  .admin-social-add-form {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-artist-add-button {
+    width: 100%;
+  }
+
+  .admin-selected-social {
+    grid-template-columns: minmax(150px, 0.6fr) minmax(180px, 1fr) auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-artist-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .admin-social-platforms {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-selected-social {
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    padding: 13px;
+  }
+
+  .admin-selected-social__identity {
+    grid-column: 1 / -1;
+  }
+
+  .admin-selected-social .admin-artist-input {
+    grid-column: 1;
+  }
+
+  .admin-selected-social__actions {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .admin-selected-socials__heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .admin-social-add-form {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-platform-row {
+    grid-template-columns: 30px 1fr auto;
+    padding: 10px 0;
+  }
+
+  .admin-platform-row > span {
+    grid-column: 2 / -1;
+    grid-row: 2;
+  }
+
+  .admin-artist-savebar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-artist-save {
+    width: 100%;
+  }
+}
