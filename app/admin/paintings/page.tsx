@@ -252,7 +252,7 @@ export default function AdminPaintingsPage() {
 
             <div className="admin-painting-form-grid">
               <label className="admin-field"><span>Name</span><input value={form.name} maxLength={150} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="Painting name" /></label>
-              <label className="admin-field"><span>Completed date</span><input value={form.completedDate} maxLength={10} onChange={(event) => setForm({ ...form, completedDate: formatDateInput(event.target.value) })} placeholder="YYYY/MM/DD" inputMode="numeric" pattern="\\d{4}/\\d{2}/\\d{2}" /></label>
+              <label className="admin-field"><span>Completed date</span><input value={form.completedDate} maxLength={10} onChange={(event) => setForm({ ...form, completedDate: formatDateInput(event.target.value) })} placeholder="YYYY/MM/DD" inputMode="numeric" /></label>
               <label className="admin-field admin-painting-description"><span>Description</span><textarea value={form.description} maxLength={5000} onChange={(event) => setForm({ ...form, description: event.target.value })} placeholder="Describe the work…" /></label>
             </div>
 
