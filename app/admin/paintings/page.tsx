@@ -44,6 +44,13 @@ interface PaintingFormState {
 
 const emptyForm: PaintingFormState = { name: "", description: "", completedDate: "", categoryIds: [], image1: null, image2: null };
 
+function formatDateInput(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 8);
+  if (digits.length <= 4) return digits;
+  if (digits.length <= 6) return digits.slice(0, 4) + "/" + digits.slice(4);
+  return digits.slice(0, 4) + "/" + digits.slice(4, 6) + "/" + digits.slice(6);
+}
+
 function ImagePicker({ label, file, existingUrl, onChange }: {
   label: string;
   file: File | null;
@@ -83,6 +90,7 @@ export default function AdminPaintingsPage() {
   const [filters, setFilters] = useState({ search: "", categoryId: "", from: "", to: "" });
   const [form, setForm] = useState<PaintingFormState>(emptyForm);
   const [editing, setEditing] = useState<AdminPainting | null>(null);
+  const [activeTab, setActiveTab] = useState<"add" | "collection">("add");
   const [toast, setToast] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const categoryMap = useMemo(() => new Map(categories.map((category) => [category.id, category.name])), [categories]);
@@ -136,6 +144,7 @@ export default function AdminPaintingsPage() {
   function startEdit(painting: AdminPainting) {
     setEditing(painting);
     setForm({ name: painting.name, description: painting.description, completedDate: painting.completedDate, categoryIds: painting.categoryIds, image1: null, image2: null });
+    setActiveTab("add");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -228,12 +237,22 @@ export default function AdminPaintingsPage() {
             <button className="admin-round-link" type="button" onClick={() => void loadData()} aria-label="Reload paintings">↻</button>
           </div>
 
+          <div className="admin-painting-tabs" role="tablist" aria-label="Paintings">
+            <button type="button" role="tab" aria-selected={activeTab === "add"} className={activeTab === "add" ? "is-active" : ""} onClick={() => setActiveTab("add")}>
+              <span>{editing ? "EDIT" : "ADD"}</span> Painting
+            </button>
+            <button type="button" role="tab" aria-selected={activeTab === "collection"} className={activeTab === "collection" ? "is-active" : ""} onClick={() => setActiveTab("collection")}>
+              <span>VIEW</span> Collection <small>{paintings.length}</small>
+            </button>
+          </div>
+
+          {activeTab === "add" && (
           <form className="admin-painting-form" onSubmit={submitPainting}>
             <div className="admin-painting-form-heading"><div><p className="admin-card-kicker">{editing ? "EDIT PAINTING" : "NEW PAINTING"}</p><h2>{editing ? editing.name : "Add a painting"}</h2></div>{editing && <button type="button" className="admin-painting-cancel" onClick={resetForm}>Cancel edit</button>}</div>
 
             <div className="admin-painting-form-grid">
               <label className="admin-field"><span>Name</span><input value={form.name} maxLength={150} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="Painting name" /></label>
-              <label className="admin-field"><span>Completed date</span><input value={form.completedDate} maxLength={10} onChange={(event) => setForm({ ...form, completedDate: event.target.value })} placeholder="YYYY/MM/DD" inputMode="numeric" /></label>
+              <label className="admin-field"><span>Completed date</span><input value={form.completedDate} maxLength={10} onChange={(event) => setForm({ ...form, completedDate: formatDateInput(event.target.value) })} placeholder="YYYY/MM/DD" inputMode="numeric" pattern="\\d{4}/\\d{2}/\\d{2}" /></label>
               <label className="admin-field admin-painting-description"><span>Description</span><textarea value={form.description} maxLength={5000} onChange={(event) => setForm({ ...form, description: event.target.value })} placeholder="Describe the work…" /></label>
             </div>
 
@@ -261,15 +280,17 @@ export default function AdminPaintingsPage() {
 
             <div className="admin-painting-form-actions"><button className="admin-submit" type="submit" disabled={saving || !categories.length}>{saving ? "Saving…" : editing ? "Save painting" : "Add painting"} <span>↗</span></button></div>
           </form>
+          )}
 
+          {activeTab === "collection" && (
           <section className="admin-painting-library">
             <div className="admin-painting-library-heading"><div><p className="admin-card-kicker">COLLECTION</p><h2>Paintings</h2></div><span>{paintings.length} results</span></div>
 
             <div className="admin-painting-filters">
               <label className="admin-painting-search"><span>SEARCH</span><input value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} placeholder="Search by name…" /></label>
               <label><span>CATEGORY</span><select value={filters.categoryId} onChange={(event) => setFilters({ ...filters, categoryId: event.target.value })}><option value="">All categories</option>{parents.map((parent) => <optgroup label={parent.name} key={parent.id}><option value={parent.id}>{parent.name}</option>{(childrenByParent.get(parent.id) ?? []).map((child) => <option value={child.id} key={child.id}>{child.name}</option>)}</optgroup>)}</select></label>
-              <label><span>FROM</span><input value={filters.from} maxLength={10} onChange={(event) => setFilters({ ...filters, from: event.target.value })} placeholder="YYYY/MM/DD" inputMode="numeric" /></label>
-              <label><span>TO</span><input value={filters.to} maxLength={10} onChange={(event) => setFilters({ ...filters, to: event.target.value })} placeholder="YYYY/MM/DD" inputMode="numeric" /></label>
+              <label><span>FROM</span><input value={filters.from} maxLength={10} onChange={(event) => setFilters({ ...filters, from: formatDateInput(event.target.value) })} placeholder="YYYY/MM/DD" inputMode="numeric" /></label>
+              <label><span>TO</span><input value={filters.to} maxLength={10} onChange={(event) => setFilters({ ...filters, to: formatDateInput(event.target.value) })} placeholder="YYYY/MM/DD" inputMode="numeric" /></label>
             </div>
 
             {loading ? <div className="admin-painting-skeleton"><span /><span /><span /></div> : !paintings.length ? <div className="admin-category-empty">No paintings match the current filters.</div> : (
@@ -288,6 +309,7 @@ export default function AdminPaintingsPage() {
               </div>
             )}
           </section>
+          )}
 
           {toast && <div className={`admin-category-toast admin-category-toast--${toast.type}`} role="status"><span>{toast.type === "success" ? "✓" : "!"}</span><p>{toast.text}</p><button type="button" onClick={() => setToast(null)} aria-label="Dismiss notification">×</button></div>}
         </div>
