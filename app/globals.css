@@ -3763,3 +3763,16 @@ body:has(.admin-shell) > .site-header {
   font: inherit;
   font-size: 11px;
 }
+
+@media (max-width: 640px) {
+  .admin-painting-tabs {
+    margin-top: 30px;
+    overflow-x: auto;
+  }
+
+  .admin-painting-tabs button {
+    min-width: 125px;
+    flex: 1 0 125px;
+    padding: 12px 13px;
+  }
+}
