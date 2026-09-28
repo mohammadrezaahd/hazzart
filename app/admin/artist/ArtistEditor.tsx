@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+type ArtistTab = "cv" | "contact" | "social";
+
 import type {
   ArtistAdminPayload,
   ArtistContactSocial,
@@ -62,6 +64,8 @@ export default function ArtistEditor({ username }: { username: string }) {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [activeTab, setActiveTab] = useState<ArtistTab>("cv");
+  const [toast, setToast] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const [socialName, setSocialName] = useState("");
   const [socialUrl, setSocialUrl] = useState("");
@@ -86,7 +90,9 @@ export default function ArtistEditor({ username }: { username: string }) {
       setContactText(data.content.contactText);
       setSelected(data.content.socials);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not load artist content.");
+      const text = err instanceof Error ? err.message : "Could not load artist content.";
+      setError(text);
+      setToast({ type: "error", text });
     } finally {
       setLoading(false);
     }
@@ -95,6 +101,12 @@ export default function ArtistEditor({ username }: { username: string }) {
   useEffect(() => {
     void loadArtist();
   }, []);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timeout = window.setTimeout(() => setToast(null), 3500);
+    return () => window.clearTimeout(timeout);
+  }, [toast]);
 
   const selectedIds = useMemo(
     () => new Set(selected.map((item) => item.platformId)),
@@ -185,8 +197,11 @@ export default function ArtistEditor({ username }: { username: string }) {
 
       setSelected(data.content.socials);
       setMessage("Artist content saved.");
+      setToast({ type: "success", text: "Artist content saved successfully." });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save artist content.");
+      const text = err instanceof Error ? err.message : "Could not save artist content.";
+      setError(text);
+      setToast({ type: "error", text });
     } finally {
       setSaving(false);
     }
@@ -196,7 +211,9 @@ export default function ArtistEditor({ username }: { username: string }) {
     event.preventDefault();
 
     if (!socialFile) {
-      setError("Choose an SVG icon first.");
+      const text = "Choose an SVG icon first.";
+      setError(text);
+      setToast({ type: "error", text });
       return;
     }
 
@@ -234,8 +251,11 @@ export default function ArtistEditor({ username }: { username: string }) {
       setSocialFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
       setMessage("Social media added to the list.");
+      setToast({ type: "success", text: "Social media added successfully." });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not add social media.");
+      const text = err instanceof Error ? err.message : "Could not add social media.";
+      setError(text);
+      setToast({ type: "error", text });
     } finally {
       setAddingSocial(false);
     }
@@ -267,8 +287,11 @@ export default function ArtistEditor({ username }: { username: string }) {
       );
       setSelected((current) => current.filter((item) => item.platformId !== id));
       setMessage("Social media removed.");
+      setToast({ type: "success", text: "Social media removed." });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not delete social media.");
+      const text = err instanceof Error ? err.message : "Could not delete social media.";
+      setError(text);
+      setToast({ type: "error", text });
     }
   }
 
@@ -349,174 +372,159 @@ export default function ArtistEditor({ username }: { username: string }) {
           </div>
 
           {loading ? (
-            <div className="admin-artist-loading">Loading artist content…</div>
+            <div className="admin-artist-skeleton" aria-label="Loading artist content">
+              <div className="admin-skeleton-tabs"><span /><span /><span /></div>
+              <div className="admin-skeleton-heading"><span /><span /></div>
+              <div className="admin-skeleton-lines">
+                <span /><span /><span /><span /><span /><span />
+              </div>
+            </div>
           ) : (
             <>
-              <section className="admin-artist-section">
-                <div className="admin-artist-section-heading">
-                  <div>
-                    <p className="admin-card-kicker">01 / CV</p>
-                    <h2>Artist CV</h2>
-                  </div>
+              <div className="admin-artist-tabs" role="tablist" aria-label="Artist sections">
+                <button type="button" role="tab" aria-selected={activeTab === "cv"} className={activeTab === "cv" ? "is-active" : ""} onClick={() => setActiveTab("cv")}>
+                  <span>01</span> CV
+                </button>
+                <button type="button" role="tab" aria-selected={activeTab === "contact"} className={activeTab === "contact" ? "is-active" : ""} onClick={() => setActiveTab("contact")}>
+                  <span>02</span> Contact
+                </button>
+                <button type="button" role="tab" aria-selected={activeTab === "social"} className={activeTab === "social" ? "is-active" : ""} onClick={() => setActiveTab("social")}>
+                  <span>03</span> Social Media
+                </button>
+              </div>
+
+              {activeTab === "cv" && (
+                <section className="admin-artist-section admin-artist-tab-panel">
+                  <div className="admin-artist-section-heading">
+                    <div>
+                      <p className="admin-card-kicker">01 / CV</p>
+                      <h2>Artist CV</h2>
+                    </div>
                     <span>Plain text · ready for rich content later</span>
                   </div>
                   <textarea
-                  className="admin-artist-textarea"
-                  value={cvText}
-                  onChange={(event) => setCvText(event.target.value)}
+                    className="admin-artist-textarea"
+                    value={cvText}
+                    onChange={(event) => setCvText(event.target.value)}
                     placeholder="Write the artist CV here…"
                   />
                 </section>
+              )}
 
-              <section className="admin-artist-section">
-                <div className="admin-artist-section-heading">
-                  <div>
-                    <p className="admin-card-kicker">02 / CONTACT</p>
-                    <h2>Contact text</h2>
-                  </div>
-                  <span>The copy for the Contact page</span>
-                </div>
-                <textarea
-                  className="admin-artist-textarea admin-artist-textarea--contact"
-                  value={contactText}
-                  onChange={(event) => setContactText(event.target.value)}
-                  placeholder="Write the contact text here…"
-                />
-              </section>
-
-              <section className="admin-artist-section">
-                <div className="admin-artist-section-heading">
-                  <div>
-                    <p className="admin-card-kicker">03 / SOCIAL MEDIA</p>
-                    <h2>Choose what appears on Contact</h2>
-                  </div>
-                  <span>{selected.length} selected</span>
-                </div>
-
-                <div className="admin-social-platforms">
-                  {(payload?.socialPlatforms ?? []).map((platform) => {
-                    const active = selectedIds.has(platform.id);
-
-                    return (
-                      <button
-                        type="button"
-                        key={platform.id}
-                        className={`admin-social-platform ${active ? "is-selected" : ""}`}
-                        onClick={() => togglePlatform(platform)}
-                        aria-pressed={active}
-                      >
-                        <IconImage platform={platform} className="admin-social-platform__icon" />
-                        <span>{platform.name}</span>
-                        <i>{active ? "SELECTED" : "SELECT"}</i>
-                      </button>
-                    );
-                  })}
-
-                  {!payload?.socialPlatforms.length && (
-                    <p className="admin-artist-empty">No social media platforms have been added yet.</p>
-                  )}
-                </div>
-
-                <div className="admin-selected-socials">
-                  <div className="admin-selected-socials__heading">
-                    <strong>Selected order</strong>
-                    <span>These are the items that will be published.</span>
-                  </div>
-
-                  {selectedPlatforms.map(({ item, platform }, index) => (
-                    <div className="admin-selected-social" key={platform.id}>
-                      <div className="admin-selected-social__identity">
-                        <span className="admin-selected-social__order">{String(index + 1).padStart(2, "0")}</span>
-                        <IconImage platform={platform} className="admin-selected-social__icon" />
-                        <strong>{platform.name}</strong>
-                      </div>
-
-                      <input
-                        className="admin-artist-input"
-                        value={item.url}
-                        onChange={(event) => updateSelectedUrl(platform.id, event.target.value)}
-                        placeholder="https://…"
-                        aria-label={`${platform.name} URL`}
-                      />
-
-                      <div className="admin-selected-social__actions">
-                        <button type="button" onClick={() => moveSelected(index, -1)} disabled={index === 0} aria-label={`Move ${platform.name} up`}>↑</button>
-                        <button type="button" onClick={() => moveSelected(index, 1)} disabled={index === selectedPlatforms.length - 1} aria-label={`Move ${platform.name} down`}>↓</button>
-                        <button type="button" onClick={() => togglePlatform(platform)} aria-label={`Remove ${platform.name}`}>×</button>
-                      </div>
+              {activeTab === "contact" && (
+                <section className="admin-artist-section admin-artist-tab-panel">
+                  <div className="admin-artist-section-heading">
+                    <div>
+                      <p className="admin-card-kicker">02 / CONTACT</p>
+                      <h2>Contact text</h2>
                     </div>
-                  ))}
-
-                  {!selectedPlatforms.length && (
-                    <p className="admin-artist-empty">Select a platform above to add it to the Contact page.</p>
-                  )}
-                </div>
-              </section>
-
-              <section className="admin-artist-section admin-artist-section--add">
-                <div className="admin-artist-section-heading">
-                  <div>
-                    <p className="admin-card-kicker">04 / PLATFORM LIST</p>
-                    <h2>Add a social media</h2>
+                    <span>The copy for the Contact page</span>
                   </div>
-                  <span>SVG icons only · max 100 KB</span>
-                </div>
+                  <textarea
+                    className="admin-artist-textarea admin-artist-textarea--contact"
+                    value={contactText}
+                    onChange={(event) => setContactText(event.target.value)}
+                    placeholder="Write the contact text here…"
+                  />
+                </section>
+              )}
 
-                <form className="admin-social-add-form" onSubmit={addSocialPlatform}>
-                  <label className="admin-field">
-                    <span>App name</span>
-                    <input
-                      className="admin-artist-input"
-                      value={socialName}
-                      onChange={(event) => setSocialName(event.target.value)}
-                      placeholder="Instagram"
-                      maxLength={80}
-                      required
-                    />
-                  </label>
-
-                  <label className="admin-field">
-                    <span>Default profile URL</span>
-                    <input
-                      className="admin-artist-input"
-                      value={socialUrl}
-                      onChange={(event) => setSocialUrl(event.target.value)}
-                      placeholder="https://instagram.com/…"
-                      type="url"
-                      required
-                    />
-                  </label>
-
-                  <label className="admin-svg-upload">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept=".svg,image/svg+xml"
-                      onChange={(event) => setSocialFile(event.target.files?.[0] ?? null)}
-                      required
-                    />
-                    <strong>{socialFile ? socialFile.name : "Choose SVG icon"}</strong>
-                    <span>{socialFile ? "Ready to upload" : "Only .svg files are accepted"}</span>
-                  </label>
-
-                  <button className="admin-artist-add-button" type="submit" disabled={addingSocial}>
-                    {addingSocial ? "Adding…" : "Add to list"} <span>+</span>
-                  </button>
-                </form>
-
-                {!!payload?.socialPlatforms.length && (
-                  <div className="admin-platform-list">
-                    {payload.socialPlatforms.map((platform) => (
-                      <div className="admin-platform-row" key={platform.id}>
-                        <IconImage platform={platform} className="admin-platform-row__icon" />
-                        <strong>{platform.name}</strong>
-                        <span>{platform.defaultUrl}</span>
-                        <button type="button" onClick={() => void deleteSocialPlatform(platform.id)}>Remove</button>
+              {activeTab === "social" && (
+                <>
+                  <section className="admin-artist-section admin-artist-tab-panel">
+                    <div className="admin-artist-section-heading">
+                      <div>
+                        <p className="admin-card-kicker">03 / SOCIAL MEDIA</p>
+                        <h2>Choose what appears on Contact</h2>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </section>
+                      <span>{selected.length} selected</span>
+                    </div>
+
+                    <div className="admin-social-platforms">
+                      {(payload?.socialPlatforms ?? []).map((platform) => {
+                        const active = selectedIds.has(platform.id);
+                        return (
+                          <button type="button" key={platform.id} className={`admin-social-platform ${active ? "is-selected" : ""}`} onClick={() => togglePlatform(platform)} aria-pressed={active}>
+                            <IconImage platform={platform} className="admin-social-platform__icon" />
+                            <span>{platform.name}</span>
+                            <i>{active ? "SELECTED" : "SELECT"}</i>
+                          </button>
+                        );
+                      })}
+                      {!payload?.socialPlatforms.length && (
+                        <p className="admin-artist-empty">No social media platforms have been added yet.</p>
+                      )}
+                    </div>
+
+                    <div className="admin-selected-socials">
+                      <div className="admin-selected-socials__heading">
+                        <strong>Selected order</strong>
+                        <span>These are the items that will be published.</span>
+                      </div>
+                      {selectedPlatforms.map(({ item, platform }, index) => (
+                        <div className="admin-selected-social" key={platform.id}>
+                          <div className="admin-selected-social__identity">
+                            <span className="admin-selected-social__order">{String(index + 1).padStart(2, "0")}</span>
+                            <IconImage platform={platform} className="admin-selected-social__icon" />
+                            <strong>{platform.name}</strong>
+                          </div>
+                          <input className="admin-artist-input" value={item.url} onChange={(event) => updateSelectedUrl(platform.id, event.target.value)} placeholder="https://…" aria-label={`${platform.name} URL`} />
+                          <div className="admin-selected-social__actions">
+                            <button type="button" onClick={() => moveSelected(index, -1)} disabled={index === 0} aria-label={`Move ${platform.name} up`}>↑</button>
+                            <button type="button" onClick={() => moveSelected(index, 1)} disabled={index === selectedPlatforms.length - 1} aria-label={`Move ${platform.name} down`}>↓</button>
+                            <button type="button" onClick={() => togglePlatform(platform)} aria-label={`Remove ${platform.name}`}>×</button>
+                          </div>
+                        </div>
+                      ))}
+                      {!selectedPlatforms.length && (
+                        <p className="admin-artist-empty">Select a platform above to add it to the Contact page.</p>
+                      )}
+                    </div>
+                  </section>
+
+                  <section className="admin-artist-section admin-artist-section--add">
+                    <div className="admin-artist-section-heading">
+                      <div>
+                        <p className="admin-card-kicker">04 / PLATFORM LIST</p>
+                        <h2>Add a social media</h2>
+                      </div>
+                      <span>SVG icons only · max 100 KB</span>
+                    </div>
+
+                    <form className="admin-social-add-form" onSubmit={addSocialPlatform}>
+                      <label className="admin-field">
+                        <span>App name</span>
+                        <input className="admin-artist-input" value={socialName} onChange={(event) => setSocialName(event.target.value)} placeholder="Instagram" maxLength={80} required />
+                      </label>
+                      <label className="admin-field">
+                        <span>Default profile URL</span>
+                        <input className="admin-artist-input" value={socialUrl} onChange={(event) => setSocialUrl(event.target.value)} placeholder="https://instagram.com/…" type="url" required />
+                      </label>
+                      <label className="admin-svg-upload">
+                        <input ref={fileInputRef} type="file" accept=".svg,image/svg+xml" onChange={(event) => setSocialFile(event.target.files?.[0] ?? null)} required />
+                        <strong>{socialFile ? socialFile.name : "Choose SVG icon"}</strong>
+                        <span>{socialFile ? "Ready to upload" : "Only .svg files are accepted"}</span>
+                      </label>
+                      <button className="admin-artist-add-button" type="submit" disabled={addingSocial}>
+                        {addingSocial ? "Adding…" : "Add to list"} <span>+</span>
+                      </button>
+                    </form>
+
+                    {!!payload?.socialPlatforms.length && (
+                      <div className="admin-platform-list">
+                        {payload.socialPlatforms.map((platform) => (
+                          <div className="admin-platform-row" key={platform.id}>
+                            <IconImage platform={platform} className="admin-platform-row__icon" />
+                            <strong>{platform.name}</strong>
+                            <span>{platform.defaultUrl}</span>
+                            <button type="button" onClick={() => void deleteSocialPlatform(platform.id)}>Remove</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                </>
+              )}
 
               <div className="admin-artist-savebar">
                 <div>
@@ -528,6 +536,14 @@ export default function ArtistEditor({ username }: { username: string }) {
                 </button>
               </div>
             </>
+          )}
+
+          {toast && (
+            <div className={`admin-artist-toast admin-artist-toast--${toast.type}`} role="status">
+              <span>{toast.type === "success" ? "✓" : "!"}</span>
+              <p>{toast.text}</p>
+              <button type="button" onClick={() => setToast(null)} aria-label="Dismiss notification">×</button>
+            </div>
           )}
         </div>
       </section>
