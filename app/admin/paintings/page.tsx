@@ -56,6 +56,7 @@ function ImagePicker({ label, file, existingUrl, onChange }: {
   useEffect(() => {
     if (!file) {
       setPreview(null);
+      if (inputRef.current) inputRef.current.value = "";
       return;
     }
     const url = URL.createObjectURL(file);
@@ -117,7 +118,6 @@ export default function AdminPaintingsPage() {
     }
   }
 
-  useEffect(() => { void loadData(); }, []);
   useEffect(() => {
     const timer = window.setTimeout(() => { void loadData(filters); }, 300);
     return () => window.clearTimeout(timer);
