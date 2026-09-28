@@ -4,7 +4,7 @@ import { requireAdminSession } from "@/lib/admin-auth";
 const navigation = [
   { label: "Overview", href: "/admin", icon: "grid", active: true },
   { label: "Categories", href: "/admin/categories", icon: "layers" },
-  { label: "Paintings", href: null, icon: "image" },
+  { label: "Paintings", href: "/admin/paintings", icon: "image" },
   { label: "Projects", href: null, icon: "folder" },
   { label: "Artist", href: "/admin/artist", icon: "user" },
   { label: "Statistics", href: null, icon: "chart" },
