@@ -6,7 +6,7 @@ const navigation = [
   { label: "Categories", href: null, icon: "layers" },
   { label: "Paintings", href: null, icon: "image" },
   { label: "Projects", href: null, icon: "folder" },
-  { label: "Artist", href: null, icon: "user" },
+  { label: "Artist", href: "/admin/artist", icon: "user" },
   { label: "Statistics", href: null, icon: "chart" },
 ] as const;
 
@@ -50,7 +50,7 @@ export default async function AdminDashboardPage() {
           <nav className="admin-nav" aria-label="Admin navigation">
             {navigation.map((item) =>
               item.href ? (
-                <Link key={item.label} href={item.href} className="admin-nav-item is-active">
+                <Link key={item.label} href={item.href} className={`admin-nav-item ${item.label === "Overview" ? "is-active" : ""}`}>
                   <NavIcon type={item.icon} />
                   <span>{item.label}</span>
                 </Link>
