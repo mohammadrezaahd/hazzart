@@ -22,7 +22,8 @@
     "bcryptjs": "^3.0.2",
     "jose": "^6.1.0",
     "react-hook-form": "^7.62.0",
-    "yup": "^1.7.0"
+    "yup": "^1.7.0",
+    "axios": "^1.12.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
