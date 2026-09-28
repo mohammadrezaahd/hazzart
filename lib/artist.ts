@@ -60,7 +60,7 @@ export function sanitizeSvg(svg: string) {
     /\bon[a-z]+\s*=/i,
     /javascript\s*:/i,
     /data:text\/html/i,
-    /https?:\/\//i,
+    // /https?:\/\//i,
   ];
 
   if (blockedPatterns.some((pattern) => pattern.test(value))) {
