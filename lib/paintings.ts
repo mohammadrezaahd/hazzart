@@ -81,14 +81,14 @@ async function uploadImage(file: File): Promise<AdminPaintingImage> {
 
   const pathname = `paintings/${randomUUID()}-${getSafeFileName(file.name)}`;
   const blob = await put(pathname, file, {
-    access: "public",
+    access: "private",
     contentType: file.type,
     addRandomSuffix: false,
   });
 
   return {
     fileId: blob.pathname,
-    url: blob.url,
+    url: `/api/paintings/images/${blob.pathname}`,
     name: file.name || "painting-image",
     contentType: file.type,
     size: file.size,
