@@ -69,7 +69,7 @@ function ImagePicker({ label, file, existingUrl, onChange }: {
       <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => onChange(event.target.files?.[0] ?? null)} />
       <button type="button" className="admin-painting-image-picker" onClick={() => inputRef.current?.click()}>
         {preview ? <img src={preview} alt="" /> : existingUrl ? <img src={existingUrl} alt="" /> : <span className="admin-painting-image-placeholder">+</span>}
-        <span><strong>{label}</strong><small>{file?.name ?? (existingUrl ? "Keep current image" : "JPG · PNG · WebP · max 10 MB")}</small></span>
+        <span><strong>{label}</strong><small>{file?.name ?? (existingUrl ? "Keep current image" : "JPG · PNG · WebP · max 4 MB")}</small></span>
       </button>
     </div>
   );
