@@ -358,15 +358,15 @@ export default function ArtistEditor({ username }: { username: string }) {
                     <p className="admin-card-kicker">01 / CV</p>
                     <h2>Artist CV</h2>
                   </div>
-                  <span>Plain text · ready for rich content later</span>
-                </div>
-                <textarea
+                    <span>Plain text · ready for rich content later</span>
+                  </div>
+                  <textarea
                   className="admin-artist-textarea"
                   value={cvText}
                   onChange={(event) => setCvText(event.target.value)}
-                  placeholder="Write the artist CV here…"
-                />
-              </section>
+                    placeholder="Write the artist CV here…"
+                  />
+                </section>
 
               <section className="admin-artist-section">
                 <div className="admin-artist-section-heading">
