@@ -185,9 +185,10 @@ export async function createArtistSocialPlatform(input: {
     throw new Error("A social media platform with this name already exists.");
   }
 
+  const id = randomUUID();
   const platform: ArtistSocialPlatformDocument = {
-    _id: randomUUID(),
-    id: randomUUID(),
+    _id: id,
+    id,
     name,
     defaultUrl,
     iconSvg,
