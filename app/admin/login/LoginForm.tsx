@@ -6,6 +6,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import type { AdminLoginInput } from "@/lib/admin-validation";
 import { adminLoginSchema } from "@/lib/admin-validation";
+import { getApiErrorMessage } from "@/components/api/client";
+import { loginAdmin } from "@/components/api/auth";
 
 interface LoginFormProps {
   apiUrl: string;
@@ -29,28 +31,12 @@ export function LoginForm({ apiUrl }: LoginFormProps) {
     setServerError(null);
 
     try {
-      const loginUrl = apiUrl.replace(/\/$/, "") + "/admin/auth/login";
-      const response = await fetch(loginUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        credentials: "same-origin",
-        body: JSON.stringify(values),
-      });
-
-      const data = (await response.json()) as { message?: string };
-
-      if (!response.ok) {
-        setServerError(data.message || "Unable to sign in.");
-        return;
-      }
+      await loginAdmin(apiUrl, values);
 
       router.replace("/admin");
       router.refresh();
-    } catch {
-      setServerError("Unable to connect to the authentication service.");
+    } catch (error) {
+      setServerError(getApiErrorMessage(error, "Unable to connect to the authentication service."));
     }
   };
 
