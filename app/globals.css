@@ -3598,6 +3598,47 @@ body:has(.admin-shell) > .site-header {
 }
 
 
+.admin-painting-tabs {
+  display: flex;
+  gap: 0;
+  margin-top: 42px;
+  border-bottom: 1px solid #11112;
+}
+
+.admin-painting-tabs button {
+  min-width: 150px;
+  padding: 13px 18px;
+  border-bottom: 1px solid transparent;
+  color: #1116;
+  font-size: 10px;
+  letter-spacing: .04em;
+  text-align: left;
+  transition: color .2s, border-color .2s, background .2s;
+}
+
+.admin-painting-tabs button:hover {
+  color: #111;
+  background: #11103;
+}
+
+.admin-painting-tabs button.is-active {
+  color: #111;
+  border-bottom-color: #111;
+}
+
+.admin-painting-tabs button span {
+  margin-right: 6px;
+  color: #1115;
+  font-size: 8px;
+  letter-spacing: .1em;
+}
+
+.admin-painting-tabs button small {
+  margin-left: 7px;
+  color: #1114;
+  font-size: 8px;
+}
+
 /* Admin / Paintings */
 .admin-painting-form,
 .admin-painting-library { margin-top: 52px; }
