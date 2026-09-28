@@ -3692,3 +3692,33 @@ body:has(.admin-shell) > .site-header {
   .admin-painting-image-placeholder { width: 105px; height: 105px; }
   .admin-painting-form-actions .admin-submit { width: 100%; }
 }
+
+
+.admin-category-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 9px 12px;
+  border: 1px solid #11112;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.admin-category-search > span {
+  flex: 0 0 auto;
+  color: #1115;
+  font-size: 8px;
+  letter-spacing: .08em;
+}
+
+.admin-category-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #111;
+  font: inherit;
+  font-size: 11px;
+}
