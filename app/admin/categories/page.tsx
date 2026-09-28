@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { AdminCategory } from "@/interfaces/Category";
+import { createAdminCategory, deleteAdminCategory, getAdminCategories, updateAdminCategory } from "@/components/api/categories";
+import { getApiErrorMessage } from "@/components/api/client";
 
 const navigation = [
   { label: "Overview", href: "/admin", icon: "grid" },
   { label: "Categories", href: "/admin/categories", icon: "layers" },
-  { label: "Paintings", href: null, icon: "image" },
+  { label: "Paintings", href: "/admin/paintings", icon: "image" },
   { label: "Projects", href: null, icon: "folder" },
   { label: "Artist", href: "/admin/artist", icon: "user" },
   { label: "Statistics", href: null, icon: "chart" },
@@ -54,12 +56,9 @@ export default function AdminCategoriesPage() {
   async function loadCategories() {
     setLoading(true);
     try {
-      const response = await fetch("/api/admin/categories", { cache: "no-store" });
-      const data = (await response.json()) as { categories?: AdminCategory[]; error?: string };
-      if (!response.ok || !data.categories) throw new Error(data.error || "Could not load categories.");
-      setCategories(data.categories);
+      setCategories(await getAdminCategories());
     } catch (error) {
-      showToast("error", error instanceof Error ? error.message : "Could not load categories.");
+      showToast("error", getApiErrorMessage(error, "Could not load categories."));
     } finally {
       setLoading(false);
     }
@@ -86,14 +85,8 @@ export default function AdminCategoriesPage() {
 
     setSaving(true);
     try {
-      const response = await fetch("/api/admin/categories", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: trimmed, parentId }),
-      });
-      const data = (await response.json()) as { category?: AdminCategory; error?: string };
-      if (!response.ok || !data.category) throw new Error(data.error || "Could not create category.");
-      setCategories((current) => [...current, data.category!]);
+      const category = await createAdminCategory(trimmed, parentId);
+      setCategories((current) => [...current, category]);
       if (parentId) {
         setSubCategory("");
         setSubParentId(null);
@@ -102,7 +95,7 @@ export default function AdminCategoriesPage() {
       }
       showToast("success", parentId ? "Subcategory added." : "Category added.");
     } catch (error) {
-      showToast("error", error instanceof Error ? error.message : "Could not create category.");
+      showToast("error", getApiErrorMessage(error, "Could not create category."));
     } finally {
       setSaving(false);
     }
@@ -117,19 +110,13 @@ export default function AdminCategoriesPage() {
 
     setSaving(true);
     try {
-      const response = await fetch(`/api/admin/categories/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: trimmed }),
-      });
-      const data = (await response.json()) as { category?: AdminCategory; error?: string };
-      if (!response.ok || !data.category) throw new Error(data.error || "Could not update category.");
-      setCategories((current) => current.map((item) => item.id === id ? data.category! : item));
+      const category = await updateAdminCategory(id, trimmed);
+      setCategories((current) => current.map((item) => item.id === id ? category : item));
       setEditingId(null);
       setEditingName("");
       showToast("success", "Category updated.");
     } catch (error) {
-      showToast("error", error instanceof Error ? error.message : "Could not update category.");
+      showToast("error", getApiErrorMessage(error, "Could not update category."));
     } finally {
       setSaving(false);
     }
@@ -140,13 +127,11 @@ export default function AdminCategoriesPage() {
 
     setSaving(true);
     try {
-      const response = await fetch(`/api/admin/categories/${id}`, { method: "DELETE" });
-      const data = (await response.json()) as { error?: string };
-      if (!response.ok) throw new Error(data.error || "Could not delete category.");
+      await deleteAdminCategory(id);
       setCategories((current) => current.filter((item) => item.id !== id));
       showToast("success", "Category deleted.");
     } catch (error) {
-      showToast("error", error instanceof Error ? error.message : "Could not delete category.");
+      showToast("error", getApiErrorMessage(error, "Could not delete category."));
     } finally {
       setSaving(false);
     }
