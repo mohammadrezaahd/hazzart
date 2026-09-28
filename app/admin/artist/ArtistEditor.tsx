@@ -45,11 +45,10 @@ function NavIcon({ type }: { type: (typeof navigation)[number]["icon"] }) {
 
 function IconImage({ platform, className = "" }: { platform: ArtistSocialPlatform; className?: string }) {
   return (
-    <img
+    <span
       className={className}
-      src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(platform.iconSvg)}`}
-      alt=""
       aria-hidden="true"
+      dangerouslySetInnerHTML={{ __html: platform.iconSvg }}
     />
   );
 }
