@@ -44,7 +44,7 @@ export default function AdminCategoriesPage() {
   const [toast, setToast] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const parents = useMemo(() => categories.filter((category) => category.parentId === null), [categories]);
-  const filteredParents = useMemo(() => {\n    const query = search.trim().toLowerCase();\n    if (!query) return parents;\n\n    return parents.filter((parent) => {\n      if (parent.name.toLowerCase().includes(query)) return true;\n      return (childrenByParent.get(parent.id) ?? []).some((child) => child.name.toLowerCase().includes(query));\n    });\n  }, [parents, childrenByParent, search]);\n\n  const childrenForParent = (parentId: string) => {\n    const children = childrenByParent.get(parentId) ?? [];\n    const query = search.trim().toLowerCase();\n    if (!query) return children;\n    const parent = parents.find((item) => item.id === parentId);\n    if (parent?.name.toLowerCase().includes(query)) return children;\n    return children.filter((child) => child.name.toLowerCase().includes(query));\n  };\n\n  const childrenByParent = useMemo(() => {
+  const childrenByParent = useMemo(() => {
     const map = new Map<string, AdminCategory[]>();
     categories.filter((category) => category.parentId).forEach((category) => {
       const current = map.get(category.parentId!) ?? [];
@@ -53,6 +53,25 @@ export default function AdminCategoriesPage() {
     });
     return map;
   }, [categories]);
+
+  const filteredParents = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return parents;
+
+    return parents.filter((parent) => {
+      if (parent.name.toLowerCase().includes(query)) return true;
+      return (childrenByParent.get(parent.id) ?? []).some((child) => child.name.toLowerCase().includes(query));
+    });
+  }, [parents, childrenByParent, search]);
+
+  const childrenForParent = (parentId: string) => {
+    const children = childrenByParent.get(parentId) ?? [];
+    const query = search.trim().toLowerCase();
+    if (!query) return children;
+    const parent = parents.find((item) => item.id === parentId);
+    if (parent?.name.toLowerCase().includes(query)) return children;
+    return children.filter((child) => child.name.toLowerCase().includes(query));
+  };
 
   async function loadCategories() {
     setLoading(true);
