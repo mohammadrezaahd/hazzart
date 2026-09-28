@@ -36,6 +36,7 @@ export default function AdminCategoriesPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [newCategory, setNewCategory] = useState("");
+  const [search, setSearch] = useState("");
   const [subCategory, setSubCategory] = useState("");
   const [subParentId, setSubParentId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -43,7 +44,7 @@ export default function AdminCategoriesPage() {
   const [toast, setToast] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const parents = useMemo(() => categories.filter((category) => category.parentId === null), [categories]);
-  const childrenByParent = useMemo(() => {
+  const filteredParents = useMemo(() => {\n    const query = search.trim().toLowerCase();\n    if (!query) return parents;\n\n    return parents.filter((parent) => {\n      if (parent.name.toLowerCase().includes(query)) return true;\n      return (childrenByParent.get(parent.id) ?? []).some((child) => child.name.toLowerCase().includes(query));\n    });\n  }, [parents, childrenByParent, search]);\n\n  const childrenForParent = (parentId: string) => {\n    const children = childrenByParent.get(parentId) ?? [];\n    const query = search.trim().toLowerCase();\n    if (!query) return children;\n    const parent = parents.find((item) => item.id === parentId);\n    if (parent?.name.toLowerCase().includes(query)) return children;\n    return children.filter((child) => child.name.toLowerCase().includes(query));\n  };\n\n  const childrenByParent = useMemo(() => {
     const map = new Map<string, AdminCategory[]>();
     categories.filter((category) => category.parentId).forEach((category) => {
       const current = map.get(category.parentId!) ?? [];
@@ -209,7 +210,7 @@ export default function AdminCategoriesPage() {
                   <span>{parents.length} categories · {categories.length - parents.length} subcategories</span>
                 </div>
 
-                {!parents.length ? (
+                {!filteredParents.length ? (
                   <div className="admin-category-empty">No categories yet. Add your first category above.</div>
                 ) : (
                   parents.map((parent, index) => {
