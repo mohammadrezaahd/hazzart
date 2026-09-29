@@ -19,10 +19,9 @@ export function FooterComponent({
   onMediumChange,
 }: Props) {
   const [open, setOpen] = useState(false);
+  const [activeControl, setActiveControl] = useState<TableOrder | "medium">(order);
   const mediumButton = useRef<HTMLButtonElement>(null);
-  const activeIndex = footerItems.findIndex(
-    (item) => item.id === (open || mediumId ? "medium" : order),
-  );
+  const activeIndex = footerItems.findIndex((item) => item.id === (open ? "medium" : activeControl));
   return (
     <footer className="site-footer">
       <div
@@ -43,7 +42,7 @@ export function FooterComponent({
             aria-haspopup={item.id === "medium" ? "dialog" : undefined}
             aria-expanded={item.id === "medium" ? open : undefined}
             onClick={() =>
-              item.id === "medium" ? setOpen(true) : onOrderChange(item.id)
+              item.id === "medium" ? (setActiveControl("medium"), setOpen(true)) : (setActiveControl(item.id), onOrderChange(item.id))
             }
           >
             {item.label}
