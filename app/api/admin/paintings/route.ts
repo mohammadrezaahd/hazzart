@@ -57,6 +57,7 @@ export async function POST(request: Request) {
       description: String(formData.get("description") ?? ""),
       completedDate: String(formData.get("completedDate") ?? ""),
       categoryIds: parseCategoryIds(formData.get("categoryIds")),
+      status: String(formData.get("status") ?? "draft"),
       images: [image1, image2],
     });
 
