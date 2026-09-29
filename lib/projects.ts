@@ -139,7 +139,6 @@ export async function getProjects(): Promise<AdminProject[]> {
   const documents = await (await getDatabase())
     .collection<AdminProject>(COLLECTION)
     .find({})
-    .project({ _id: 0 })
     .sort({ updatedAt: -1, createdAt: -1 })
     .toArray();
 
