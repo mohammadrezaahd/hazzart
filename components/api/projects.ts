@@ -12,7 +12,7 @@ interface ProjectInput {
   started: string;
   ended: string;
   medium: string[];
-  statusId: string;
+  status: "draft" | "published" | "archived";
   images: File[];
   links: { id: string; title: string; link: string }[];
   dynamicFields: Record<string, string>;
