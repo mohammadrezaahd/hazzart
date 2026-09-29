@@ -135,7 +135,7 @@ async function normalize(
   };
 }
 
-export async function getProjects() {
+export async function getProjects(): Promise<AdminProject[]> {
   const documents = await (await getDatabase())
     .collection<AdminProject>(COLLECTION)
     .find({})
