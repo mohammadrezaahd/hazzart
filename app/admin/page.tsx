@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { requireAdminSession } from "@/lib/admin-auth";
+import AdminStorageOverview from "@/components/admin/AdminStorageOverview";
 
 const navigation = [
   { label: "Overview", href: "/admin", icon: "grid", active: true },
@@ -126,6 +127,8 @@ export default async function AdminDashboardPage() {
               <p>Ready to browse from the link in the sidebar.</p>
             </article>
           </div>
+
+          <AdminStorageOverview />
         </div>
       </section>
     </main>
