@@ -1,0 +1,2 @@
+export interface AdminProjectLink { id: string; title: string; link: string; }
+export interface AdminProject { id:string; title:string; myRole:string; started:string; ended:string|null; medium:string[]; statusId:string; links:AdminProjectLink[]; dynamicFields:Record<string,string>; createdAt:string; updatedAt:string; }
