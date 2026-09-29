@@ -20,6 +20,7 @@ function buildPaintingFormData(input: {
   description: string;
   completedDate: string;
   categoryIds: string[];
+  status: "draft" | "published" | "archived";
   image1?: File | null;
   image2?: File | null;
 }) {
@@ -28,6 +29,7 @@ function buildPaintingFormData(input: {
   formData.append("description", input.description);
   formData.append("completedDate", input.completedDate);
   formData.append("categoryIds", JSON.stringify(input.categoryIds));
+  formData.append("status", input.status);
 
   if (input.image1) formData.append("image1", input.image1);
   if (input.image2) formData.append("image2", input.image2);
@@ -40,6 +42,7 @@ export async function createAdminPainting(input: {
   description: string;
   completedDate: string;
   categoryIds: string[];
+  status: "draft" | "published" | "archived";
   image1: File;
   image2: File;
 }) {
@@ -57,6 +60,7 @@ export async function updateAdminPainting(
     description: string;
     completedDate: string;
     categoryIds: string[];
+    status: "draft" | "published" | "archived";
     image1?: File | null;
     image2?: File | null;
   },
@@ -70,4 +74,18 @@ export async function updateAdminPainting(
 
 export async function deleteAdminPainting(id: string) {
   await apiClient.delete("/api/admin/paintings/" + id);
+}
+
+
+export async function setAdminPaintingImageStar(
+  paintingId: string,
+  fileId: string,
+  starred: boolean,
+) {
+  const response = await apiClient.post<{ painting: AdminPainting }>("/api/admin/paintings/star", {
+    paintingId,
+    fileId,
+    starred,
+  });
+  return response.data.painting;
 }
