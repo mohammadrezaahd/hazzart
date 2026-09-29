@@ -79,6 +79,8 @@ export interface FooterItem {
 export interface PortfolioData {
   artist: { name: string; description: string };
   artworks: Artwork[];
+  /** Starred images selected in Admin > Table for the front desk. */
+  tableArtworks: Artwork[];
   /** Projects are shown one at a time; the page navigates between this collection. */
   projects: Project[];
   mediums: Medium[];
