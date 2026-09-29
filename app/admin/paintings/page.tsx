@@ -321,7 +321,7 @@ export default function AdminPaintingsPage() {
                   <article className="admin-painting-card" key={painting.id}>
                     <div className="admin-painting-card-images">{painting.images.map((image) => <div className="admin-painting-card-image-frame" key={image.fileId}><img src={image.url} alt="" /><button type="button" className={image.starred ? "is-starred" : ""} onClick={() => void toggleStar(painting, image.fileId, !image.starred)} aria-label={image.starred ? "Unstar image" : "Star image"} title={image.starred ? "Unstar" : "Star"}>☘</button></div>)}</div>
                     <div className="admin-painting-card-body">
-                      <div className="admin-painting-card-top"><div><h3>{painting.name}</h3><span>{painting.completedDate}</span></div><span>{painting.categoryIds.length} cat.</span></div>
+                      <div className="admin-painting-card-top"><div><h3>{painting.name}</h3><span>{painting.completedDate} · {painting.status}</span></div><span>{painting.categoryIds.length} cat.</span></div>
                       {painting.description && <p>{painting.description}</p>}
                       <div className="admin-painting-tags">{painting.categoryIds.map((id) => <span key={id}>{categoryMap.get(id) ?? "Unknown"}</span>)}</div>
                       <div className="admin-painting-card-actions"><button type="button" onClick={() => startEdit(painting)}>Edit</button><button type="button" onClick={() => void removePainting(painting.id)} disabled={saving}>Delete</button></div>
