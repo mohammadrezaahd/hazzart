@@ -3,7 +3,7 @@ import { getCategories } from "@/lib/categories";
 import { getArtistContent, getArtistSocialPlatforms } from "@/lib/artist";
 import { getPaintings } from "@/lib/paintings";
 import { getProjects } from "@/lib/projects";
-import { getTableItems } from "@/lib/table";
+import { getTableItems, getTableSettings } from "@/lib/table";
 
 const ARTIST_NAME = "Ghazal Shafiei";
 
@@ -94,13 +94,14 @@ export async function getPublicPortfolio(): Promise<PortfolioData & {
   cv: string;
   socials: Array<{ id: string; name: string; url: string; iconSvg: string }>;
 }> {
-  const [artist, categories, paintingsResult, projects, platforms, tableItems] = await Promise.all([
+  const [artist, categories, paintingsResult, projects, platforms, tableItems, tableSettings] = await Promise.all([
     getArtistContent(),
     getCategories(),
     getPaintings({}),
     getProjects(),
     getArtistSocialPlatforms(),
     getTableItems(),
+    getTableSettings(),
   ]);
 
   const platformMap = new Map(platforms.map((platform) => [platform.id, platform]));
@@ -138,7 +139,7 @@ export async function getPublicPortfolio(): Promise<PortfolioData & {
     }))),
     projects: toProjects(projects.filter((project) => project.status === "published")),
     mediums: categories
-      .filter((category) => category.parentId === null)
+      .filter((category) => tableSettings.categoryIds.includes(category.id))
       .map((category) => ({ id: category.id, label: category.name })),
     paintingCategories: toCategories(categories),
     contact: artist.contactText,
