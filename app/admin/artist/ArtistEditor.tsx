@@ -19,6 +19,7 @@ const navigation = [
   { label: "Categories", href: "/admin/categories", icon: "layers" },
   { label: "Paintings", href: "/admin/paintings", icon: "image" },
   { label: "Projects", href: "/admin/projects", icon: "folder" },
+  { label: "Table", href: "/admin/table", icon: "clover" },
   { label: "Artist", href: "/admin/artist", icon: "user" },
   { label: "Statistics", href: null, icon: "chart" },
 ] as const;
@@ -35,7 +36,11 @@ function NavIcon({ type }: { type: (typeof navigation)[number]["icon"] }) {
     );
   }
 
-  const paths: Record<Exclude<typeof type, "grid">, string> = {
+  if (type === "clover") {
+    return <span className="admin-nav-clover" aria-hidden="true">☘</span>;
+  }
+
+  const paths: Record<Exclude<typeof type, "grid" | "clover">, string> = {
     layers:
       "M12 3 3 8l9 5 9-5-9-5Zm-7.5 8L12 15l7.5-4M4.5 14 12 18l7.5-4M4.5 17 12 21l7.5-4",
     image:
