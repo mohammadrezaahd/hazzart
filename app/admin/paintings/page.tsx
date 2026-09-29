@@ -7,6 +7,7 @@ import type { AdminPainting } from "@/interfaces/Painting";
 import { getAdminCategories } from "@/components/api/categories";
 import { createAdminPainting, deleteAdminPainting, getAdminPaintings, updateAdminPainting } from "@/components/api/paintings";
 import { getApiErrorMessage } from "@/components/api/client";
+import { useAdminStorage } from "@/components/hooks/useAdminStorage";
 
 const navigation = [
   { label: "Overview", href: "/admin", icon: "grid" },
@@ -92,6 +93,7 @@ export default function AdminPaintingsPage() {
   const [editing, setEditing] = useState<AdminPainting | null>(null);
   const [activeTab, setActiveTab] = useState<"add" | "collection">("add");
   const [toast, setToast] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const { loading: storageLoading, checkMongo, checkBlob, refresh: refreshStorage } = useAdminStorage();
 
   const categoryMap = useMemo(() => new Map(categories.map((category) => [category.id, category.name])), [categories]);
   const parents = useMemo(() => categories.filter((category) => category.parentId === null), [categories]);
@@ -166,6 +168,31 @@ export default function AdminPaintingsPage() {
       return;
     }
 
+    if (storageLoading) {
+      setToast({ type: "error", text: "Checking available storage. Please try again in a moment." });
+      return;
+    }
+
+    const blobBytes = (editing ? [form.image1, form.image2] : [form.image1, form.image2])
+      .reduce((sum, file) => sum + (file?.size ?? 0), 0);
+    const mongoEstimate = new TextEncoder().encode(JSON.stringify({
+      name: form.name,
+      description: form.description,
+      completedDate: form.completedDate,
+      categoryIds: form.categoryIds,
+      imageMetadataBytes: blobBytes,
+    })).length + 16 * 1024;
+
+    if (blobBytes > 0 && !checkBlob(blobBytes)) {
+      setToast({ type: "error", text: "There is not enough Vercel Blob space for these images." });
+      return;
+    }
+
+    if (!checkMongo(mongoEstimate)) {
+      setToast({ type: "error", text: "There is not enough MongoDB space. The safety reserve is kept available to protect the site." });
+      return;
+    }
+
     setSaving(true);
     try {
       if (editing) {
@@ -185,6 +212,7 @@ export default function AdminPaintingsPage() {
         setToast({ type: "success", text: "Painting added successfully." });
       }
       resetForm();
+      void refreshStorage();
     } catch (error) {
       setToast({ type: "error", text: getApiErrorMessage(error, "Could not save painting.") });
     } finally {
