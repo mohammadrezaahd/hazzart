@@ -1,13 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { getPublicPortfolio } from '@/components/api/public';
 
-const CV_TEXT = [
-  'Ghazal Shafiei is a multidisciplinary artist and designer working across digital painting, charcoal illustration, animation, graphic design, and 3D modeling.',
-  'With a background rooted in traditional fine arts and a practice that embraces digital tools, her work explores the tension between the handmade and the computational — from expressive charcoal line studies to fully rendered digital paintings.',
-  'Her portfolio spans personal series, commissioned work, and experimental projects. Each body of work reflects a dedication to observational drawing and narrative composition, whether capturing quiet moments in transit or reimagining portraiture through layered digital techniques.',
-  'She is open to collaborations, exhibitions, and commissions.',
-];
+
 
 function CvScrollBar({
   scrollRef,
@@ -126,6 +122,11 @@ function CvScrollBar({
 export function ArtistCvExperience() {
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const [hasOverflow, setHasOverflow] = useState(false);
+  const [cvText, setCvText] = useState<string | null>(null);
+
+  useEffect(() => {
+    void getPublicPortfolio().then((data) => setCvText(data.cv)).catch(() => setCvText(null));
+  }, []);
 
   useEffect(() => {
     const element = bodyRef.current;
@@ -140,6 +141,12 @@ export function ArtistCvExperience() {
     observer.observe(element);
     return () => observer.disconnect();
   }, []);
+
+  if (cvText === null) {
+    return <main className="artist-cv-experience" id="main-content"><div className="artist-cv__part"><div className="artist-cv__body"><div className="artist-cv__title">CV</div><p>Loading…</p></div></div></main>;
+  }
+
+  const paragraphs = cvText.split(/\n\s*\n|\n/).map((text) => text.trim()).filter(Boolean);
 
   return (
     <main className="artist-cv-experience" id="main-content">
