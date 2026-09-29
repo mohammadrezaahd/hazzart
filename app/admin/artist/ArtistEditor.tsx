@@ -11,6 +11,7 @@ import type {
 } from "@/interfaces/Artist";
 import { getAdminArtist, updateAdminArtist } from "@/components/api/artist";
 import { getApiErrorMessage } from "@/components/api/client";
+import { useAdminStorage } from "@/components/hooks/useAdminStorage";
 import { createArtistSocialPlatform, deleteArtistSocialPlatform } from "@/components/api/artist";
 
 const navigation = [
@@ -95,6 +96,7 @@ export default function ArtistEditor({ username }: { username: string }) {
   const [socialUrl, setSocialUrl] = useState("");
   const [socialFile, setSocialFile] = useState<File | null>(null);
   const [addingSocial, setAddingSocial] = useState(false);
+  const { loading: storageLoading, checkMongo, refresh: refreshStorage } = useAdminStorage();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function loadArtist() {
@@ -193,6 +195,9 @@ export default function ArtistEditor({ username }: { username: string }) {
   }
 
   async function saveArtist() {
+    if (storageLoading) { setToast({ type: "error", text: "Checking available storage. Please try again in a moment." }); return; }
+    const estimate = new TextEncoder().encode(JSON.stringify({ cvText, contactText, socials: selected })).length + 16 * 1024;
+    if (!checkMongo(estimate)) { setToast({ type: "error", text: "There is not enough MongoDB space. The safety reserve is kept available to protect the site." }); return; }
     setSaving(true);
     setMessage("");
     setError("");
@@ -211,6 +216,7 @@ export default function ArtistEditor({ username }: { username: string }) {
       setSelected(content.socials);
       setMessage("Artist content saved.");
       setToast({ type: "success", text: "Artist content saved successfully." });
+      void refreshStorage();
     } catch (err) {
       const text = getApiErrorMessage(err, "Could not save artist content.");
       setError(text);
@@ -229,6 +235,10 @@ export default function ArtistEditor({ username }: { username: string }) {
       setToast({ type: "error", text });
       return;
     }
+
+    if (storageLoading) { const text = "Checking available storage. Please try again in a moment."; setError(text); setToast({ type: "error", text }); return; }
+    const svgBytes = new TextEncoder().encode(await socialFile.text()).length;
+    if (!checkMongo(svgBytes + 16 * 1024)) { const text = "There is not enough MongoDB space for this icon. The safety reserve is kept available to protect the site."; setError(text); setToast({ type: "error", text }); return; }
 
     setAddingSocial(true);
     setMessage("");
@@ -256,6 +266,7 @@ export default function ArtistEditor({ username }: { username: string }) {
       if (fileInputRef.current) fileInputRef.current.value = "";
       setMessage("Social media added to the list.");
       setToast({ type: "success", text: "Social media added successfully." });
+      void refreshStorage();
     } catch (err) {
       const text = getApiErrorMessage(err, "Could not add social media.");
       setError(text);
