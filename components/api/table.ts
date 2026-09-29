@@ -9,7 +9,7 @@ export async function getAdminTableItems() {
 }
 
 export async function unstarAdminTableItem(id: string) {
-  await apiClient.delete("/api/admin/table/" + id);
+  await apiClient.delete("/api/admin/table/" + encodeURIComponent(id));
 }
 
 export async function updateAdminTableItem(id: string, description: string) {
