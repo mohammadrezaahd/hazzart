@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import type { AdminCategory } from "@/interfaces/Category";
 import type { AdminTableItem } from "@/interfaces/Table";
-import { getAdminTableItems, unstarAdminTableItem, updateAdminTableItem } from "@/components/api/table";
+import { getAdminCategories } from "@/components/api/categories";
+import { getAdminTableItems, getAdminTableSettings, unstarAdminTableItem, updateAdminTableItem, updateAdminTableSettings } from "@/components/api/table";
+import CategoryMultiSelect from "@/components/admin/CategoryMultiSelect";
 import { getApiErrorMessage } from "@/components/api/client";
 
 const navigation = [
@@ -34,6 +37,9 @@ function NavIcon({ type }: { type: (typeof navigation)[number]["icon"] }) {
 export default function AdminTablePage() {
   const [items, setItems] = useState<AdminTableItem[]>([]);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [categories, setCategories] = useState<AdminCategory[]>([]);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
+  const [savingSettings, setSavingSettings] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
   const [toast, setToast] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -41,8 +47,10 @@ export default function AdminTablePage() {
   async function load() {
     setLoading(true);
     try {
-      const next = await getAdminTableItems();
+      const [next, nextCategories, settings] = await Promise.all([getAdminTableItems(), getAdminCategories(), getAdminTableSettings()]);
       setItems(next);
+      setCategories(nextCategories);
+      setSelectedCategoryIds(settings.categoryIds);
       setDrafts(Object.fromEntries(next.map((item) => [item.id, item.description])));
     } catch (error) {
       setToast({ type: "error", text: getApiErrorMessage(error, "Could not load table.") });
@@ -54,6 +62,19 @@ export default function AdminTablePage() {
   useEffect(() => {
     void load();
   }, []);
+
+  async function saveSettings() {
+    setSavingSettings(true);
+    try {
+      const settings = await updateAdminTableSettings(selectedCategoryIds);
+      setSelectedCategoryIds(settings.categoryIds);
+      setToast({ type: "success", text: "Table Medium filters updated." });
+    } catch (error) {
+      setToast({ type: "error", text: getApiErrorMessage(error, "Could not update Table filters.") });
+    } finally {
+      setSavingSettings(false);
+    }
+  }
 
   async function save(item: AdminTableItem) {
     setSaving(item.id);
@@ -112,6 +133,17 @@ export default function AdminTablePage() {
             <div><p className="admin-eyebrow">TABLE</p><h1>Build the front table.</h1><p>Manage the images selected with the shamrock and their independent table descriptions.</p></div>
             <button className="admin-round-link" type="button" onClick={() => void load()}>↻</button>
           </div>
+
+          <section className="admin-card admin-table-settings-card">
+            <div className="admin-painting-library-heading">
+              <div><p className="admin-card-kicker">HOME / MEDIUM FILTERS</p><h2>Visible categories</h2></div>
+              <button type="button" className="admin-submit" onClick={() => void saveSettings()} disabled={savingSettings}>
+                {savingSettings ? "Saving…" : "Save filters"} <span>↗</span>
+              </button>
+            </div>
+            <p className="admin-table-source-description">Choose which categories appear in the Medium menu on the front Table. These are independent from which categories a painting belongs to.</p>
+            <CategoryMultiSelect categories={categories} value={selectedCategoryIds} onChange={setSelectedCategoryIds} />
+          </section>
 
           <section className="admin-table-list">
             <div className="admin-painting-library-heading"><div><p className="admin-card-kicker">STARRED IMAGES</p><h2>Table</h2></div><span>{items.length} images</span></div>
