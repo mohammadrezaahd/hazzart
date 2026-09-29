@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/admin-auth";
 import { deleteProject, updateProject } from "@/lib/projects";
-import { getProjectStatuses } from "@/lib/project-statuses";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,10 +19,8 @@ export async function PUT(request: Request, context: Context) {
 
     const body = JSON.parse(raw) as Record<string, unknown>;
     const imageFiles = formData.getAll("images").filter((value): value is File => value instanceof File);
-    const statuses = await getProjectStatuses();
-
     return NextResponse.json({
-      project: await updateProject(id, body, new Set(statuses.map((s) => s.id)), imageFiles),
+      project: await updateProject(id, body, imageFiles),
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Could not update project.";
