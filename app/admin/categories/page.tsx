@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { AdminCategory } from "@/interfaces/Category";
 import { createAdminCategory, deleteAdminCategory, getAdminCategories, updateAdminCategory } from "@/components/api/categories";
 import { getApiErrorMessage } from "@/components/api/client";
+import { useAdminStorage } from "@/components/hooks/useAdminStorage";
 
 const navigation = [
   { label: "Overview", href: "/admin", icon: "grid" },
@@ -42,6 +43,7 @@ export default function AdminCategoriesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [toast, setToast] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const { loading: storageLoading, checkMongo, refresh: refreshStorage } = useAdminStorage();
 
   const parents = useMemo(() => categories.filter((category) => category.parentId === null), [categories]);
   const childrenByParent = useMemo(() => {
@@ -103,6 +105,10 @@ export default function AdminCategoriesPage() {
       return;
     }
 
+    if (storageLoading) { showToast("error", "Checking available storage. Please try again in a moment."); return; }
+    const estimate = new TextEncoder().encode(JSON.stringify({ name: trimmed, parentId })).length + 8 * 1024;
+    if (!checkMongo(estimate)) { showToast("error", "There is not enough MongoDB space. The safety reserve is kept available to protect the site."); return; }
+
     setSaving(true);
     try {
       const category = await createAdminCategory(trimmed, parentId);
@@ -114,6 +120,7 @@ export default function AdminCategoriesPage() {
         setNewCategory("");
       }
       showToast("success", parentId ? "Subcategory added." : "Category added.");
+      void refreshStorage();
     } catch (error) {
       showToast("error", getApiErrorMessage(error, "Could not create category."));
     } finally {
@@ -128,6 +135,10 @@ export default function AdminCategoriesPage() {
       return;
     }
 
+    if (storageLoading) { showToast("error", "Checking available storage. Please try again in a moment."); return; }
+    const estimate = new TextEncoder().encode(JSON.stringify({ name: trimmed, id })).length + 8 * 1024;
+    if (!checkMongo(estimate)) { showToast("error", "There is not enough MongoDB space. The safety reserve is kept available to protect the site."); return; }
+
     setSaving(true);
     try {
       const category = await updateAdminCategory(id, trimmed);
@@ -135,6 +146,7 @@ export default function AdminCategoriesPage() {
       setEditingId(null);
       setEditingName("");
       showToast("success", "Category updated.");
+      void refreshStorage();
     } catch (error) {
       showToast("error", getApiErrorMessage(error, "Could not update category."));
     } finally {
