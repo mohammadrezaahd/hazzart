@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { AdminCategory } from "@/interfaces/Category";
-import type { AdminPainting } from "@/interfaces/Painting";
+import type { AdminPainting, AdminPaintingStatus } from "@/interfaces/Painting";
 import { getAdminCategories } from "@/components/api/categories";
 import { createAdminPainting, deleteAdminPainting, getAdminPaintings, updateAdminPainting } from "@/components/api/paintings";
 import { getApiErrorMessage } from "@/components/api/client";
 import { useAdminStorage } from "@/components/hooks/useAdminStorage";
+import { setAdminPaintingImageStar } from "@/components/api/paintings";
+import CategoryMultiSelect from "@/components/admin/CategoryMultiSelect";
 
 const navigation = [
   { label: "Overview", href: "/admin", icon: "grid" },
@@ -39,11 +41,12 @@ interface PaintingFormState {
   description: string;
   completedDate: string;
   categoryIds: string[];
+  status: AdminPaintingStatus;
   image1: File | null;
   image2: File | null;
 }
 
-const emptyForm: PaintingFormState = { name: "", description: "", completedDate: "", categoryIds: [], image1: null, image2: null };
+const emptyForm: PaintingFormState = { name: "", description: "", completedDate: "", categoryIds: [], status: "draft", image1: null, image2: null };
 
 function formatDateInput(value: string) {
   const digits = value.replace(/\D/g, "").slice(0, 8);
@@ -96,16 +99,6 @@ export default function AdminPaintingsPage() {
   const { loading: storageLoading, checkMongo, checkBlob, refresh: refreshStorage } = useAdminStorage();
 
   const categoryMap = useMemo(() => new Map(categories.map((category) => [category.id, category.name])), [categories]);
-  const parents = useMemo(() => categories.filter((category) => category.parentId === null), [categories]);
-  const childrenByParent = useMemo(() => {
-    const map = new Map<string, AdminCategory[]>();
-    categories.filter((category) => category.parentId).forEach((category) => {
-      const current = map.get(category.parentId!) ?? [];
-      current.push(category);
-      map.set(category.parentId!, current);
-    });
-    return map;
-  }, [categories]);
 
   async function loadData(nextFilters = filters) {
     setLoading(true);
@@ -145,7 +138,7 @@ export default function AdminPaintingsPage() {
 
   function startEdit(painting: AdminPainting) {
     setEditing(painting);
-    setForm({ name: painting.name, description: painting.description, completedDate: painting.completedDate, categoryIds: painting.categoryIds, image1: null, image2: null });
+    setForm({ name: painting.name, description: painting.description, completedDate: painting.completedDate, categoryIds: painting.categoryIds, status: painting.status ?? "draft", image1: null, image2: null });
     setActiveTab("add");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -220,6 +213,16 @@ export default function AdminPaintingsPage() {
     }
   }
 
+  async function toggleStar(painting: AdminPainting, fileId: string, starred: boolean) {
+    try {
+      const updated = await setAdminPaintingImageStar(painting.id, fileId, starred);
+      setPaintings((items) => items.map((item) => item.id === updated.id ? updated : item));
+      if (editing?.id === updated.id) setEditing(updated);
+    } catch (error) {
+      setToast({ type: "error", text: getApiErrorMessage(error, "Could not update star.") });
+    }
+  }
+
   async function removePainting(id: string) {
     if (!window.confirm("Delete this painting?")) return;
     setSaving(true);
@@ -280,6 +283,7 @@ export default function AdminPaintingsPage() {
 
             <div className="admin-painting-form-grid">
               <label className="admin-field"><span>Name</span><input value={form.name} maxLength={150} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="Painting name" /></label>
+              <label className="admin-field"><span>Status</span><select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as AdminPaintingStatus })}><option value="draft">draft</option><option value="published">published</option><option value="archived">archived</option></select></label>
               <label className="admin-field"><span>Completed date</span><input value={form.completedDate} maxLength={10} onChange={(event) => setForm({ ...form, completedDate: formatDateInput(event.target.value) })} placeholder="YYYY/MM/DD" inputMode="numeric" /></label>
               <label className="admin-field admin-painting-description"><span>Description</span><textarea value={form.description} maxLength={5000} onChange={(event) => setForm({ ...form, description: event.target.value })} placeholder="Describe the work…" /></label>
             </div>
@@ -294,16 +298,7 @@ export default function AdminPaintingsPage() {
 
             <div className="admin-painting-categories">
               <div className="admin-painting-section-title"><p className="admin-card-kicker">CATEGORIES</p><span>{form.categoryIds.length} selected</span></div>
-              {!parents.length ? <p className="admin-artist-empty">Create categories first.</p> : (
-                <div className="admin-painting-category-grid">
-                  {parents.map((parent) => (
-                    <div className="admin-painting-category-group" key={parent.id}>
-                      <label><input type="checkbox" checked={form.categoryIds.includes(parent.id)} onChange={() => toggleCategory(parent.id)} /><span>{parent.name}</span></label>
-                      {(childrenByParent.get(parent.id) ?? []).map((child) => <label key={child.id} className="is-child"><input type="checkbox" checked={form.categoryIds.includes(child.id)} onChange={() => toggleCategory(child.id)} /><span>{child.name}</span></label>)}
-                    </div>
-                  ))}
-                </div>
-              )}
+              <CategoryMultiSelect categories={categories} value={form.categoryIds} onChange={(categoryIds) => setForm({ ...form, categoryIds })} />
             </div>
 
             <div className="admin-painting-form-actions"><button className="admin-submit" type="submit" disabled={saving || !categories.length}>{saving ? "Saving…" : editing ? "Save painting" : "Add painting"} <span>↗</span></button></div>
@@ -316,7 +311,7 @@ export default function AdminPaintingsPage() {
 
             <div className="admin-painting-filters">
               <label className="admin-painting-search"><span>SEARCH</span><input value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} placeholder="Search by name…" /></label>
-              <label><span>CATEGORY</span><select value={filters.categoryId} onChange={(event) => setFilters({ ...filters, categoryId: event.target.value })}><option value="">All categories</option>{parents.map((parent) => <optgroup label={parent.name} key={parent.id}><option value={parent.id}>{parent.name}</option>{(childrenByParent.get(parent.id) ?? []).map((child) => <option value={child.id} key={child.id}>{child.name}</option>)}</optgroup>)}</select></label>
+              <label><span>CATEGORY</span><select value={filters.categoryId} onChange={(event) => setFilters({ ...filters, categoryId: event.target.value })}><option value="">All categories</option>{categories.map((category) => <option value={category.id} key={category.id}>{category.parentId ? "↳ " : ""}{category.name}</option>)}</select></label>
               <label><span>FROM</span><input value={filters.from} maxLength={10} onChange={(event) => setFilters({ ...filters, from: formatDateInput(event.target.value) })} placeholder="YYYY/MM/DD" inputMode="numeric" /></label>
               <label><span>TO</span><input value={filters.to} maxLength={10} onChange={(event) => setFilters({ ...filters, to: formatDateInput(event.target.value) })} placeholder="YYYY/MM/DD" inputMode="numeric" /></label>
             </div>
@@ -325,7 +320,7 @@ export default function AdminPaintingsPage() {
               <div className="admin-painting-grid">
                 {paintings.map((painting) => (
                   <article className="admin-painting-card" key={painting.id}>
-                    <div className="admin-painting-card-images"><img src={painting.images[0].url} alt="" /><img src={painting.images[1].url} alt="" /></div>
+                    <div className="admin-painting-card-images">{painting.images.map((image) => <div className="admin-painting-card-image-frame" key={image.fileId}><img src={image.url} alt="" /><button type="button" className={image.starred ? "is-starred" : ""} onClick={() => void toggleStar(painting, image.fileId, !image.starred)} aria-label={image.starred ? "Unstar image" : "Star image"} title={image.starred ? "Unstar" : "Star"}>☘</button></div>)}</div>
                     <div className="admin-painting-card-body">
                       <div className="admin-painting-card-top"><div><h3>{painting.name}</h3><span>{painting.completedDate}</span></div><span>{painting.categoryIds.length} cat.</span></div>
                       {painting.description && <p>{painting.description}</p>}
