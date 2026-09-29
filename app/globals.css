@@ -4055,3 +4055,122 @@ body:has(.admin-shell) > .site-header {
     width: 100%;
   }
 }
+
+
+.admin-status-select {
+  position: relative;
+  width: 100%;
+}
+
+.admin-status-select__trigger {
+  width: 100%;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 15px;
+  border: 1px solid #1112;
+  border-radius: 10px;
+  background: rgb(255 255 255 / 0.58);
+  color: #111;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.admin-status-select__trigger:hover,
+.admin-status-select__trigger[aria-expanded="true"] {
+  border-color: #1118;
+  background: #fff;
+}
+
+.admin-status-select__trigger[aria-expanded="true"] {
+  box-shadow: 0 0 0 3px #11108;
+}
+
+.admin-status-chevron {
+  margin-left: auto;
+  font-size: 18px;
+  line-height: 1;
+  transform: translateY(-2px);
+  transition: transform 0.2s ease;
+}
+
+.admin-status-chevron.is-open {
+  transform: rotate(180deg) translateY(2px);
+}
+
+.admin-status-select__menu {
+  position: absolute;
+  z-index: 50;
+  left: 0;
+  right: 0;
+  top: calc(100% + 8px);
+  padding: 6px;
+  border: 1px solid #1111;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 16px 40px #0001, 0 2px 8px #0001;
+}
+
+.admin-status-option {
+  width: 100%;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 11px;
+  border-radius: 9px;
+  text-align: left;
+  font-size: 14px;
+  transition: background 0.15s ease;
+}
+
+.admin-status-option:hover,
+.admin-status-option.is-selected {
+  background: #f4f4f2;
+}
+
+.admin-status-check {
+  margin-left: auto;
+  font-size: 14px;
+}
+
+.admin-status-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 50%;
+  background: #888;
+  box-shadow: 0 0 0 3px #8881;
+}
+
+.admin-status-dot--draft {
+  background: #777;
+  box-shadow: 0 0 0 3px #7771;
+}
+
+.admin-status-dot--published {
+  background: #111;
+  box-shadow: 0 0 0 3px #1111;
+}
+
+.admin-status-dot--archived {
+  background: #b06a3c;
+  box-shadow: 0 0 0 3px #b06a3c1;
+}
+
+.contact-social-svg {
+  width: 35px;
+  height: 35px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.contact-social-svg svg {
+  width: 35px;
+  height: 35px;
+  display: block;
+}
