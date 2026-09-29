@@ -1,11 +1,24 @@
 import { randomUUID } from "node:crypto";
 import { del, put } from "@vercel/blob";
 import { getDatabase } from "@/lib/mongodb";
-import type { AdminProject, AdminProjectImage } from "@/interfaces/Project";
+import type { AdminProject, AdminProjectImage, AdminProjectStatus } from "@/interfaces/Project";
 
 const COLLECTION = "admin_projects";
 const MAX_IMAGE_SIZE = 4 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+
+function validateStatus(value: unknown): AdminProjectStatus {
+  if (value !== "draft" && value !== "published" && value !== "archived") {
+    throw new Error("Invalid project status.");
+  }
+  return value;
+}
+
+function migrateStatus(value: unknown): AdminProjectStatus {
+  if (value === "published" || value === "archived" || value === "draft") return value;
+  if (value === "done") return "published";
+  return "draft";
+}
 
 function text(value: unknown, label: string, required = false) {
   if (typeof value !== "string") {
@@ -86,19 +99,14 @@ async function deleteImage(fileId: string) {
 
 async function normalize(
   body: Record<string, unknown>,
-  statusIds: Set<string>,
   current?: AdminProject,
   images?: AdminProjectImage[],
 ): Promise<AdminProject> {
   const title = text(body.title, "Title", true);
   const myRole = text(body.myRole, "My Role", true);
   const started = date(body.started, "Started", true);
-  const statusId = text(body.statusId, "Status", true);
-
-  if (!statusIds.has(statusId)) throw new Error("Selected status was not found.");
-
+  const status = validateStatus(body.status);
   const ended = date(body.ended, "Ended", false) || null;
-  if (statusId === "done" && !ended) {
     throw new Error("Ended is required when status is Done.");
   }
 
@@ -120,7 +128,7 @@ async function normalize(
     started,
     ended,
     medium,
-    statusId,
+    status,
     images: projectImages,
     links: normalizeLinks(body.links),
     dynamicFields: normalizeFields(body.dynamicFields ?? {}),
@@ -135,13 +143,12 @@ export async function getProjects() {
 
 export async function createProject(
   body: Record<string, unknown>,
-  statusIds: Set<string>,
   imageFiles: File[],
 ) {
   const uploaded = await Promise.all(imageFiles.map(uploadImage));
 
   try {
-    const project = await normalize(body, statusIds, undefined, uploaded);
+    const project = await normalize(body, undefined, uploaded);
     await (await getDatabase()).collection<AdminProject>(COLLECTION).insertOne(project);
     return project;
   } catch (error) {
@@ -153,7 +160,6 @@ export async function createProject(
 export async function updateProject(
   id: string,
   body: Record<string, unknown>,
-  statusIds: Set<string>,
   imageFiles: File[],
 ) {
   const db = await getDatabase();
@@ -165,7 +171,7 @@ export async function updateProject(
   const nextImages = [...(current.images ?? []), ...uploaded];
 
   try {
-    const project = await normalize(body, statusIds, current, nextImages);
+    const project = await normalize(body, current, nextImages);
     await db.collection<AdminProject>(COLLECTION).replaceOne({ id }, project);
     return project;
   } catch (error) {
