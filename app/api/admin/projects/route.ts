@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/admin-auth";
 import { createProject, getProjects } from "@/lib/projects";
-import { getProjectStatuses } from "@/lib/project-statuses";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,8 +28,7 @@ export async function POST(request: Request) {
 
     if (!imageFiles.length) throw new Error("At least one project image is required.");
 
-    const statuses = await getProjectStatuses();
-    const project = await createProject(body, new Set(statuses.map((s) => s.id)), imageFiles);
+    const project = await createProject(body, imageFiles);
 
     return NextResponse.json({ project }, { status: 201 });
   } catch (e) {
