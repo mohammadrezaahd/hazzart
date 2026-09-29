@@ -17,7 +17,7 @@ export function HomeExperience() {
 
   const artworks = useMemo(() => {
     if (!data) return [];
-    return orderArtworks(data.artworks.filter((art) => !mediumId || art.mediumId === mediumId), order, seed);
+    return orderArtworks(data.tableArtworks.filter((art) => !mediumId || art.mediumId === mediumId), order, seed);
   }, [data, mediumId, order, seed]);
 
   if (!data) return <main className="table-experience" id="main-content"><p className="empty-table">Loading…</p></main>;
