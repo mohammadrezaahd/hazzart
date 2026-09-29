@@ -3,6 +3,7 @@ import { getCategories } from "@/lib/categories";
 import { getArtistContent, getArtistSocialPlatforms } from "@/lib/artist";
 import { getPaintings } from "@/lib/paintings";
 import { getProjects } from "@/lib/projects";
+import { getTableItems } from "@/lib/table";
 
 const ARTIST_NAME = "Ghazal Shafiei";
 
@@ -93,12 +94,13 @@ export async function getPublicPortfolio(): Promise<PortfolioData & {
   cv: string;
   socials: Array<{ id: string; name: string; url: string; iconSvg: string }>;
 }> {
-  const [artist, categories, paintingsResult, projects, platforms] = await Promise.all([
+  const [artist, categories, paintingsResult, projects, platforms, tableItems] = await Promise.all([
     getArtistContent(),
     getCategories(),
     getPaintings({}),
     getProjects(),
     getArtistSocialPlatforms(),
+    getTableItems(),
   ]);
 
   const platformMap = new Map(platforms.map((platform) => [platform.id, platform]));
@@ -109,6 +111,31 @@ export async function getPublicPortfolio(): Promise<PortfolioData & {
       description: artist.cvText || artist.contactText,
     },
     artworks: toArtworks(paintingsResult.paintings.filter((painting) => painting.status === "published")),
+    tableArtworks: toArtworks(tableItems.map((item) => ({
+      id: item.paintingId,
+      name: item.title,
+      description: item.description,
+      completedDate: item.completedDate,
+      categoryIds: item.categoryIds,
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+      status: "published" as const,
+      images: [{
+        fileId: item.imageFileId,
+        url: item.imageUrl,
+        name: item.imageName,
+        contentType: "image/*",
+        size: 0,
+        starred: true,
+      }, {
+        fileId: item.imageFileId + ":hover",
+        url: item.imageUrl,
+        name: item.imageName,
+        contentType: "image/*",
+        size: 0,
+        starred: true,
+      }],
+    }))),
     projects: toProjects(projects.filter((project) => project.status === "published")),
     mediums: categories
       .filter((category) => category.parentId === null)
