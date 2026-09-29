@@ -10,7 +10,7 @@ export async function GET(
   const { path } = await params;
   const pathname = path.join("/");
 
-  if (!pathname.startsWith("paintings/") || pathname.length <= "paintings/".length) {
+  if ((!pathname.startsWith("paintings/") && !pathname.startsWith("projects/")) || pathname.length <= pathname.indexOf("/") + 1) {
     return new Response("Not found.", { status: 404 });
   }
 
