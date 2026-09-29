@@ -23,7 +23,6 @@ export default function AdminProjectsPage(){
  const [form,setForm]=useState<Form>(emptyForm),[editing,setEditing]=useState<AdminProject|null>(null),[tab,setTab]=useState<Tab>("add"),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[toast,setToast]=useState<{type:"success"|"error";text:string}|null>(null),[statusName,setStatusName]=useState(""),[editingStatus,setEditingStatus]=useState<string|null>(null),[editingStatusName,setEditingStatusName]=useState("");
  const {loading:storageLoading,checkMongo,refresh:refreshStorage}=useAdminStorage();
  const statusMap=useMemo(()=>new Map(statuses.map(s=>[s.id,s.name])),[statuses]);
- const doneStatus=statuses.find(s=>s.name.toLowerCase()==="done");
  async function load(){setLoading(true);try{const [p,s,c]=await Promise.all([getAdminProjects(),getAdminProjectStatuses(),getAdminCategories()]);setProjects(p);setStatuses(s);setCategories(c);if(!form.statusId)setForm(f=>({...f,statusId:s[0]?.id??""}));}catch(e){setToast({type:"error",text:getApiErrorMessage(e,"Could not load projects.")});}finally{setLoading(false);}}
  useEffect(()=>{void load();},[]);
  useEffect(()=>{if(!toast)return;const t=window.setTimeout(()=>setToast(null),3500);return()=>window.clearTimeout(t)},[toast]);
