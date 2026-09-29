@@ -1,3 +1,5 @@
+export type AdminProjectStatus = "draft" | "published" | "archived";
+
 export interface AdminProjectImage {
   id: string;
   fileId: string;
@@ -20,7 +22,7 @@ export interface AdminProject {
   started: string;
   ended: string | null;
   medium: string[];
-  statusId: string;
+  status: AdminProjectStatus;
   images: AdminProjectImage[];
   links: AdminProjectLink[];
   dynamicFields: Record<string, string>;
