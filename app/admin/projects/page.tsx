@@ -13,7 +13,6 @@ import StatusSelect from "@/components/admin/StatusSelect";
 
 type Tab="add"|"collection";
 type Form={title:string;myRole:string;started:string;ended:string;medium:string[];status:AdminProjectStatus;images:File[];links:AdminProjectLink[];dynamicFields:{key:string;value:string}[]};
-const PROJECT_STATUSES: AdminProjectStatus[] = ["draft", "published", "archived"];
 const emptyForm:Form={title:"",myRole:"",started:"",ended:"",medium:[],status:"draft",images:[],links:[],dynamicFields:[]};
 const nav=[{label:"Overview",href:"/admin",icon:"grid"},{label:"Categories",href:"/admin/categories",icon:"layers"},{label:"Paintings",href:"/admin/paintings",icon:"image"},{label:"Projects",href:"/admin/projects",icon:"folder"},{label:"Table",href:"/admin/table",icon:"clover"},{label:"Artist",href:"/admin/artist",icon:"user"},{label:"Statistics",href:null,icon:"chart"}] as const;
 function formatDateInput(v:string){const d=v.replace(/\D/g,"").slice(0,8);if(d.length<=4)return d;if(d.length<=6)return d.slice(0,4)+"/"+d.slice(4);return d.slice(0,4)+"/"+d.slice(4,6)+"/"+d.slice(6);}
