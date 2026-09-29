@@ -154,8 +154,8 @@ export function ArtistCvExperience() {
         <div className="artist-cv__body" ref={bodyRef} tabIndex={0}>
           <div className="artist-cv__title">CV</div>
           <div className="artist-cv__copy">
-            {CV_TEXT.map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
+            {paragraphs.map((paragraph, index) => (
+              <p key={index}>{paragraph}</p>
             ))}
           </div>
         </div>
