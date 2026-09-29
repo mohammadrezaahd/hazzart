@@ -143,13 +143,6 @@ export default function AdminPaintingsPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function toggleCategory(id: string) {
-    setForm((current) => ({
-      ...current,
-      categoryIds: current.categoryIds.includes(id) ? current.categoryIds.filter((categoryId) => categoryId !== id) : [...current.categoryIds, id],
-    }));
-  }
-
   async function submitPainting(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!form.name.trim() || !form.completedDate.trim() || !form.categoryIds.length) {
@@ -198,6 +191,7 @@ export default function AdminPaintingsPage() {
           description: form.description,
           completedDate: form.completedDate,
           categoryIds: form.categoryIds,
+          status: form.status,
           image1: form.image1!,
           image2: form.image2!,
         });
