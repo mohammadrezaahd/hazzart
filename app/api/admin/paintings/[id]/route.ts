@@ -38,7 +38,13 @@ export async function PUT(
       description: String(formData.get("description") ?? ""),
       completedDate: String(formData.get("completedDate") ?? ""),
       categoryIds: parseCategoryIds(formData.get("categoryIds")),
-      status: String(formData.get("status") ?? "draft"),
+      status: (() => {
+        const value = formData.get("status");
+        if (value !== "draft" && value !== "published" && value !== "archived") {
+          throw new Error("Invalid painting status.");
+        }
+        return value;
+      })(),
       images: [
         image1 instanceof File ? image1 : null,
         image2 instanceof File ? image2 : null,
