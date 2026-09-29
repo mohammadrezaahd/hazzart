@@ -1,0 +1,1 @@
+export interface AdminProjectStatus { id:string; name:string; system:boolean; createdAt:string; updatedAt:string; }
