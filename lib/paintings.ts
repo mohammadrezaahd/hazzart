@@ -48,7 +48,7 @@ function validateStatus(value: unknown): AdminPaintingStatus {
 function normalizePainting(painting: AdminPainting): AdminPainting {
   return {
     ...painting,
-    status: painting.status ?? "draft",
+    status: painting.status ?? "published",
     images: painting.images.map((image) => ({ ...image, starred: Boolean(image.starred) })) as [AdminPaintingImage, AdminPaintingImage],
   };
 }
