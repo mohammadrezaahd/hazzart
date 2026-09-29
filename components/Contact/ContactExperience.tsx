@@ -1,57 +1,37 @@
 'use client';
 
-import Image from 'next/image';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-
-const socials = [
-  { id: 'instagram', label: 'Instagram', icon: '/icons/instagram-logo-thin-svgrepo-com.svg' },
-  { id: 'behance', label: 'Behance', icon: '/icons/behance-svgrepo-com.svg' },
-  { id: 'linkedin', label: 'LinkedIn', icon: '/icons/linkedin-logo-thin-svgrepo-com.svg' },
-  { id: 'tiktok', label: 'TikTok', icon: '/icons/tiktok-logo-thin-svgrepo-com.svg' },
-  { id: 'artstation', label: 'ArtStation', icon: '/icons/artstation.svg' },
-];
+import { getPublicPortfolio, type PublicPortfolioResponse } from '@/components/api/public';
 
 export function ContactExperience() {
+  const [data, setData] = useState<PublicPortfolioResponse | null>(null);
+
+  useEffect(() => {
+    void getPublicPortfolio().then(setData).catch(() => setData(null));
+  }, []);
+
+  if (!data) {
+    return <main className="contact-experience" id="main-content"><section className="contact-content"><h1 className="contact-title">Contact</h1><p>Loading…</p></section></main>;
+  }
+
+  const paragraphs = data.contact.split(/\n\s*\n|\n/).map((text) => text.trim()).filter(Boolean);
+
   return (
     <main className="contact-experience" id="main-content">
       <section className="contact-content" aria-labelledby="contact-title">
         <h1 id="contact-title" className="contact-title">Contact</h1>
-
         <div className="contact-body">
-          <p>
-            If you are a gallery, curator, or creative looking to collaborate on an exhibition or a project,
-            {' '}I’d be happy to hear from you. you can reach me at:
-          </p>
-          <p>
-            <a className="contact-email" href="mailto:GhazalShafiei@Gmail.com">
-              GhazalShafiei@Gmail.com
-            </a>
-          </p>
-          <p>Please Allow a few time for me to get back to you.</p>
+          {paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
         </div>
       </section>
-
-      <Image
-        className="contact-artstation-mark"
-        src="/icons/artstation.svg"
-        alt=""
-        width={2500}
-        height={2500}
-        aria-hidden="true"
-      />
 
       <footer className="contact-socials">
         <span className="contact-socials-label">Me, Elsewhere:</span>
         <div className="contact-socials-list">
-          {socials.map((social) => (
-            <Link
-              key={social.id}
-              href="#"
-              aria-label={social.label}
-              className="contact-social-link"
-              onClick={(event) => event.preventDefault()}
-            >
-              <Image src={social.icon} alt="" width={35} height={35} />
+          {data.socials.map((social) => (
+            <Link key={social.id} href={social.url} target="_blank" rel="noreferrer" aria-label={social.name} className="contact-social-link">
+              <span className="contact-social-svg" aria-hidden="true" dangerouslySetInnerHTML={{ __html: social.iconSvg }} />
             </Link>
           ))}
         </div>
