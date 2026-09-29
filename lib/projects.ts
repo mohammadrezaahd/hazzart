@@ -107,8 +107,6 @@ async function normalize(
   const started = date(body.started, "Started", true);
   const status = validateStatus(body.status);
   const ended = date(body.ended, "Ended", false) || null;
-    throw new Error("Ended is required when status is Done.");
-  }
 
   const medium = Array.isArray(body.medium)
     ? body.medium.filter((x): x is string => typeof x === "string" && !!x.trim()).map((x) => x.trim())
@@ -138,7 +136,20 @@ async function normalize(
 }
 
 export async function getProjects() {
-  return (await getDatabase()).collection<AdminProject>(COLLECTION).find({}).project({_id: 0}).sort({updatedAt: -1}).toArray();
+  const documents = await (await getDatabase())
+    .collection<AdminProject>(COLLECTION)
+    .find({})
+    .project({ _id: 0 })
+    .sort({ updatedAt: -1, createdAt: -1 })
+    .toArray();
+
+  return documents.map((project) => ({
+    ...project,
+    status: migrateStatus(
+      (project as AdminProject & { status?: unknown }).status ??
+        (project as AdminProject & { statusId?: unknown }).statusId,
+    ),
+  }));
 }
 
 export async function createProject(
