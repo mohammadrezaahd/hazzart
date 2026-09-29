@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { del, put } from "@vercel/blob";
 import { getDatabase } from "@/lib/mongodb";
-import type { AdminPainting, AdminPaintingImage } from "@/interfaces/Painting";
+import type { AdminPainting, AdminPaintingImage, AdminPaintingStatus } from "@/interfaces/Painting";
 
 const COLLECTION = "admin_paintings";
 const MAX_IMAGE_SIZE = 4 * 1024 * 1024;
@@ -36,6 +36,21 @@ function validateName(value: string) {
     throw new Error("Painting name is required and must be 150 characters or fewer.");
   }
   return name;
+}
+
+function validateStatus(value: unknown): AdminPaintingStatus {
+  if (value !== "draft" && value !== "published" && value !== "archived") {
+    throw new Error("Invalid painting status.");
+  }
+  return value;
+}
+
+function normalizePainting(painting: AdminPainting): AdminPainting {
+  return {
+    ...painting,
+    status: painting.status ?? "draft",
+    images: painting.images.map((image) => ({ ...image, starred: Boolean(image.starred) })) as [AdminPaintingImage, AdminPaintingImage],
+  };
 }
 
 function validateDescription(value: string) {
@@ -136,9 +151,10 @@ export async function getPaintings(filters: {
     .sort({ completedDate: -1, createdAt: -1 })
     .toArray();
 
+  const paintings = documents.map(normalizePainting);
   return {
-    paintings: documents,
-    total: documents.length,
+    paintings,
+    total: paintings.length,
   };
 }
 
@@ -147,12 +163,14 @@ export async function createPainting(input: {
   description: string;
   completedDate: string;
   categoryIds: string[];
+  status: AdminPaintingStatus;
   images: [File, File];
 }) {
   const name = validateName(input.name);
   const description = validateDescription(input.description);
   const completedDate = validateDate(input.completedDate);
   const categoryIds = await validateCategories(input.categoryIds);
+  const status = validateStatus(input.status);
   const images = await Promise.all(input.images.map(uploadImage));
   const now = new Date().toISOString();
 
@@ -162,7 +180,8 @@ export async function createPainting(input: {
     description,
     completedDate,
     categoryIds,
-    images: images as [AdminPaintingImage, AdminPaintingImage],
+    status,
+    images: images.map((image) => ({ ...image, starred: false })) as [AdminPaintingImage, AdminPaintingImage],
     createdAt: now,
     updatedAt: now,
   };
@@ -184,6 +203,7 @@ export async function updatePainting(
     description: string;
     completedDate: string;
     categoryIds: string[];
+    status: AdminPaintingStatus;
     images: [File | null, File | null];
   },
 ) {
@@ -198,6 +218,7 @@ export async function updatePainting(
   const description = validateDescription(input.description);
   const completedDate = validateDate(input.completedDate);
   const categoryIds = await validateCategories(input.categoryIds);
+  const status = validateStatus(input.status);
   const nextImages = [...current.images] as [AdminPaintingImage, AdminPaintingImage];
   const uploaded: AdminPaintingImage[] = [];
 
@@ -220,6 +241,7 @@ export async function updatePainting(
           description,
           completedDate,
           categoryIds,
+          status,
           images: nextImages,
           updatedAt,
         },
@@ -232,7 +254,7 @@ export async function updatePainting(
       }
     }
 
-    return { ...current, name, description, completedDate, categoryIds, images: nextImages, updatedAt };
+    return { ...current, name, description, completedDate, categoryIds, status, images: nextImages, updatedAt };
   } catch (error) {
     await Promise.all(uploaded.map((image) => deleteImage(image.fileId)));
     throw error;
@@ -248,4 +270,60 @@ export async function deletePainting(id: string) {
   await db.collection<AdminPainting>(COLLECTION).deleteOne({ id });
   await Promise.all(current.images.map((image) => deleteImage(image.fileId)));
   return true;
+}
+
+
+export async function setPaintingImageStar(
+  paintingId: string,
+  fileId: string,
+  starred: boolean,
+) {
+  const db = await getDatabase();
+  const current = await db.collection<AdminPainting>(COLLECTION).findOne({
+    id: paintingId,
+    "images.fileId": fileId,
+  });
+
+  if (!current) {
+    throw new Error("Painting image was not found.");
+  }
+
+  const image = current.images.find((item) => item.fileId === fileId);
+
+  if (!image) {
+    throw new Error("Painting image was not found.");
+  }
+
+  const now = new Date().toISOString();
+  const update: Record<string, unknown> = {
+    "images.$.starred": starred,
+    "images.$.updatedAt": now,
+  };
+
+  if (starred && !image.tableDescription) {
+    update["images.$.tableDescription"] = current.description;
+  }
+
+  await db.collection<AdminPainting>(COLLECTION).updateOne(
+    { id: paintingId, "images.fileId": fileId },
+    { $set: { ...update, updatedAt: now } },
+  );
+
+  return {
+    ...current,
+    status: current.status ?? "draft",
+    images: current.images.map((item) =>
+      item.fileId === fileId
+        ? {
+            ...item,
+            starred,
+            ...(starred && !item.tableDescription
+              ? { tableDescription: current.description }
+              : {}),
+            updatedAt: now,
+          }
+        : item,
+    ) as [AdminPaintingImage, AdminPaintingImage],
+    updatedAt: now,
+  };
 }
