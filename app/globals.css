@@ -825,7 +825,7 @@ dialog {
   --project-edge-shift: 118px;
 }
 .projects-slider[data-edge="next"] {
-  --project-edge-shift: -118px;
+  --project-edge-shift: 118px;
 }
 /* The strip glides aside while an edge is charged, opening the space for the arrow. */
 .projects-slider .reusable-slider__viewport {
