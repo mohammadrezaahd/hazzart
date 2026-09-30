@@ -182,7 +182,7 @@ export async function getProjects(filters: { search?: string; status?: AdminProj
   const query: Record<string, unknown> = {};
   const search = filters.search?.trim();
   if (search) {
-    const escaped = search.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&");
+    const escaped = search.replaceAll("\\", "\\\\").replaceAll(".", "\\.").replaceAll("*", "\\*").replaceAll("+", "\\+").replaceAll("?", "\\?").replaceAll("^", "\\^").replaceAll("$", "\\$").replaceAll("{", "\\{").replaceAll("}", "\\}").replaceAll("(", "\\(").replaceAll(")", "\\)").replaceAll("|", "\\|");
     query.$or = [
       { title: { $regex: escaped, $options: "i" } },
       { myRole: { $regex: escaped, $options: "i" } },
