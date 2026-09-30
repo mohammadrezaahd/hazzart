@@ -326,7 +326,7 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
   }, [clearTimers]);
 
   const scheduleRelease = useCallback((direction: SliderDirection) => {
-    const delay = Math.max(120, configRef.current.edgeCharge?.releaseDelay ?? DEFAULT_RELEASE_DELAY);
+    const delay = Math.max(300, configRef.current.edgeCharge?.releaseDelay ?? DEFAULT_RELEASE_DELAY);
     if (releaseTimerRef.current !== null) window.clearTimeout(releaseTimerRef.current);
     releaseTimerRef.current = window.setTimeout(() => {
       releaseTimerRef.current = null;
@@ -340,7 +340,7 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
 
   const chargeEdge = useCallback((direction: SliderDirection, magnitude: number) => {
     clearTimers();
-    const distance = Math.max(80, configRef.current.edgeCharge?.distance ?? 720);
+    const distance = Math.max(80, configRef.current.edgeCharge?.distance ?? 960);
     const sameDirection = chargeRef.current.direction === direction;
     const progress = clamp((sameDirection ? chargeRef.current.progress : 0) + magnitude / distance, 0, 1);
     const armed = !sameDirection || chargeRef.current.progress <= 0;
