@@ -235,7 +235,7 @@ export function ReusableSlider<TItem>({
                 width="15"
                 height="15"
                 style={
-                  edgeState.direction === "next"
+                  edgeState.direction === "previous"
                     ? { transform: "rotate(180deg)" }
                     : undefined
                 }
