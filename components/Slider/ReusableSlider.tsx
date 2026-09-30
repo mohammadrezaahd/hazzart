@@ -215,15 +215,7 @@ export function ReusableSlider<TItem>({
             className={`reusable-slider__edge-cta reusable-slider__edge-cta--${edgeState.direction} ${edgeState.popping ? "reusable-slider__edge-cta--popping" : ""}`}
             aria-hidden="true"
             tabIndex={-1}
-            onPointerDown={(event) => {
-              event.stopPropagation();
-              holdCharge();
-            }}
-            onPointerEnter={holdCharge}
-            onPointerLeave={resumeCharge}
-            onFocus={holdCharge}
-            onBlur={resumeCharge}
-            onClick={() => popEdge(edgeState.direction)}
+            style={{ pointerEvents: "none" }}
           >
             <span
               className={`reusable-slider__edge-arrow reusable-slider__edge-arrow--${edgeState.direction}`}
