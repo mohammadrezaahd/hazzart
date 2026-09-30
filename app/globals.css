@@ -506,7 +506,7 @@ dialog {
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  transition: --edge-progress 0.42s var(--motion-ease);
+  /* Edge progress is driven by GSAP. */
 }
 .reusable-slider__frame {
   position: relative;
@@ -1263,7 +1263,7 @@ dialog {
   /* Keep the bounded-slider edge affordance: when the user pushes past
    * an end, the strip still opens toward the arrow instead of staying rigid. */
   .projects-slider .reusable-slider__viewport {
-    will-change: transform;
+    will-change: width, margin-left, margin-right;
   }
 }
 @media (max-height: 570px) and (max-width: 767px) {
