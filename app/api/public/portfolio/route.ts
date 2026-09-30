@@ -1,13 +1,13 @@
 import { getCachedPublicPortfolio } from "@/lib/public-cache";
 
 export const runtime = "nodejs";
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
     return Response.json(await getCachedPublicPortfolio(), {
       headers: {
-        "Cache-Control": "public, max-age=300, s-maxage=300, stale-while-revalidate=3600",
+        "Cache-Control": "no-store",
       },
     });
   } catch {
