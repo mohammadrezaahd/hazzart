@@ -68,6 +68,8 @@ function toProjects(
     discipline: "",
     client: "",
     myRole: project.myRole ? [project.myRole] : [],
+    projectStatusId: project.projectStatusId,
+    projectStatusName: project.projectStatusName,
     images: project.images.map((image) => ({
       src: image.url,
       alt: image.name,
