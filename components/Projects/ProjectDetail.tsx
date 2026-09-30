@@ -15,6 +15,12 @@ export function ProjectDetail({ project }: ProjectDetailProps) {
 
       <div className="projects-detail__info">
         <span>My Role: {project.myRole.join(' - ')}</span>
+        {project.projectStatusId && (
+          <>
+            <br />
+            <span>Project Status: {project.projectStatusId}</span>
+          </>
+        )}
 
         <br /><br />
 
