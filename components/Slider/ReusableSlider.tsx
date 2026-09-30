@@ -17,6 +17,8 @@ export interface SliderEdgeOverflowConfig {
   enabled?: boolean;
   /** Wheel distance (px) that fills the ring completely. */
   chargeWheelDistance?: number;
+  /** Finger distance (px) that fills the ring on touch. */
+  touchDistance?: number;
   /** Quiet period (ms) before an untouched charge releases by itself. */
   releaseDelay?: number;
   onCommit?: (payload: {
@@ -94,6 +96,7 @@ export function ReusableSlider<TItem>({
     edgeCharge: {
       enabled: !!edgeOverflow?.enabled,
       distance: edgeOverflow?.chargeWheelDistance,
+      touchDistance: edgeOverflow?.touchDistance,
       releaseDelay: edgeOverflow?.releaseDelay,
       allowWithoutOverflow: allowEdgeWithoutOverflow,
       onCommit: ({ direction, progress }) =>
