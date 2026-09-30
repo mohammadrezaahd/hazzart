@@ -72,6 +72,7 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
   const sampleRef = useRef({ value: 0, time: 0, velocity: 0 });
   const chargeRef = useRef({ direction: null as SliderDirection | null, progress: 0 });
   const popTimerRef = useRef<number | null>(null);
+  const popClearTimerRef = useRef<number | null>(null);
   const releaseTimerRef = useRef<number | null>(null);
   const listenersRef = useRef(new Set<(range: SliderRange) => void>());
   const configRef = useRef({ itemCount, infinite, edgeCharge });
@@ -239,6 +240,7 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
 
   const clearTimers = useCallback(() => {
     if (popTimerRef.current !== null) { window.clearTimeout(popTimerRef.current); popTimerRef.current = null; }
+    if (popClearTimerRef.current !== null) { window.clearTimeout(popClearTimerRef.current); popClearTimerRef.current = null; }
     if (releaseTimerRef.current !== null) { window.clearTimeout(releaseTimerRef.current); releaseTimerRef.current = null; }
   }, []);
   const resetCharge = useCallback(() => {
@@ -321,7 +323,8 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
       popTimerRef.current = null;
       configRef.current.edgeCharge?.onCommit?.({ direction, progress });
     }, prefersReducedMotion() ? 0 : 120);
-    window.setTimeout(() => {
+    popClearTimerRef.current = window.setTimeout(() => {
+      popClearTimerRef.current = null;
       chargeRef.current = { direction: null, progress: 0 };
       setEdgeState(null);
     }, POP_DURATION);
