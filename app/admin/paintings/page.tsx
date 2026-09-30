@@ -10,6 +10,7 @@ import { getApiErrorMessage } from "@/components/api/client";
 import { useAdminStorage } from "@/components/hooks/useAdminStorage";
 import { setAdminPaintingImageStar } from "@/components/api/paintings";
 import CategoryMultiSelect from "@/components/admin/CategoryMultiSelect";
+import StatusSelect from "@/components/admin/StatusSelect";
 
 const navigation = [
   { label: "Overview", href: "/admin", icon: "grid" },
@@ -282,7 +283,7 @@ export default function AdminPaintingsPage() {
 
             <div className="admin-painting-form-grid">
               <label className="admin-field"><span>Name</span><input value={form.name} maxLength={150} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="Painting name" /></label>
-              <label className="admin-field"><span>Status</span><select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as AdminPaintingStatus })}><option value="draft">draft</option><option value="published">published</option><option value="archived">archived</option></select></label>
+              <label className="admin-field"><span>Status</span><StatusSelect value={form.status} onChange={(status) => setForm({ ...form, status })} label="Painting publication status" /></label>
               <label className="admin-field"><span>Completed date</span><input value={form.completedDate} maxLength={10} onChange={(event) => setForm({ ...form, completedDate: formatDateInput(event.target.value) })} placeholder="YYYY/MM/DD" inputMode="numeric" /></label>
               <label className="admin-field admin-painting-description"><span>Description</span><textarea value={form.description} maxLength={5000} onChange={(event) => setForm({ ...form, description: event.target.value })} placeholder="Describe the work…" /></label>
             </div>
