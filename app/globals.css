@@ -4205,3 +4205,9 @@ body:has(.admin-shell) > .site-header {
   width: 100%;
   height: 100%;
 }
+
+.admin-painting-filters { grid-template-columns: minmax(220px, 1.7fr) 1fr 0.75fr 0.75fr 0.8fr; }
+.admin-project-card-actions button:nth-child(2) { min-width: 62px; }
+@media (max-width: 900px) {
+  .admin-painting-filters { grid-template-columns: 1fr 1fr; }
+}
