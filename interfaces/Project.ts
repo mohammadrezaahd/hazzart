@@ -22,7 +22,10 @@ export interface AdminProject {
   started: string;
   ended: string | null;
   medium: string[];
+  /** Website publication status shared with paintings. */
   status: AdminProjectStatus;
+  /** Internal workflow status for this project. */
+  projectStatusId: string;
   images: AdminProjectImage[];
   links: AdminProjectLink[];
   dynamicFields: Record<string, string>;
