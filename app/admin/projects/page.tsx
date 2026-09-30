@@ -6,7 +6,7 @@ import type { AdminCategory } from "@/interfaces/Category";
 import type { AdminProject, AdminProjectImage, AdminProjectLink, AdminProjectStatus } from "@/interfaces/Project";
 import type { AdminProjectStatus as ProjectWorkflowStatus } from "@/interfaces/ProjectStatus";
 import { getAdminCategories } from "@/components/api/categories";
-import { createAdminProject, createAdminProjectStatus, deleteAdminProject, deleteAdminProjectStatus, getAdminProjectStatuses, getAdminProjects, updateAdminProject, updateAdminProjectPublicationStatus } from "@/components/api/projects";
+import { createAdminProject, createAdminProjectStatus, deleteAdminProject, deleteAdminProjectStatus, getAdminProjectStatuses, getAdminProjects, updateAdminProject, updateAdminProjectPublicationStatus, updateAdminProjectStatus } from "@/components/api/projects";
 import { getApiErrorMessage } from "@/components/api/client";
 import { useAdminStorage } from "@/components/hooks/useAdminStorage";
 import CategoryMultiSelect from "@/components/admin/CategoryMultiSelect";
