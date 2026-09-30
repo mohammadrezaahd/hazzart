@@ -2,8 +2,15 @@ import type { AdminProject } from "@/interfaces/Project";
 import type { AdminProjectStatus } from "@/interfaces/ProjectStatus";
 import { apiClient } from "./client";
 
-export async function getAdminProjects() {
-  const r = await apiClient.get<{ projects: AdminProject[] }>("/api/admin/projects", { params: { _: Date.now() } });
+export interface ProjectFilters {
+  search?: string;
+  status?: "draft" | "published" | "archived";
+}
+
+export async function getAdminProjects(filters: ProjectFilters = {}) {
+  const r = await apiClient.get<{ projects: AdminProject[] }>("/api/admin/projects", {
+    params: { ...filters, _: Date.now() },
+  });
   return r.data.projects;
 }
 
@@ -59,4 +66,10 @@ export async function updateAdminProjectStatus(id: string, name: string) {
 
 export async function deleteAdminProjectStatus(id: string) {
   await apiClient.delete("/api/admin/project-statuses/" + id);
+}
+
+
+export async function updateAdminProjectStatus(id: string, status: AdminProjectStatus) {
+  const r = await apiClient.patch<{ project: AdminProject }>("/api/admin/projects/" + id, { status });
+  return r.data.project;
 }
