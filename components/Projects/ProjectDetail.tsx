@@ -24,7 +24,7 @@ export function ProjectDetail({ project }: ProjectDetailProps) {
         {project.projectStatusId && (
           <>
             <br />
-            <span>Project Status: {formatProjectStatus(project.projectStatusId)}</span>
+            <span>Project Status: {project.projectStatusName ?? formatProjectStatus(project.projectStatusId)}</span>
           </>
         )}
 
