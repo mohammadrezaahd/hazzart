@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { getPublicPortfolio, getPublicPortfolioSnapshot, type PublicPortfolioResponse } from '@/components/api/public';
 import { ReusableSlider } from '@/components/Slider';
 import { getProjectImageRatio } from '@/utils/projects';
@@ -25,6 +25,46 @@ export function ProjectsExperience() {
   const project = projects[projectIndex] ?? projects[0];
   const images = project?.images ?? [];
 
+  const [imageRatios, setImageRatios] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    let active = true;
+    const loaders = images.map((image) => {
+      const loader = new window.Image();
+      loader.src = image.src;
+      return new Promise<[string, number] | null>((resolve) => {
+        loader.onload = () => {
+          if (loader.naturalWidth > 0 && loader.naturalHeight > 0) {
+            resolve([image.src, loader.naturalWidth / loader.naturalHeight]);
+          } else {
+            resolve(null);
+          }
+        };
+        loader.onerror = () => resolve(null);
+      });
+    });
+
+    void Promise.all(loaders).then((loaded) => {
+      if (!active) return;
+      setImageRatios((current) => {
+        const next = { ...current };
+        loaded.forEach((entry) => {
+          if (entry) next[entry[0]] = entry[1];
+        });
+        return next;
+      });
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [images]);
+
+  const getRatio = useMemo(
+    () => (image: (typeof images)[number]) => imageRatios[image.src] ?? getProjectImageRatio(image),
+    [imageRatios],
+  );
+
   useEffect(() => {
     if (!boundaryDirection) return;
     const timer = window.setTimeout(() => setBoundaryDirection(null), 900);
@@ -44,7 +84,7 @@ export function ProjectsExperience() {
     <main className={'projects-experience' + (boundaryDirection ? ' projects-experience--boundary-' + boundaryDirection : '')} id="main-content" ref={wheelRoot}>
       <div key={project.id} className="projects-scene">
         <ProjectDetail project={project} />
-        <ReusableSlider items={images} ariaLabel={project.name + ' images'} className={"projects-slider" + (projectIndex === 0 ? " projects-slider--no-previous" : "") + (projectIndex === projects.length - 1 ? " projects-slider--no-next" : "")} infinite={false} wheelRoot={wheelRoot} animateEntrance={false} allowEdgeWithoutOverflow emptyMessage="No images added yet." pagination={{ enabled: true, ariaLabel: project.name + ' images', getLabel: (image, index) => image.caption ?? ('Image ' + (index + 1)) }} edgeOverflow={{ enabled: !boundaryDirection, chargeWheelDistance: 560, releaseDelay: 1400, onCommit: handleEdgeCommit }} getItemId={image => image.src} getSlideAspectRatio={getProjectImageRatio} getSlideA11yLabel={(image, index) => image.caption ?? ('Image ' + (index + 1))} renderSlide={(image, index) => (<span className="projects-piece">
+        <ReusableSlider items={images} ariaLabel={project.name + ' images'} className={"projects-slider" + (projectIndex === 0 ? " projects-slider--no-previous" : "") + (projectIndex === projects.length - 1 ? " projects-slider--no-next" : "")} infinite={false} wheelRoot={wheelRoot} animateEntrance={false} allowEdgeWithoutOverflow emptyMessage="No images added yet." pagination={{ enabled: true, ariaLabel: project.name + ' images', getLabel: (image, index) => image.caption ?? ('Image ' + (index + 1)) }} edgeOverflow={{ enabled: !boundaryDirection, chargeWheelDistance: 560, releaseDelay: 1400, onCommit: handleEdgeCommit }} getItemId={image => image.src} getSlideAspectRatio={getRatio} getSlideA11yLabel={(image, index) => image.caption ?? ('Image ' + (index + 1))} renderSlide={(image, index) => (<span className="projects-piece">
           <span className="projects-piece__image">
             <Image
               src={image.src}
