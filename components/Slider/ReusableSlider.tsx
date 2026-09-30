@@ -200,25 +200,26 @@ export function ReusableSlider<TItem>({
     const viewport = edgeViewportRef.current;
     if (!root || !viewport) return;
 
+    const duration = prefersReducedMotion() ? 0 : 0.09;
+    const progressTo = gsap.quickTo(root, "--edge-progress", {
+      duration,
+      ease: "power3.out",
+    });
+    const spaceTo = gsap.quickTo(viewport, "--edge-space", {
+      duration,
+      ease: "power3.out",
+    });
+
     const progress = edgeState?.progress ?? 0;
     const direction = edgeState?.direction ?? null;
     const shift = direction
-      ? Number.parseFloat(getComputedStyle(root).getPropertyValue("--project-edge-shift")) || 0
+      ? Number.parseFloat(
+          getComputedStyle(root).getPropertyValue("--project-edge-shift"),
+        ) || 0
       : 0;
-    const duration = prefersReducedMotion() ? 0 : 0.22;
-    const ease = "power3.out";
-    gsap.to(root, {
-      "--edge-progress": progress,
-      duration,
-      ease,
-      overwrite: true,
-    });
-    gsap.to(viewport, {
-      "--edge-space": `${shift * progress}px`,
-      duration,
-      ease,
-      overwrite: true,
-    });
+
+    progressTo(progress);
+    spaceTo(`${shift * progress}px`);
 
     return () => {
       gsap.killTweensOf(root);
