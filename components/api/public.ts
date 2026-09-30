@@ -12,17 +12,11 @@ export interface PublicPortfolioResponse extends PortfolioData {
   }>;
 }
 
-type PublicPortfolioCache = {
-  data: PublicPortfolioResponse;
-  expiresAt: number;
-};
-
-const CLIENT_CACHE_TTL = 5 * 60 * 1000;
-let cache: PublicPortfolioCache | null = null;
+let cache: PublicPortfolioResponse | null = null;
 let inFlight: Promise<PublicPortfolioResponse> | null = null;
 
 export function getPublicPortfolioSnapshot() {
-  return cache?.data ?? null;
+  return cache;
 }
 
 async function refreshPublicPortfolio() {
@@ -31,10 +25,7 @@ async function refreshPublicPortfolio() {
   inFlight = apiClient
     .get<PublicPortfolioResponse>("/api/public/portfolio")
     .then((response) => {
-      cache = {
-        data: response.data,
-        expiresAt: Date.now() + CLIENT_CACHE_TTL,
-      };
+      cache = response.data;
       return response.data;
     })
     .finally(() => {
@@ -47,11 +38,5 @@ async function refreshPublicPortfolio() {
 export async function getPublicPortfolio() {
   if (!cache) return refreshPublicPortfolio();
 
-  if (Date.now() < cache.expiresAt) {
-    return cache.data;
-  }
-
-  // Keep stale content visible while refreshing in the background.
-  void refreshPublicPortfolio();
-  return cache.data;
+  return refreshPublicPortfolio();
 }
