@@ -312,6 +312,7 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
   }, [hasLoop, nearestIndex, rangePosition, scrollToIndex]);
 
   const releaseCharge = useCallback((direction: SliderDirection) => {
+    if (popTimerRef.current !== null) return;
     clearTimers();
     const progress = chargeRef.current.progress;
     // Render the completed ring first; only then switch the project.
@@ -340,6 +341,9 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
   }, [releaseCharge, resetCharge]);
 
   const chargeEdge = useCallback((direction: SliderDirection, magnitude: number, distanceOverride?: number) => {
+    // Once the ring has reached 100%, let the visual completion finish before
+    // any additional touch/wheel events can cancel the pending navigation.
+    if (popTimerRef.current !== null) return;
     clearTimers();
     const distance = Math.max(80, distanceOverride ?? configRef.current.edgeCharge?.distance ?? 960);
     const sameDirection = chargeRef.current.direction === direction;
