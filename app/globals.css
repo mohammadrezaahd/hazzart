@@ -557,7 +557,7 @@ dialog {
 }
 .artwork-slider__slide {
   cursor: pointer;
-  background: transparent;
+  background: #eeeeec;
 }
 .artwork-slider__image {
   position: absolute;
@@ -834,20 +834,11 @@ dialog {
   margin-inline: 0;
 }
 .projects-slider[data-edge="next"] {
-  --project-edge-shift: -104px;
+  --project-edge-shift: -60px;
 }
-/* Keep the viewport fixed. The image strip itself moves past the edge,
- * exposing real blank space inside the slider for the edge arrow. */
+/* The strip glides aside while an edge is charged, opening the space for the arrow. */
 .projects-slider .reusable-slider__viewport {
-  will-change: auto;
-}
-
-.projects-slider .reusable-slider__track {
-  transform: translate3d(
-    calc(var(--edge-progress) * var(--project-edge-shift)),
-    0,
-    0
-  );
+  transform: translate3d(calc(var(--edge-progress) * var(--project-edge-shift)), 0, 0);
   will-change: transform;
   transition: transform 0.08s linear;
 }
@@ -857,8 +848,7 @@ dialog {
   min-width: 0;
   max-width: none;
   padding: 0;
-  margin: 0;
-  background: transparent;
+  background: #eeeeec;
 }
 /* Neither grid item may grow past its column. */
 .projects-slider > * {
