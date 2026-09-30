@@ -19,8 +19,12 @@ export async function PUT(request: Request, context: Context) {
 
     const body = JSON.parse(raw) as Record<string, unknown>;
     const imageFiles = formData.getAll("images").filter((value): value is File => value instanceof File);
+    const rawRemoveIds = formData.get("removeImageIds");
+    const removeImageIds = typeof rawRemoveIds === "string"
+      ? (JSON.parse(rawRemoveIds) as unknown[]).filter((value): value is string => typeof value === "string")
+      : [];
     return NextResponse.json({
-      project: await updateProject(id, body, imageFiles),
+      project: await updateProject(id, body, imageFiles, removeImageIds),
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Could not update project.";
