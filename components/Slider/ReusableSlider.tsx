@@ -87,9 +87,6 @@ export function ReusableSlider<TItem>({
     scrollToIndex,
     scrollToPosition,
     settle,
-    popEdge,
-    holdCharge,
-    resumeCharge,
   } = useSliderScroll({
     itemCount: items.length,
     infinite: hasLoop,
