@@ -6,6 +6,12 @@ interface ProjectDetailProps {
   project: Project;
 }
 
+function formatProjectStatus(value: string) {
+  if (value === "done") return "Done";
+  if (value === "in-progress") return "In Progress";
+  return value.replace(/[-_]/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 export function ProjectDetail({ project }: ProjectDetailProps) {
   const metadata = Object.entries(project.dynamicFields);
 
@@ -18,7 +24,7 @@ export function ProjectDetail({ project }: ProjectDetailProps) {
         {project.projectStatusId && (
           <>
             <br />
-            <span>Project Status: {project.projectStatusId}</span>
+            <span>Project Status: {formatProjectStatus(project.projectStatusId)}</span>
           </>
         )}
 
