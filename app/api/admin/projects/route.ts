@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { invalidatePublicPortfolioCache } from "@/lib/public-cache";
 import { requireAdminSession } from "@/lib/admin-auth";
 import { createProject, getProjects } from "@/lib/projects";
 
@@ -35,6 +36,7 @@ export async function POST(request: Request) {
     if (!imageFiles.length) throw new Error("At least one project image is required.");
 
     const project = await createProject(body, imageFiles);
+    invalidatePublicPortfolioCache();
 
     return NextResponse.json({ project }, { status: 201 });
   } catch (e) {
