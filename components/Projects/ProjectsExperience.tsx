@@ -49,8 +49,8 @@ export function ProjectsExperience() {
             <Image
               src={image.src}
               alt={image.alt}
-              width={image.width}
-              height={image.height}
+              fill
+              sizes="(max-width: 899px) 62vw, 36vw"
               priority={index < 2}
               draggable={false}
             />
