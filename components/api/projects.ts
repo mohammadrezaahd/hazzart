@@ -23,13 +23,15 @@ interface ProjectInput {
   status: "draft" | "published" | "archived";
   projectStatusId: string;
   images: File[];
+  removeImageIds?: string[];
   links: { id: string; title: string; link: string }[];
   dynamicFields: Record<string, string>;
 }
 
 function buildFormData(input: ProjectInput) {
   const formData = new FormData();
-  const { images, ...data } = input;
+  const { images, removeImageIds, ...data } = input;
+  if (removeImageIds?.length) formData.append("removeImageIds", JSON.stringify(removeImageIds));
   formData.append("data", JSON.stringify(data));
   images.forEach((image) => formData.append("images", image));
   return formData;
@@ -40,7 +42,7 @@ export async function createAdminProject(input: ProjectInput) {
   return r.data.project;
 }
 
-export async function updateAdminProject(id: string, input: Omit<ProjectInput, "images"> & { images?: File[] }) {
+export async function updateAdminProject(id: string, input: Omit<ProjectInput, "images"> & { images?: File[]; removeImageIds?: string[] }) {
   const r = await apiClient.put<{ project: AdminProject }>("/api/admin/projects/" + id, buildFormData({ ...input, images: input.images ?? [] }));
   return r.data.project;
 }
