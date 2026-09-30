@@ -30,7 +30,7 @@ function migrateLegacyStatuses(project: ProjectDocument) {
 
   if (project.projectStatusId) {
     return {
-      status: validateStatus(rawStatus),
+      status: isPublicationStatus(rawStatus) ? validateStatus(rawStatus) : "published",
       projectStatusId: project.projectStatusId,
     };
   }
