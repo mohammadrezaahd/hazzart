@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { invalidatePublicPortfolioCache } from "@/lib/public-cache";
 import { requireAdminSession } from "@/lib/admin-auth";
 import { deleteProject, updateProject, updateProjectPublicationStatus } from "@/lib/projects";
 
@@ -23,9 +24,9 @@ export async function PUT(request: Request, context: Context) {
     const removeImageIds = typeof rawRemoveIds === "string"
       ? (JSON.parse(rawRemoveIds) as unknown[]).filter((value): value is string => typeof value === "string")
       : [];
-    return NextResponse.json({
-      project: await updateProject(id, body, imageFiles, removeImageIds),
-    });
+    const project = await updateProject(id, body, imageFiles, removeImageIds);
+    invalidatePublicPortfolioCache();
+    return NextResponse.json({ project });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Could not update project.";
     return NextResponse.json({ error: message }, { status: 400 });
@@ -38,6 +39,7 @@ export async function DELETE(_request: Request, context: Context) {
   try {
     const { id } = await context.params;
     await deleteProject(id);
+    invalidatePublicPortfolioCache();
     return NextResponse.json({ ok: true });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Could not delete project.";
@@ -54,7 +56,9 @@ export async function PATCH(request: Request, context: Context) {
     if (body.status !== "draft" && body.status !== "published" && body.status !== "archived") {
       return NextResponse.json({ error: "Invalid publication status." }, { status: 400 });
     }
-    return NextResponse.json({ project: await updateProjectPublicationStatus(id, body.status) });
+    const project = await updateProjectPublicationStatus(id, body.status);
+    invalidatePublicPortfolioCache();
+    return NextResponse.json({ project });
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "Could not update project status." }, { status: 400 });
   }
