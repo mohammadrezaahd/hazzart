@@ -1,4 +1,4 @@
-import type { AdminProject } from "@/interfaces/Project";
+import type { AdminProject, AdminProjectStatus as PublicationStatus } from "@/interfaces/Project";
 import type { AdminProjectStatus } from "@/interfaces/ProjectStatus";
 import { apiClient } from "./client";
 
@@ -71,7 +71,7 @@ export async function deleteAdminProjectStatus(id: string) {
 }
 
 
-export async function updateAdminProjectPublicationStatus(id: string, status: AdminProjectStatus) {
+export async function updateAdminProjectPublicationStatus(id: string, status: PublicationStatus) {
   const r = await apiClient.patch<{ project: AdminProject }>("/api/admin/projects/" + id, { status });
   return r.data.project;
 }
