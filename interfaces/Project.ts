@@ -26,6 +26,7 @@ export interface AdminProject {
   status: AdminProjectStatus;
   /** Internal workflow status for this project. */
   projectStatusId: string;
+  projectStatusName?: string;
   images: AdminProjectImage[];
   links: AdminProjectLink[];
   dynamicFields: Record<string, string>;
