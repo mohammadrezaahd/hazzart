@@ -207,22 +207,23 @@ export function ReusableSlider<TItem>({
       : 0;
     const duration = prefersReducedMotion() ? 0 : 0.22;
     const ease = "power3.out";
-    const ctx = gsap.context(() => {
-      gsap.to(root, {
-        "--edge-progress": progress,
-        duration,
-        ease,
-        overwrite: true,
-      });
-      gsap.to(viewport, {
-        "--edge-space": shift * progress,
-        duration,
-        ease,
-        overwrite: true,
-      });
-    }, root);
+    gsap.to(root, {
+      "--edge-progress": progress,
+      duration,
+      ease,
+      overwrite: true,
+    });
+    gsap.to(viewport, {
+      "--edge-space": shift * progress,
+      duration,
+      ease,
+      overwrite: true,
+    });
 
-    return () => ctx.revert();
+    return () => {
+      gsap.killTweensOf(root);
+      gsap.killTweensOf(viewport);
+    };
   }, [edgeState]);
 
   return (
