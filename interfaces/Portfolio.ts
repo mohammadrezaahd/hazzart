@@ -62,6 +62,7 @@ export interface Project {
   myRole: string[];
   /** Internal project workflow status exposed on the public project page. */
   projectStatusId?: string;
+  projectStatusName?: string;
   /** Every image of the project, in the order the strip shows them. */
   images: ProjectMedia[];
   links: ProjectLink[];
