@@ -1,5 +1,5 @@
 import { requireAdminSession } from "@/lib/admin-auth";
-import { deletePainting, updatePainting } from "@/lib/paintings";
+import { deletePainting, updatePainting, updatePaintingStatus } from "@/lib/paintings";
 
 export const runtime = "nodejs";
 
@@ -72,6 +72,25 @@ export async function DELETE(
     }
 
     return Response.json({ success: true });
+  } catch (error) {
+    return errorResponse(error);
+  }
+}
+
+
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  await requireAdminSession();
+  try {
+    const { id } = await params;
+    const body = await request.json() as { status?: unknown };
+    if (body.status !== "draft" && body.status !== "published" && body.status !== "archived") {
+      return Response.json({ error: "Invalid painting status." }, { status: 400 });
+    }
+    const painting = await updatePaintingStatus(id, body.status);
+    return Response.json({ painting });
   } catch (error) {
     return errorResponse(error);
   }

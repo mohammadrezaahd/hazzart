@@ -60,6 +60,9 @@ export interface Project {
   discipline: string;
   client: string;
   myRole: string[];
+  /** Internal project workflow status exposed on the public project page. */
+  projectStatusId?: string;
+  projectStatusName?: string;
   /** Every image of the project, in the order the strip shows them. */
   images: ProjectMedia[];
   links: ProjectLink[];
@@ -79,6 +82,8 @@ export interface FooterItem {
 export interface PortfolioData {
   artist: { name: string; description: string };
   artworks: Artwork[];
+  /** Starred images selected in Admin > Table for the front desk. */
+  tableArtworks: Artwork[];
   /** Projects are shown one at a time; the page navigates between this collection. */
   projects: Project[];
   mediums: Medium[];

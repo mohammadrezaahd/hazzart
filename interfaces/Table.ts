@@ -12,3 +12,8 @@ export interface AdminTableItem {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface AdminTableSettings {
+  categoryIds: string[];
+  updatedAt: string;
+}

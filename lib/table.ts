@@ -1,6 +1,8 @@
 import { getDatabase } from "@/lib/mongodb";
 import type { AdminPainting, AdminPaintingImage } from "@/interfaces/Painting";
-import type { AdminTableItem } from "@/interfaces/Table";
+import type { AdminTableItem, AdminTableSettings } from "@/interfaces/Table";
+
+const SETTINGS_ID = "front-table";
 
 const COLLECTION = "admin_paintings";
 
@@ -108,4 +110,45 @@ export async function updateTableItem(id: string, descriptionInput: unknown) {
     tableDescription: description,
     updatedAt: new Date().toISOString(),
   });
+}
+
+export async function getTableSettings(): Promise<AdminTableSettings> {
+  const db = await getDatabase();
+  const settings = await db.collection<AdminTableSettings>("admin_table_settings").findOne({ id: SETTINGS_ID } as AdminTableSettings & { id: string });
+
+  if (settings) {
+    return { categoryIds: settings.categoryIds, updatedAt: settings.updatedAt };
+  }
+
+  const categories = await db.collection<{ id: string }>("admin_categories").find({}).project({ _id: 0, id: 1 }).toArray();
+  return {
+    categoryIds: categories.map((category) => category.id),
+    updatedAt: new Date(0).toISOString(),
+  };
+}
+
+export async function updateTableSettings(categoryIdsInput: unknown): Promise<AdminTableSettings> {
+  if (!Array.isArray(categoryIdsInput) || categoryIdsInput.some((id) => typeof id !== "string")) {
+    throw new Error("Table categories must be a list of IDs.");
+  }
+
+  const categoryIds = [...new Set(categoryIdsInput)];
+  const db = await getDatabase();
+  const validCategories = await db.collection<{ id: string }>("admin_categories")
+    .find({ id: { $in: categoryIds } })
+    .project({ _id: 0, id: 1 })
+    .toArray();
+
+  if (validCategories.length !== categoryIds.length) {
+    throw new Error("One or more selected categories were not found.");
+  }
+
+  const updatedAt = new Date().toISOString();
+  await db.collection<AdminTableSettings & { id: string }>("admin_table_settings").replaceOne(
+    { id: SETTINGS_ID },
+    { id: SETTINGS_ID, categoryIds, updatedAt },
+    { upsert: true },
+  );
+
+  return { categoryIds, updatedAt };
 }

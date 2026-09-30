@@ -48,7 +48,7 @@ function validateStatus(value: unknown): AdminPaintingStatus {
 function normalizePainting(painting: AdminPainting): AdminPainting {
   return {
     ...painting,
-    status: painting.status ?? "draft",
+    status: painting.status ?? "published",
     images: painting.images.map((image) => ({ ...image, starred: Boolean(image.starred) })) as [AdminPaintingImage, AdminPaintingImage],
   };
 }
@@ -125,6 +125,7 @@ export async function getPaintings(filters: {
   categoryId?: string;
   from?: string;
   to?: string;
+  status?: AdminPaintingStatus;
 }) {
   const db = await getDatabase();
   const query: Record<string, unknown> = {};
@@ -136,6 +137,10 @@ export async function getPaintings(filters: {
 
   if (filters.categoryId) {
     query.categoryIds = filters.categoryId;
+  }
+
+  if (filters.status) {
+    query.status = filters.status;
   }
 
   if (filters.from || filters.to) {
@@ -326,4 +331,19 @@ export async function setPaintingImageStar(
     ) as [AdminPaintingImage, AdminPaintingImage],
     updatedAt: now,
   };
+}
+
+
+export async function updatePaintingStatus(id: string, status: AdminPaintingStatus) {
+  const db = await getDatabase();
+  const current = await db.collection<AdminPainting>(COLLECTION).findOne({ id });
+  if (!current) throw new Error("Painting not found.");
+
+  const updatedAt = new Date().toISOString();
+  await db.collection<AdminPainting>(COLLECTION).updateOne(
+    { id },
+    { $set: { status, updatedAt } },
+  );
+
+  return { ...current, status, updatedAt };
 }

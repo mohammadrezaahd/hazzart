@@ -5,10 +5,16 @@ import { createProject, getProjects } from "@/lib/projects";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: Request) {
   await requireAdminSession();
   try {
-    return NextResponse.json({ projects: await getProjects() });
+    const url = new URL(request.url);
+    const search = url.searchParams.get("search") ?? undefined;
+    const statusParam = url.searchParams.get("status");
+    const status = statusParam === "draft" || statusParam === "published" || statusParam === "archived"
+      ? statusParam
+      : undefined;
+    return NextResponse.json({ projects: await getProjects({ search, status }) });
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "Could not load projects." }, { status: 500 });
   }

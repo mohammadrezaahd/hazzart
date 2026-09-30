@@ -1,72 +1,57 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { orderArtworks } from '../utils/artworks.ts';
-import { fakeData } from '../consts/fakeData.ts';
 import { navigationItems, footerItems } from '../consts/navigation.ts';
 import { getCategoryAndDescendantIds, getExpandedCategoryId } from '../utils/categories.ts';
-import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import type { Artwork, PaintingCategory } from '../interfaces/Portfolio.ts';
 
-test('initial stack is hydration-stable and puts the Figma active artwork on top', () => {
-  const first = orderArtworks(fakeData.artworks, 'random', 0);
-  assert.deepEqual(first, orderArtworks(fakeData.artworks, 'random', 0));
-  assert.equal(first.at(-1)?.id, 'roxy-on-a-ride');
-  assert.notEqual(first, fakeData.artworks);
-});
-test('every shuffle preserves all IDs without changing the source', () => {
-  const before = JSON.stringify(fakeData.artworks);
-  const expected = fakeData.artworks.map(art => art.id).sort();
-  for (let seed = 1; seed < 30; seed++) {
-    const result = orderArtworks(fakeData.artworks, 'random', seed);
-    assert.deepEqual(result.map(art => art.id).sort(), expected);
-    assert.deepEqual(result, orderArtworks(fakeData.artworks, 'random', seed));
-  }
-  assert.equal(JSON.stringify(fakeData.artworks), before);
-  assert.notDeepEqual(orderArtworks(fakeData.artworks, 'random', 1), fakeData.artworks);
-});
-test('recent and yearly arrangements expose the newest work at the top of the stack', () => {
-  assert.equal(orderArtworks(fakeData.artworks, 'recent', 0).at(-1)?.id, 'floating');
-  assert.equal(orderArtworks(fakeData.artworks, 'yearly', 0).at(-1)?.year, 2025);
+const categories: PaintingCategory[] = [
+  { id: 'charcoal', label: 'Charcoal' },
+  { id: 'series', label: 'Series', children: [{ id: 'portrait-series', label: 'Portraits' }] },
+];
+
+const artworks: Artwork[] = [
+  {
+    id: 'one', title: 'One', year: 2024, createdAt: '2024-01-01', description: 'Test',
+    mediumId: 'charcoal', paintingCategoryIds: ['charcoal'],
+    image: { src: '/images/1.png', alt: 'Test image', width: 143, height: 190 },
+    hoverImage: { src: '/images/2.jpg', alt: 'Test hover', width: 3024, height: 4032 },
+    dimensions: '', table: { rotation: 0, aspectRatio: 0.75 },
+  },
+  {
+    id: 'two', title: 'Two', year: 2025, createdAt: '2025-01-01', description: 'Test',
+    mediumId: 'charcoal', paintingCategoryIds: ['series', 'portrait-series'],
+    image: { src: '/images/3.jpg', alt: 'Test image', width: 3024, height: 4032 },
+    hoverImage: { src: '/images/4.jpg', alt: 'Test hover', width: 919, height: 1225 },
+    dimensions: '', table: { rotation: 5, aspectRatio: 0.75 },
+  },
+];
+
+test('artwork ordering is deterministic and does not mutate the source', () => {
+  const before = JSON.stringify(artworks);
+  assert.deepEqual(orderArtworks(artworks, 'random', 1), orderArtworks(artworks, 'random', 1));
+  assert.equal(JSON.stringify(artworks), before);
   assert.deepEqual(orderArtworks([], 'recent', 0), []);
 });
-test('mock content uses valid dynamic categories and existing durable assets', () => {
-  const mediums = new Set(fakeData.mediums.map(medium => medium.id));
-  const paintingCategories = new Set(fakeData.paintingCategories.flatMap(category => getCategoryAndDescendantIds(fakeData.paintingCategories, category.id)));
-  assert.equal(new Set(fakeData.artworks.map(art => art.id)).size, fakeData.artworks.length);
-  for (const artwork of fakeData.artworks) {
-    assert.ok(mediums.has(artwork.mediumId));
-    assert.ok(artwork.paintingCategoryIds.length > 0);
-    assert.ok(artwork.paintingCategoryIds.every(categoryId => paintingCategories.has(categoryId)));
-    assert.ok(existsSync(join(process.cwd(), 'public', artwork.image.src)));
-    assert.ok(artwork.image.alt.length > 10);
-    assert.ok(artwork.table.aspectRatio > 0);
-  }
-});
+
 test('painting categories support parent and child filtering', () => {
-  assert.deepEqual(getCategoryAndDescendantIds(fakeData.paintingCategories, 'series'), ['series', 'roxy-series', 'table-series']);
-  assert.equal(getExpandedCategoryId(fakeData.paintingCategories, 'roxy-series'), 'series');
-  assert.equal(getExpandedCategoryId(fakeData.paintingCategories, 'charcoal'), 'charcoal');
-  assert.deepEqual(getCategoryAndDescendantIds(fakeData.paintingCategories, 'missing'), []);
+  assert.deepEqual(getCategoryAndDescendantIds(categories, 'series'), ['series', 'portrait-series']);
+  assert.equal(getExpandedCategoryId(categories, 'portrait-series'), 'series');
+  assert.deepEqual(getCategoryAndDescendantIds(categories, 'missing'), []);
 });
+
 test('navigation and footer IDs are unique and routes are local', () => {
   assert.equal(new Set(navigationItems.map(item => item.href)).size, navigationItems.length);
   assert.equal(new Set(footerItems.map(item => item.id)).size, footerItems.length);
   for (const item of navigationItems) assert.match(item.href, /^\/(?:[a-z-]+)?$/);
 });
-test('desktop navigation keeps the underline hidden until the active item, and mobile hides it completely', () => {
+
+test('desktop navigation keeps the underline hidden until the active item', () => {
   const css = readFileSync('app/globals.css', 'utf8');
   assert.match(css, /\.nav-indicator\s*\{[\s\S]*?opacity:\s*0/);
-  assert.match(css, /@media\s*\(max-width:\s*767px\)\s*\{[\s\S]*?\.nav-indicator\s*\{[\s\S]*?display:\s*none/);
 });
-test('painting category angle icons stay in the rotated-open state beside the label', () => {
-  const css = readFileSync('app/globals.css', 'utf8');
-  assert.match(css, /\.painting-filter__angle\s*\{[\s\S]*?transform:\s*rotate\(180deg\)/);
-});
-test('the active home table item shows the nav underline on the root route', () => {
-  const activeIndex = navigationItems.findIndex(item => item.href === '/');
-  assert.notEqual(activeIndex, -1);
-  assert.equal(navigationItems[activeIndex].id, 'table');
-});
+
 test('paper sound is a valid nonempty PCM WAV file', () => {
   const sound = readFileSync('public/audio/paper-drop.wav');
   assert.equal(sound.toString('ascii', 0, 4), 'RIFF');

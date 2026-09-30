@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import localFont from 'next/font/local';
 import { HeaderComponent } from '@/components/Layouts';
-import { fakeData } from '@/consts/fakeData';
 import { getBaseUrl } from '@/lib/app-config';
 import './globals.css';
 import './cross-browser.css';
@@ -27,7 +26,6 @@ export const metadata: Metadata = {
     default: 'Ghazal Shafiei — Artist',
     template: '%s — Ghazal Shafiei',
   },
-  description: fakeData.artist.description,
 };
 
 export const viewport: Viewport = {

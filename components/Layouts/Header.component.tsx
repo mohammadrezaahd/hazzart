@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useLayoutEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { navigationItems } from '@/consts/navigation';
-import { fakeData } from '@/consts/fakeData';
+import { getPublicPortfolio } from '@/components/api/public';
 import { MenuComponent } from './Menu.component';
 
 function NavigationIndicator() {
@@ -62,11 +62,17 @@ function NavigationIndicator() {
 }
 
 export function HeaderComponent() {
-  const [firstName, ...lastName] = fakeData.artist.name.split(' ');
+  const [artistName, setArtistName] = useState('Ghazal Shafiei');
   const [menuOpen, setMenuOpen] = useState(false);
 
+  useLayoutEffect(() => {
+    void getPublicPortfolio().then((data) => setArtistName(data.artist.name)).catch(() => undefined);
+  }, []);
+
+  const [firstName, ...lastName] = artistName.split(' ');
+
   return <header className="site-header">
-    <Link href="/" className="artist-name" aria-label={`${fakeData.artist.name} — home`}>{firstName} <span>{lastName.join(' ')}</span></Link>
+    <Link href="/" className="artist-name" aria-label={`${artistName} — home`}>{firstName} <span>{lastName.join(' ')}</span></Link>
     <NavigationIndicator />
     <button type="button" className="menu-toggle" aria-label="Open menu" aria-haspopup="dialog" aria-expanded={menuOpen} onClick={() => setMenuOpen(true)}>
       <Image src="/icons/menu.svg" width={32} height={32} alt="" />

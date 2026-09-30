@@ -6,6 +6,7 @@ export interface PaintingFilters {
   categoryId?: string;
   from?: string;
   to?: string;
+  status?: "draft" | "published" | "archived";
 }
 
 export async function getAdminPaintings(filters: PaintingFilters) {
@@ -87,5 +88,14 @@ export async function setAdminPaintingImageStar(
     fileId,
     starred,
   });
+  return response.data.painting;
+}
+
+
+export async function updateAdminPaintingStatus(id: string, status: "draft" | "published" | "archived") {
+  const response = await apiClient.patch<{ painting: AdminPainting }>(
+    "/api/admin/paintings/" + id,
+    { status },
+  );
   return response.data.painting;
 }

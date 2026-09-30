@@ -33,6 +33,9 @@ export async function GET(request: Request) {
         categoryId: searchParams.get("categoryId") ?? undefined,
         from: searchParams.get("from") ?? undefined,
         to: searchParams.get("to") ?? undefined,
+        status: searchParams.get("status") === "draft" || searchParams.get("status") === "published" || searchParams.get("status") === "archived"
+          ? searchParams.get("status") as "draft" | "published" | "archived"
+          : undefined,
       }),
     );
   } catch (error) {
