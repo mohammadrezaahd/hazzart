@@ -43,8 +43,8 @@ export function ArtworkSlider({ items, ariaLabel = 'Paintings', infinite = true 
             className="artwork-slider__image-primary"
             src={artwork.image.src}
             alt={artwork.image.alt}
-            width={artwork.image.rotate && Math.abs(artwork.image.rotate) % 180 === 90 ? artwork.image.height : artwork.image.width}
-            height={artwork.image.rotate && Math.abs(artwork.image.rotate) % 180 === 90 ? artwork.image.width : artwork.image.height}
+            fill
+            sizes="(max-width: 767px) 78vw, 46vw"
             priority={index < 4}
             draggable={false}
           />
@@ -52,8 +52,8 @@ export function ArtworkSlider({ items, ariaLabel = 'Paintings', infinite = true 
             className="artwork-slider__image-hover"
             src={artwork.hoverImage.src}
             alt=""
-            width={artwork.hoverImage.width}
-            height={artwork.hoverImage.height}
+            fill
+            sizes="(max-width: 767px) 78vw, 46vw"
             priority={index < 4}
             draggable={false}
             aria-hidden="true"
