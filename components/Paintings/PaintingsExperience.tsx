@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { getPublicPortfolio, type PublicPortfolioResponse } from "@/components/api/public";
+import { getPublicPortfolio, getPublicPortfolioSnapshot, type PublicPortfolioResponse } from "@/components/api/public";
 import { getCategoryAndDescendantIds, getExpandedCategoryId } from "@/utils/categories";
 import { ArtworkSlider } from "./ArtworkSlider";
 import { PaintingCategoryFilter } from "./PaintingCategoryFilter";
 
 export function PaintingsExperience() {
-  const [data, setData] = useState<PublicPortfolioResponse | null>(null);
+  const [data, setData] = useState<PublicPortfolioResponse | null>(() => getPublicPortfolioSnapshot());
   const [categoryId, setCategoryId] = useState<string | null>(null);
 
   useEffect(() => { void getPublicPortfolio().then(setData).catch(() => setData(null)); }, []);
