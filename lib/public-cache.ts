@@ -1,4 +1,4 @@
-import { unstable_cache } from "next/cache";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { getPublicPortfolio } from "@/lib/public-portfolio";
 
 export const PUBLIC_PORTFOLIO_CACHE_TAG = "public-portfolio";
@@ -12,3 +12,8 @@ export const getCachedPublicPortfolio = unstable_cache(
     tags: [PUBLIC_PORTFOLIO_CACHE_TAG],
   },
 );
+
+
+export function invalidatePublicPortfolioCache() {
+  revalidateTag(PUBLIC_PORTFOLIO_CACHE_TAG);
+}
