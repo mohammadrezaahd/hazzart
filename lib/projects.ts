@@ -182,19 +182,10 @@ export async function getProjects(filters: { search?: string; status?: AdminProj
   const query: Record<string, unknown> = {};
   const search = filters.search?.trim();
   if (search) {
+    const escaped = search.replace(/[.*+?^$()|[\\]\\\\]/g, "\\\\$&");
     query.$or = [
-      { title: { $regex: search.replace(/[.*+?^$()|[\]\\]/g, "\\export async function getProjects(): Promise<AdminProject[]> {
-  const documents = await (await getDatabase())
-    .collection<ProjectDocument>(COLLECTION)
-    .find({})
-    .sort({ updatedAt: -1, createdAt: -1 })
-    .toArray();"), $options: "i" } },
-      { myRole: { $regex: search.replace(/[.*+?^$()|[\]\\]/g, "\\export async function getProjects(): Promise<AdminProject[]> {
-  const documents = await (await getDatabase())
-    .collection<ProjectDocument>(COLLECTION)
-    .find({})
-    .sort({ updatedAt: -1, createdAt: -1 })
-    .toArray();"), $options: "i" } },
+      { title: { $regex: escaped, $options: "i" } },
+      { myRole: { $regex: escaped, $options: "i" } },
     ];
   }
   if (filters.status) query.status = filters.status;
