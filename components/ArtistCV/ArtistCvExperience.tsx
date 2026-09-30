@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getPublicPortfolio } from '@/components/api/public';
+import { getPublicPortfolio, getPublicPortfolioSnapshot } from '@/components/api/public';
 
 
 
@@ -122,7 +122,7 @@ function CvScrollBar({
 export function ArtistCvExperience() {
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const [hasOverflow, setHasOverflow] = useState(false);
-  const [cvText, setCvText] = useState<string | null>(null);
+  const [cvText, setCvText] = useState<string | null>(() => getPublicPortfolioSnapshot()?.cv ?? null);
 
   useEffect(() => {
     void getPublicPortfolio().then((data) => setCvText(data.cv)).catch(() => setCvText(null));
