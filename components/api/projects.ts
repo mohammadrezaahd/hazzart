@@ -71,7 +71,7 @@ export async function deleteAdminProjectStatus(id: string) {
 }
 
 
-export async function updateAdminProjectStatus(id: string, status: AdminProjectStatus) {
+export async function updateAdminProjectPublicationStatus(id: string, status: AdminProjectStatus) {
   const r = await apiClient.patch<{ project: AdminProject }>("/api/admin/projects/" + id, { status });
   return r.data.project;
 }
