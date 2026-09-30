@@ -188,8 +188,6 @@ export async function getProjects(filters: { search?: string; status?: AdminProj
       { myRole: { $regex: escaped, $options: "i" } },
     ];
   }
-  if (filters.status) query.status = filters.status;
-
   const documents = await (await getDatabase())
     .collection<ProjectDocument>(COLLECTION)
     .find(query)
@@ -203,7 +201,7 @@ export async function getProjects(filters: { search?: string; status?: AdminProj
       status: migrated.status,
       projectStatusId: migrated.projectStatusId,
     };
-  });
+  }).filter((project) => !filters.status || project.status === filters.status);
 }
 
 export async function createProject(body: Record<string, unknown>, imageFiles: File[]) {
