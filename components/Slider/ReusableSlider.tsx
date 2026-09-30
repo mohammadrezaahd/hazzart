@@ -3,6 +3,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   type CSSProperties,
   type ReactNode,
   type RefObject,
@@ -78,6 +79,9 @@ export function ReusableSlider<TItem>({
   allowEdgeWithoutOverflow = false,
 }: ReusableSliderProps<TItem>) {
   const hasLoop = infinite && items.length > 1;
+
+  const edgeMotionRef = useRef<HTMLDivElement | null>(null);
+  const edgeViewportRef = useRef<HTMLDivElement | null>(null);
 
   const {
     scrollerRef,
@@ -191,17 +195,51 @@ export function ReusableSlider<TItem>({
     };
   }, [animateEntrance, items.length, scrollerRef, slides]);
 
+  useEffect(() => {
+    const root = edgeMotionRef.current;
+    const viewport = edgeViewportRef.current;
+    if (!root || !viewport) return;
+
+    const progress = edgeState?.progress ?? 0;
+    const direction = edgeState?.direction ?? null;
+    const shift = direction
+      ? Number.parseFloat(getComputedStyle(root).getPropertyValue("--project-edge-shift")) || 0
+      : 0;
+    const duration = prefersReducedMotion() ? 0 : 0.22;
+    const ease = "power3.out";
+    const ctx = gsap.context(() => {
+      gsap.to(root, {
+        "--edge-progress": progress,
+        duration,
+        ease,
+        overwrite: true,
+      });
+      gsap.to(viewport, {
+        "--edge-space": shift * progress,
+        duration,
+        ease,
+        overwrite: true,
+      });
+    }, root);
+
+    return () => ctx.revert();
+  }, [edgeState]);
+
   return (
     <div
+      ref={edgeMotionRef}
       className={`reusable-slider ${className ?? ""}`}
       data-edge={edgeState?.direction ?? "none"}
       data-loop={hasLoop ? "true" : "false"}
-      style={{ "--edge-progress": edgeState?.progress ?? 0 } as CSSProperties}
+      style={{ "--edge-progress": 0, "--edge-space": 0 } as CSSProperties}
     >
       <div className="reusable-slider__frame">
         <div
           className="reusable-slider__viewport"
-          ref={scrollerRef}
+          ref={(node) => {
+            edgeViewportRef.current = node;
+            scrollerRef.current = node;
+          }}
           aria-label={ariaLabel}
           tabIndex={0}
         >
