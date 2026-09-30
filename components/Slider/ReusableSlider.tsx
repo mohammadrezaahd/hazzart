@@ -82,6 +82,8 @@ export function ReusableSlider<TItem>({
 
   const edgeMotionRef = useRef<HTMLDivElement | null>(null);
   const edgeViewportRef = useRef<HTMLDivElement | null>(null);
+  const edgeProgressToRef = useRef<((value: number) => void) | null>(null);
+  const edgeSpaceToRef = useRef<((value: string) => void) | null>(null);
 
   const {
     scrollerRef,
@@ -201,14 +203,26 @@ export function ReusableSlider<TItem>({
     if (!root || !viewport) return;
 
     const duration = prefersReducedMotion() ? 0 : 0.09;
-    const progressTo = gsap.quickTo(root, "--edge-progress", {
+    edgeProgressToRef.current = gsap.quickTo(root, "--edge-progress", {
       duration,
       ease: "power3.out",
     });
-    const spaceTo = gsap.quickTo(viewport, "--edge-space", {
+    edgeSpaceToRef.current = gsap.quickTo(viewport, "--edge-space", {
       duration,
       ease: "power3.out",
     });
+
+    return () => {
+      edgeProgressToRef.current = null;
+      edgeSpaceToRef.current = null;
+      gsap.killTweensOf(root);
+      gsap.killTweensOf(viewport);
+    };
+  }, []);
+
+  useEffect(() => {
+    const root = edgeMotionRef.current;
+    if (!root) return;
 
     const progress = edgeState?.progress ?? 0;
     const direction = edgeState?.direction ?? null;
@@ -218,13 +232,8 @@ export function ReusableSlider<TItem>({
         ) || 0
       : 0;
 
-    progressTo(progress);
-    spaceTo(`${shift * progress}px`);
-
-    return () => {
-      gsap.killTweensOf(root);
-      gsap.killTweensOf(viewport);
-    };
+    edgeProgressToRef.current?.(progress);
+    edgeSpaceToRef.current?.(`${shift * progress}px`);
   }, [edgeState]);
 
   return (
