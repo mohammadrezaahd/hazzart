@@ -44,7 +44,18 @@ export function ProjectsExperience() {
     <main className={'projects-experience' + (boundaryDirection ? ' projects-experience--boundary-' + boundaryDirection : '')} id="main-content" ref={wheelRoot}>
       <div key={project.id} className="projects-scene">
         <ProjectDetail project={project} />
-        <ReusableSlider items={images} ariaLabel={project.name + ' images'} className={"projects-slider" + (projectIndex === 0 ? " projects-slider--no-previous" : "") + (projectIndex === projects.length - 1 ? " projects-slider--no-next" : "")} infinite={false} wheelRoot={wheelRoot} animateEntrance={false} allowEdgeWithoutOverflow emptyMessage="No images added yet." pagination={{ enabled: true, ariaLabel: project.name + ' images', getLabel: (image, index) => image.caption ?? ('Image ' + (index + 1)) }} edgeOverflow={{ enabled: !boundaryDirection, chargeWheelDistance: 560, releaseDelay: 1400, onCommit: handleEdgeCommit }} getItemId={image => image.src} getSlideAspectRatio={getProjectImageRatio} getSlideA11yLabel={(image, index) => image.caption ?? ('Image ' + (index + 1))} renderSlide={(image, index) => (<span className="projects-piece"><span className="projects-piece__image"><Image src={image.src} alt={image.alt} fill sizes="(max-width: 899px) 62vw, 36vw" priority={index < 2} draggable={false} /></span></span>)} />
+        <ReusableSlider items={images} ariaLabel={project.name + ' images'} className={"projects-slider" + (projectIndex === 0 ? " projects-slider--no-previous" : "") + (projectIndex === projects.length - 1 ? " projects-slider--no-next" : "")} infinite={false} wheelRoot={wheelRoot} animateEntrance={false} allowEdgeWithoutOverflow emptyMessage="No images added yet." pagination={{ enabled: true, ariaLabel: project.name + ' images', getLabel: (image, index) => image.caption ?? ('Image ' + (index + 1)) }} edgeOverflow={{ enabled: !boundaryDirection, chargeWheelDistance: 560, releaseDelay: 1400, onCommit: handleEdgeCommit }} getItemId={image => image.src} getSlideAspectRatio={getProjectImageRatio} getSlideA11yLabel={(image, index) => image.caption ?? ('Image ' + (index + 1))} renderSlide={(image, index) => (<span className="projects-piece">
+          <span className="projects-piece__image">
+            <Image
+              src={image.src}
+              alt={image.alt}
+              width={image.width}
+              height={image.height}
+              priority={index < 2}
+              draggable={false}
+            />
+          </span>
+        </span>)} />
       </div>
       {boundaryDirection && <p className={'projects-boundary-message projects-boundary-message--' + boundaryDirection} role="status" aria-live="polite">{boundaryDirection === 'previous' ? 'No previous project' : 'No next project'}</p>}
     </main>
