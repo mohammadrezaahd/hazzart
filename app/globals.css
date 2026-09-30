@@ -567,7 +567,7 @@ dialog {
   pointer-events: none;
 }
 .artwork-slider__image img {
-  object-fit: contain;
+  object-fit: fill;
   object-position: center;
   transition:
     opacity 0.55s var(--motion-ease),
@@ -878,7 +878,7 @@ dialog {
   overflow: hidden;
 }
 .projects-piece__image img {
-  object-fit: contain;
+  object-fit: fill;
   object-position: center;
 }
 .projects-slider .paintings-empty {
