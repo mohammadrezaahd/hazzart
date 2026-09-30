@@ -1,23 +1,63 @@
 import { randomUUID } from "node:crypto";
 import { del, put } from "@vercel/blob";
 import { getDatabase } from "@/lib/mongodb";
+import { getProjectStatuses } from "@/lib/project-statuses";
 import type { AdminProject, AdminProjectImage, AdminProjectStatus } from "@/interfaces/Project";
 
 const COLLECTION = "admin_projects";
 const MAX_IMAGE_SIZE = 4 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+type ProjectDocument = AdminProject & { statusId?: string };
 
 function validateStatus(value: unknown): AdminProjectStatus {
   if (value !== "draft" && value !== "published" && value !== "archived") {
-    throw new Error("Invalid project status.");
+    throw new Error("Invalid publication status.");
   }
   return value;
 }
 
-function migrateStatus(value: unknown): AdminProjectStatus {
-  if (value === "published" || value === "archived" || value === "draft") return value;
-  if (value === "done") return "published";
-  return "draft";
+async function validateProjectStatusId(value: unknown, fallback = "done") {
+  const candidate = typeof value === "string" && value.trim() ? value.trim() : fallback;
+  const statuses = await getProjectStatuses();
+  if (!statuses.some((status) => status.id === candidate)) {
+    throw new Error("Invalid project workflow status.");
+  }
+  return candidate;
+}
+
+function migrateLegacyStatuses(project: ProjectDocument) {
+  const rawStatus = project.status as unknown;
+
+  if (project.projectStatusId) {
+    return {
+      status: validateStatus(rawStatus),
+      projectStatusId: project.projectStatusId,
+    };
+  }
+
+  if (project.statusId) {
+    return {
+      status: isPublicationStatus(rawStatus) ? validateStatus(rawStatus) : "published",
+      projectStatusId: project.statusId,
+    };
+  }
+
+  if (rawStatus === "done" || rawStatus === "in-progress") {
+    return { status: "published" as const, projectStatusId: rawStatus };
+  }
+
+  if (typeof rawStatus === "string" && !isPublicationStatus(rawStatus)) {
+    return { status: "published" as const, projectStatusId: rawStatus };
+  }
+
+  return {
+    status: validateStatus(rawStatus),
+    projectStatusId: "done",
+  };
+}
+
+function isPublicationStatus(value: unknown): value is AdminProjectStatus {
+  return value === "draft" || value === "published" || value === "archived";
 }
 
 function text(value: unknown, label: string, required = false) {
@@ -68,12 +108,8 @@ function getSafeFileName(fileName: string) {
 }
 
 async function uploadImage(file: File): Promise<AdminProjectImage> {
-  if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
-    throw new Error("Only JPG, PNG and WebP images are accepted.");
-  }
-  if (file.size <= 0 || file.size > MAX_IMAGE_SIZE) {
-    throw new Error("Each project image must be smaller than 4 MB.");
-  }
+  if (!ALLOWED_IMAGE_TYPES.has(file.type)) throw new Error("Only JPG, PNG and WebP images are accepted.");
+  if (file.size <= 0 || file.size > MAX_IMAGE_SIZE) throw new Error("Each project image must be smaller than 4 MB.");
 
   const pathname = `projects/${randomUUID()}-${getSafeFileName(file.name)}`;
   const blob = await put(pathname, file, {
@@ -99,14 +135,20 @@ async function deleteImage(fileId: string) {
 
 async function normalize(
   body: Record<string, unknown>,
-  current?: AdminProject,
+  current?: ProjectDocument,
   images?: AdminProjectImage[],
 ): Promise<AdminProject> {
   const title = text(body.title, "Title", true);
   const myRole = text(body.myRole, "My Role", true);
   const started = date(body.started, "Started", true);
-  const status = validateStatus(body.status);
   const ended = date(body.ended, "Ended", false) || null;
+  const status = validateStatus(body.status);
+
+  const legacy = current ? migrateLegacyStatuses(current) : null;
+  const projectStatusId = await validateProjectStatusId(
+    body.projectStatusId,
+    legacy?.projectStatusId ?? "done",
+  );
 
   const medium = Array.isArray(body.medium)
     ? body.medium.filter((x): x is string => typeof x === "string" && !!x.trim()).map((x) => x.trim())
@@ -127,6 +169,7 @@ async function normalize(
     ended,
     medium,
     status,
+    projectStatusId,
     images: projectImages,
     links: normalizeLinks(body.links),
     dynamicFields: normalizeFields(body.dynamicFields ?? {}),
@@ -137,24 +180,22 @@ async function normalize(
 
 export async function getProjects(): Promise<AdminProject[]> {
   const documents = await (await getDatabase())
-    .collection<AdminProject>(COLLECTION)
+    .collection<ProjectDocument>(COLLECTION)
     .find({})
     .sort({ updatedAt: -1, createdAt: -1 })
     .toArray();
 
-  return documents.map((project) => ({
-    ...project,
-    status: migrateStatus(
-      (project as AdminProject & { status?: unknown }).status ??
-        (project as AdminProject & { statusId?: unknown }).statusId,
-    ),
-  }));
+  return documents.map((project) => {
+    const migrated = migrateLegacyStatuses(project);
+    return {
+      ...project,
+      status: migrated.status,
+      projectStatusId: migrated.projectStatusId,
+    };
+  });
 }
 
-export async function createProject(
-  body: Record<string, unknown>,
-  imageFiles: File[],
-) {
+export async function createProject(body: Record<string, unknown>, imageFiles: File[]) {
   const uploaded = await Promise.all(imageFiles.map(uploadImage));
 
   try {
@@ -167,13 +208,9 @@ export async function createProject(
   }
 }
 
-export async function updateProject(
-  id: string,
-  body: Record<string, unknown>,
-  imageFiles: File[],
-) {
+export async function updateProject(id: string, body: Record<string, unknown>, imageFiles: File[]) {
   const db = await getDatabase();
-  const current = await db.collection<AdminProject>(COLLECTION).findOne({ id });
+  const current = await db.collection<ProjectDocument>(COLLECTION).findOne({ id });
 
   if (!current) throw new Error("Project was not found.");
 
@@ -192,7 +229,7 @@ export async function updateProject(
 
 export async function deleteProject(id: string) {
   const db = await getDatabase();
-  const current = await db.collection<AdminProject>(COLLECTION).findOne({ id });
+  const current = await db.collection<ProjectDocument>(COLLECTION).findOne({ id });
 
   if (!current) throw new Error("Project was not found.");
 
