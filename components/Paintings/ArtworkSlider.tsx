@@ -11,6 +11,13 @@ interface ArtworkSliderProps {
 }
 
 function getDisplayedRatio(artwork: Artwork) {
+  const { width, height } = artwork.image;
+  const isQuarterTurn = Math.abs(artwork.image.rotate ?? 0) % 180 === 90;
+
+  if (width > 0 && height > 0) {
+    return isQuarterTurn ? height / width : width / height;
+  }
+
   return artwork.table.aspectRatio;
 }
 
