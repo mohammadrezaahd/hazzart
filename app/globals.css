@@ -3786,7 +3786,7 @@ body:has(.admin-shell) > .site-header {
 .admin-project-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:25px}
 .admin-project-heading h2{margin:6px 0 0;font-size:24px;font-weight:500}
 .admin-project-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
-.admin-project-grid .admin-field:nth-child(5){grid-column:1/-1}
+.admin-project-grid .admin-field:nth-child(5),.admin-project-grid .admin-field:nth-child(6){grid-column:auto}
 .admin-project-section{margin-top:34px}
 .admin-project-add{color:#1117;font-size:9px;border:1px solid #1112;border-radius:6px;padding:7px 10px}
 .admin-project-add:hover{color:#111;border-color:#1115}
@@ -4159,6 +4159,11 @@ body:has(.admin-shell) > .site-header {
 .admin-status-dot--archived {
   background: #b06a3c;
   box-shadow: 0 0 0 3px #b06a3c1;
+}
+
+.admin-status-dot--project {
+  background: #555;
+  box-shadow: 0 0 0 3px #5551;
 }
 
 .contact-social-svg {
