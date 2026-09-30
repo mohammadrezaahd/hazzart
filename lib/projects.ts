@@ -178,10 +178,30 @@ async function normalize(
   };
 }
 
-export async function getProjects(): Promise<AdminProject[]> {
+export async function getProjects(filters: { search?: string; status?: AdminProjectStatus } = {}): Promise<AdminProject[]> {
+  const query: Record<string, unknown> = {};
+  const search = filters.search?.trim();
+  if (search) {
+    query.$or = [
+      { title: { $regex: search.replace(/[.*+?^$()|[\]\\]/g, "\\export async function getProjects(): Promise<AdminProject[]> {
   const documents = await (await getDatabase())
     .collection<ProjectDocument>(COLLECTION)
     .find({})
+    .sort({ updatedAt: -1, createdAt: -1 })
+    .toArray();"), $options: "i" } },
+      { myRole: { $regex: search.replace(/[.*+?^$()|[\]\\]/g, "\\export async function getProjects(): Promise<AdminProject[]> {
+  const documents = await (await getDatabase())
+    .collection<ProjectDocument>(COLLECTION)
+    .find({})
+    .sort({ updatedAt: -1, createdAt: -1 })
+    .toArray();"), $options: "i" } },
+    ];
+  }
+  if (filters.status) query.status = filters.status;
+
+  const documents = await (await getDatabase())
+    .collection<ProjectDocument>(COLLECTION)
+    .find(query)
     .sort({ updatedAt: -1, createdAt: -1 })
     .toArray();
 
@@ -208,18 +228,27 @@ export async function createProject(body: Record<string, unknown>, imageFiles: F
   }
 }
 
-export async function updateProject(id: string, body: Record<string, unknown>, imageFiles: File[]) {
+export async function updateProject(id: string, body: Record<string, unknown>, imageFiles: File[], removeImageIds: string[] = []) {
   const db = await getDatabase();
   const current = await db.collection<ProjectDocument>(COLLECTION).findOne({ id });
 
   if (!current) throw new Error("Project was not found.");
 
   const uploaded = await Promise.all(imageFiles.map(uploadImage));
-  const nextImages = [...(current.images ?? []), ...uploaded];
+  const removeSet = new Set(removeImageIds);
+  const nextImages = [
+    ...(current.images ?? []).filter((image) => !removeSet.has(image.id) && !removeSet.has(image.fileId)),
+    ...uploaded,
+  ];
 
   try {
     const project = await normalize(body, current, nextImages);
     await db.collection<AdminProject>(COLLECTION).replaceOne({ id }, project);
+    await Promise.all(
+      (current.images ?? [])
+        .filter((image) => removeSet.has(image.id) || removeSet.has(image.fileId))
+        .map((image) => deleteImage(image.fileId)),
+    );
     return project;
   } catch (error) {
     await Promise.all(uploaded.map((image) => deleteImage(image.fileId)));
@@ -235,4 +264,28 @@ export async function deleteProject(id: string) {
 
   await db.collection<AdminProject>(COLLECTION).deleteOne({ id });
   await Promise.all((current.images ?? []).map((image) => deleteImage(image.fileId)));
+}
+
+
+export async function updateProjectPublicationStatus(
+  id: string,
+  status: AdminProjectStatus,
+) {
+  const db = await getDatabase();
+  const current = await db.collection<ProjectDocument>(COLLECTION).findOne({ id });
+  if (!current) throw new Error("Project was not found.");
+
+  const migrated = migrateLegacyStatuses(current);
+  const updatedAt = new Date().toISOString();
+  await db.collection<ProjectDocument>(COLLECTION).updateOne(
+    { id },
+    { $set: { status, projectStatusId: migrated.projectStatusId, updatedAt } },
+  );
+
+  return {
+    ...current,
+    status,
+    projectStatusId: migrated.projectStatusId,
+    updatedAt,
+  } as AdminProject;
 }
