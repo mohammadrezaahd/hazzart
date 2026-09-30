@@ -214,7 +214,7 @@ export function ReusableSlider<TItem>({
       overwrite: true,
     });
     gsap.to(viewport, {
-      "--edge-space": shift * progress,
+      "--edge-space": `${shift * progress}px`,
       duration,
       ease,
       overwrite: true,
@@ -232,7 +232,7 @@ export function ReusableSlider<TItem>({
       className={`reusable-slider ${className ?? ""}`}
       data-edge={edgeState?.direction ?? "none"}
       data-loop={hasLoop ? "true" : "false"}
-      style={{ "--edge-progress": 0, "--edge-space": 0 } as CSSProperties}
+      style={{ "--edge-progress": 0, "--edge-space": "0px" } as CSSProperties}
     >
       <div className="reusable-slider__frame">
         <div
