@@ -361,6 +361,7 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
     let pointerActive = false;
     let isTouchGesture = false;
     let lastTouchX = 0;
+    let touchEdgeCharging = false;
 
     const onWheel = (event: WheelEvent) => {
       if (event.ctrlKey || event.metaKey) return;
@@ -405,7 +406,11 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
       pointerActive = true; stopFrame(); dropCharge(); modeRef.current = 'drag';
       const now = performance.now(); sampleRef.current = { value: element.scrollLeft, time: now, velocity: 0 }; valueRef.current = element.scrollLeft; targetRef.current = element.scrollLeft;
     };
-    const onTouchStart = (e: TouchEvent) => { if (e.touches.length === 1) lastTouchX = e.touches[0].clientX; };
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return;
+      lastTouchX = e.touches[0].clientX;
+      touchEdgeCharging = false;
+    };
     const onTouchMove = (e: TouchEvent) => {
       if (!canCharge || hasLoop || e.touches.length !== 1) return;
       const deltaX = e.touches[0].clientX - lastTouchX; lastTouchX = e.touches[0].clientX;
@@ -415,15 +420,24 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
       if (noOverflow && !allowEdgeWithoutOverflow) return;
       const direction: SliderDirection = deltaX < 0 ? 'next' : 'previous';
       const limit = direction === 'next' ? maximum : 0;
-      if (noOverflow || Math.abs(limit - element.scrollLeft) <= EDGE_EPSILON) {
+      const alreadyCharging = touchEdgeCharging && chargeRef.current.direction === direction;
+      if (alreadyCharging || noOverflow || Math.abs(limit - element.scrollLeft) <= EDGE_EPSILON) {
         e.preventDefault();
-        chargeEdge(direction, Math.abs(deltaX) * 4);
+        touchEdgeCharging = true;
+        // Touch uses the real finger distance. This makes the ring visibly
+        // track the gesture instead of reaching 100% after a short swipe.
+        chargeEdge(direction, Math.abs(deltaX));
       }
     };
     const onPointerUp = () => {
       if (!pointerActive) return;
       pointerActive = false;
-      if (isTouchGesture) { modeRef.current = 'idle'; return; }
+      if (isTouchGesture) {
+        modeRef.current = 'idle';
+        touchEdgeCharging = false;
+        if (chargeRef.current.progress < 1) resetCharge();
+        return;
+      }
       const velocity = sampleRef.current.velocity; const maximum = maxRef.current;
       if (prefersReducedMotion() || (!hasLoop && maximum <= 0)) { modeRef.current = 'idle'; applyImmediate(clamp(element.scrollLeft, 0, Math.max(maximum, 0))); return; }
       const projected = projectMomentum(element.scrollLeft, velocity, maximum, FLING_FACTOR);
