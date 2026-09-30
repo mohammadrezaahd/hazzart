@@ -11,9 +11,6 @@ export function countProjectImages(project: Project): number {
 
 /** The slide width is always derived from the actual media dimensions. */
 export function getProjectImageRatio(image: ProjectMedia): number {
-  if (image.width > 0 && image.height > 0) {
-    return image.width / image.height;
-  }
-
-  return image.aspectRatio > 0 ? image.aspectRatio : 1;
+  if (image.aspectRatio > 0) return image.aspectRatio;
+  return image.width / Math.max(image.height, 1);
 }
