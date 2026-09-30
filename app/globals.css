@@ -557,7 +557,7 @@ dialog {
 }
 .artwork-slider__slide {
   cursor: pointer;
-  background: #eeeeec;
+  background: transparent;
 }
 .artwork-slider__image {
   position: absolute;
@@ -857,7 +857,8 @@ dialog {
   min-width: 0;
   max-width: none;
   padding: 0;
-  background: #eeeeec;
+  margin: 0;
+  background: transparent;
 }
 /* Neither grid item may grow past its column. */
 .projects-slider > * {
