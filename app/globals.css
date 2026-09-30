@@ -539,9 +539,10 @@ dialog {
   position: relative;
   flex: 0 0 auto;
   height: 100%;
-  width: max-content;
+  width: auto;
   min-width: 0;
   max-width: none;
+  aspect-ratio: var(--slide-ratio, 1);
   margin: 0;
   overflow: hidden;
 }
@@ -559,19 +560,13 @@ dialog {
   background: transparent;
 }
 .artwork-slider__image {
-  position: relative;
+  position: absolute;
+  inset: 0;
   display: block;
-  width: max-content;
-  height: 100%;
   overflow: hidden;
   pointer-events: none;
 }
 .artwork-slider__image img {
-  position: relative !important;
-  display: block;
-  width: auto !important;
-  height: 100% !important;
-  max-width: none;
   object-fit: contain;
   object-position: center;
   transition:
@@ -581,8 +576,6 @@ dialog {
 }
 
 .artwork-slider__image-hover {
-  position: absolute !important;
-  inset: 0 auto auto 0;
   opacity: 0;
 }
 
@@ -875,22 +868,16 @@ dialog {
 .projects-piece {
   position: relative;
   display: block;
-  width: max-content;
+  width: 100%;
   height: 100%;
 }
 .projects-piece__image {
-  position: relative;
+  position: absolute;
+  inset: 0;
   display: block;
-  width: max-content;
-  height: 100%;
   overflow: hidden;
 }
 .projects-piece__image img {
-  position: relative !important;
-  display: block;
-  width: auto !important;
-  height: 100% !important;
-  max-width: none;
   object-fit: contain;
   object-position: center;
 }
