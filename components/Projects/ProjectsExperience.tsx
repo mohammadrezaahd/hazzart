@@ -13,7 +13,21 @@ export function ProjectsExperience() {
   const [boundaryDirection, setBoundaryDirection] = useState<'previous' | 'next' | null>(null);
   const wheelRoot = useRef<HTMLElement | null>(null);
 
-  useEffect(() => { void getPublicPortfolio().then(setData).catch(() => setData(null)); }, []);
+  useEffect(() => {
+    let active = true;
+    void getPublicPortfolio()
+      .then((next) => {
+        if (!active) return;
+        setData(next);
+        setProjectIndex(0);
+      })
+      .catch(() => {
+        if (active) setData(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const projects = data?.projects ?? [];
   const project = projects[projectIndex] ?? projects[0];
