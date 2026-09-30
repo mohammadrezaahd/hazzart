@@ -60,6 +60,8 @@ export interface Project {
   discipline: string;
   client: string;
   myRole: string[];
+  /** Internal project workflow status exposed on the public project page. */
+  projectStatusId?: string;
   /** Every image of the project, in the order the strip shows them. */
   images: ProjectMedia[];
   links: ProjectLink[];
