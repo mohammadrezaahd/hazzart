@@ -4166,3 +4166,10 @@ body:has(.admin-shell) > .site-header {
 @media (max-width: 900px) {
   .admin-painting-filters { grid-template-columns: 1fr 1fr; }
 }
+
+
+@media (hover: none) and (pointer: coarse) {
+  .artwork-card:focus {
+    outline: none;
+  }
+}
