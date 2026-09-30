@@ -829,19 +829,15 @@ dialog {
 }
 /* The strip glides aside while an edge is charged, opening the space for the arrow. */
 .projects-slider .reusable-slider__viewport {
+  --edge-space: 0px;
+  width: calc(100% - var(--edge-space));
   will-change: width, margin-left, margin-right;
-  transition:
-    width 0.18s cubic-bezier(0.22, 1, 0.36, 1),
-    margin-left 0.18s cubic-bezier(0.22, 1, 0.36, 1),
-    margin-right 0.18s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .projects-slider[data-edge="previous"] .reusable-slider__viewport {
-  width: calc(100% - var(--edge-progress) * var(--project-edge-shift));
-  margin-left: calc(var(--edge-progress) * var(--project-edge-shift));
+  margin-left: var(--edge-space);
 }
 .projects-slider[data-edge="next"] .reusable-slider__viewport {
-  width: calc(100% - var(--edge-progress) * var(--project-edge-shift));
-  margin-right: calc(var(--edge-progress) * var(--project-edge-shift));
+  margin-right: var(--edge-space);
 }
 /* Images are flush: each slide is exactly one image ratio wide, with no gap between. */
 .projects-slider .reusable-slider__slide {
