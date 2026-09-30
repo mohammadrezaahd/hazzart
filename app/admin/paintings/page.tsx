@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { AdminCategory } from "@/interfaces/Category";
 import type { AdminPainting, AdminPaintingStatus } from "@/interfaces/Painting";
 import { getAdminCategories } from "@/components/api/categories";
-import { createAdminPainting, deleteAdminPainting, getAdminPaintings, updateAdminPainting } from "@/components/api/paintings";
+import { createAdminPainting, deleteAdminPainting, getAdminPaintings, updateAdminPainting, updateAdminPaintingStatus } from "@/components/api/paintings";
 import { getApiErrorMessage } from "@/components/api/client";
 import { useAdminStorage } from "@/components/hooks/useAdminStorage";
 import { setAdminPaintingImageStar } from "@/components/api/paintings";
@@ -97,7 +97,7 @@ export default function AdminPaintingsPage() {
   const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [filters, setFilters] = useState({ search: "", categoryId: "", from: "", to: "" });
+  const [filters, setFilters] = useState({ search: "", categoryId: "", from: "", to: "", status: "" as "" | AdminPaintingStatus });
   const [form, setForm] = useState<PaintingFormState>(emptyForm);
   const [editing, setEditing] = useState<AdminPainting | null>(null);
   const [activeTab, setActiveTab] = useState<"add" | "collection">("add");
@@ -115,6 +115,7 @@ export default function AdminPaintingsPage() {
           categoryId: nextFilters.categoryId || undefined,
           from: nextFilters.from || undefined,
           to: nextFilters.to || undefined,
+          status: nextFilters.status || undefined,
         }),
         categories.length ? Promise.resolve(categories) : getAdminCategories(),
       ]);
@@ -130,7 +131,7 @@ export default function AdminPaintingsPage() {
   useEffect(() => {
     const timer = window.setTimeout(() => { void loadData(filters); }, 300);
     return () => window.clearTimeout(timer);
-  }, [filters.search, filters.categoryId, filters.from, filters.to]);
+  }, [filters.search, filters.categoryId, filters.from, filters.to, filters.status]);
   useEffect(() => {
     if (!toast) return;
     const timer = window.setTimeout(() => setToast(null), 3500);
@@ -220,6 +221,19 @@ export default function AdminPaintingsPage() {
       if (editing?.id === updated.id) setEditing(updated);
     } catch (error) {
       setToast({ type: "error", text: getApiErrorMessage(error, "Could not update star.") });
+    }
+  }
+
+  async function quickStatus(painting: AdminPainting, status: AdminPaintingStatus) {
+    setSaving(true);
+    try {
+      const updated = await updateAdminPaintingStatus(painting.id, status);
+      setPaintings((items) => items.map((item) => item.id === updated.id ? updated : item));
+      setToast({ type: "success", text: "Publication status updated." });
+    } catch (error) {
+      setToast({ type: "error", text: getApiErrorMessage(error, "Could not update publication status.") });
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -314,6 +328,7 @@ export default function AdminPaintingsPage() {
               <label><span>CATEGORY</span><select value={filters.categoryId} onChange={(event) => setFilters({ ...filters, categoryId: event.target.value })}><option value="">All categories</option>{categories.map((category) => <option value={category.id} key={category.id}>{category.parentId ? "↳ " : ""}{category.name}</option>)}</select></label>
               <label><span>FROM</span><input value={filters.from} maxLength={10} onChange={(event) => setFilters({ ...filters, from: formatDateInput(event.target.value) })} placeholder="YYYY/MM/DD" inputMode="numeric" /></label>
               <label><span>TO</span><input value={filters.to} maxLength={10} onChange={(event) => setFilters({ ...filters, to: formatDateInput(event.target.value) })} placeholder="YYYY/MM/DD" inputMode="numeric" /></label>
+              <label><span>STATUS</span><select value={filters.status} onChange={(event) => setFilters({ ...filters, status: event.target.value as "" | AdminPaintingStatus })}><option value="">All statuses</option><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></label>
             </div>
 
             {loading ? <div className="admin-painting-skeleton"><span /><span /><span /></div> : !paintings.length ? <div className="admin-category-empty">No paintings match the current filters.</div> : (
@@ -325,7 +340,7 @@ export default function AdminPaintingsPage() {
                       <div className="admin-painting-card-top"><div><h3>{painting.name}</h3><span>{painting.completedDate} · {painting.status}</span></div><span>{painting.categoryIds.length} cat.</span></div>
                       {painting.description && <p>{painting.description}</p>}
                       <div className="admin-painting-tags">{painting.categoryIds.map((id) => <span key={id}>{categoryMap.get(id) ?? "Unknown"}</span>)}</div>
-                      <div className="admin-painting-card-actions"><button type="button" onClick={() => startEdit(painting)}>Edit</button><button type="button" onClick={() => void removePainting(painting.id)} disabled={saving}>Delete</button></div>
+                      <div className="admin-painting-card-actions"><button type="button" onClick={() => startEdit(painting)}>Edit</button><button type="button" onClick={() => void quickStatus(painting, painting.status === "published" ? "archived" : "published")} disabled={saving}>{painting.status === "published" ? "Archive" : "Publish"}</button><button type="button" onClick={() => void removePainting(painting.id)} disabled={saving}>Delete</button></div>
                     </div>
                   </article>
                 ))}
