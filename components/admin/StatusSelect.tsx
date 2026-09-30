@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-type Status = "draft" | "published" | "archived";
+export type Status = "draft" | "published" | "archived";
 
 const labels: Record<Status, string> = {
   draft: "Draft",
@@ -13,9 +13,11 @@ const labels: Record<Status, string> = {
 export default function StatusSelect({
   value,
   onChange,
+  label = "Status",
 }: {
   value: Status;
   onChange: (value: Status) => void;
+  label?: string;
 }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -35,6 +37,7 @@ export default function StatusSelect({
         className="admin-status-select__trigger"
         aria-haspopup="listbox"
         aria-expanded={open}
+        aria-label={label}
         onClick={() => setOpen((current) => !current)}
       >
         <span className={"admin-status-dot admin-status-dot--" + value} />
@@ -43,7 +46,7 @@ export default function StatusSelect({
       </button>
 
       {open && (
-        <div className="admin-status-select__menu" role="listbox" aria-label="Project status">
+        <div className="admin-status-select__menu" role="listbox" aria-label={label}>
           {(Object.keys(labels) as Status[]).map((status) => (
             <button
               key={status}
