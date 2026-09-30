@@ -188,6 +188,8 @@ export async function getProjects(filters: { search?: string; status?: AdminProj
       { myRole: { $regex: escaped, $options: "i" } },
     ];
   }
+  const statuses = await getProjectStatuses();
+  const statusNames = new Map(statuses.map((status) => [status.id, status.name]));
   const documents = await (await getDatabase())
     .collection<ProjectDocument>(COLLECTION)
     .find(query)
@@ -200,6 +202,7 @@ export async function getProjects(filters: { search?: string; status?: AdminProj
       ...project,
       status: migrated.status,
       projectStatusId: migrated.projectStatusId,
+      projectStatusName: statusNames.get(migrated.projectStatusId) ?? migrated.projectStatusId,
     };
   }).filter((project) => !filters.status || project.status === filters.status);
 }
