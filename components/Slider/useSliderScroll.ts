@@ -28,6 +28,7 @@ export interface SliderEdgeChargeConfig {
   releaseDelay?: number;
   onCommit?: (payload: { direction: SliderDirection; progress: number }) => void;
   allowWithoutOverflow?: boolean;
+  touchDistance?: number;
 }
 
 export interface SliderScrollOptions {
@@ -338,9 +339,9 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
     }, delay);
   }, [releaseCharge, resetCharge]);
 
-  const chargeEdge = useCallback((direction: SliderDirection, magnitude: number) => {
+  const chargeEdge = useCallback((direction: SliderDirection, magnitude: number, distanceOverride?: number) => {
     clearTimers();
-    const distance = Math.max(80, configRef.current.edgeCharge?.distance ?? 960);
+    const distance = Math.max(80, distanceOverride ?? configRef.current.edgeCharge?.distance ?? 960);
     const sameDirection = chargeRef.current.direction === direction;
     const progress = clamp((sameDirection ? chargeRef.current.progress : 0) + magnitude / distance, 0, 1);
     const armed = !sameDirection || chargeRef.current.progress <= 0;
@@ -426,7 +427,7 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
         touchEdgeCharging = true;
         // Touch uses the real finger distance. This makes the ring visibly
         // track the gesture instead of reaching 100% after a short swipe.
-        chargeEdge(direction, Math.abs(deltaX));
+        chargeEdge(direction, Math.abs(deltaX), configRef.current.edgeCharge?.touchDistance ?? 180);
       }
     };
     const onPointerUp = () => {
