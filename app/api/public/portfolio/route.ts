@@ -1,7 +1,7 @@
-import { getCachedPublicPortfolio, PUBLIC_PORTFOLIO_REVALIDATE_SECONDS } from "@/lib/public-cache";
+import { getCachedPublicPortfolio } from "@/lib/public-cache";
 
 export const runtime = "nodejs";
-export const revalidate = PUBLIC_PORTFOLIO_REVALIDATE_SECONDS;
+export const revalidate = 300;
 
 export async function GET() {
   try {
