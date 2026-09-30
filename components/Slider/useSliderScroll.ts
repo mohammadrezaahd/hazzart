@@ -314,13 +314,13 @@ export function useSliderScroll({ itemCount, infinite = false, edgeCharge, wheel
   const releaseCharge = useCallback((direction: SliderDirection) => {
     clearTimers();
     const progress = chargeRef.current.progress;
-    configRef.current.edgeCharge?.onCommit?.({ direction, progress });
-    // The edge UI should disappear immediately after commit. The next project
-    // is mounted by the consumer, so keeping the old pop timer here only adds
-    // a visible pause at the boundary.
+    // Render the completed ring first; only then switch the project.
     setEdgeState({ direction, progress: 1, armed: false, popping: true });
     popTimerRef.current = window.setTimeout(() => {
       popTimerRef.current = null;
+      configRef.current.edgeCharge?.onCommit?.({ direction, progress });
+    }, prefersReducedMotion() ? 0 : 120);
+    window.setTimeout(() => {
       chargeRef.current = { direction: null, progress: 0 };
       setEdgeState(null);
     }, POP_DURATION);
