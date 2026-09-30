@@ -506,7 +506,6 @@ dialog {
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  /* Edge progress is driven by GSAP. */
 }
 .reusable-slider__frame {
   position: relative;
@@ -829,15 +828,15 @@ dialog {
 }
 /* The strip glides aside while an edge is charged, opening the space for the arrow. */
 .projects-slider .reusable-slider__viewport {
-  --edge-space: 0px;
-  width: calc(100% - var(--edge-space));
+  --edge-space: 0;
+  width: calc(100% - (var(--edge-space) * 1px));
   will-change: width, margin-left, margin-right;
 }
 .projects-slider[data-edge="previous"] .reusable-slider__viewport {
-  margin-left: var(--edge-space);
+  margin-left: calc(var(--edge-space) * 1px);
 }
 .projects-slider[data-edge="next"] .reusable-slider__viewport {
-  margin-right: var(--edge-space);
+  margin-right: calc(var(--edge-space) * 1px);
 }
 /* Images are flush: each slide is exactly one image ratio wide, with no gap between. */
 .projects-slider .reusable-slider__slide {
