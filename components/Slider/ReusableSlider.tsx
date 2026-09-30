@@ -83,7 +83,7 @@ export function ReusableSlider<TItem>({
   const edgeMotionRef = useRef<HTMLDivElement | null>(null);
   const edgeViewportRef = useRef<HTMLDivElement | null>(null);
   const edgeProgressToRef = useRef<((value: number) => void) | null>(null);
-  const edgeSpaceToRef = useRef<((value: string) => void) | null>(null);
+  const edgeSpaceToRef = useRef<((value: number) => void) | null>(null);
 
   const {
     scrollerRef,
@@ -233,7 +233,7 @@ export function ReusableSlider<TItem>({
       : 0;
 
     edgeProgressToRef.current?.(progress);
-    edgeSpaceToRef.current?.(`${shift * progress}px`);
+    edgeSpaceToRef.current?.(shift * progress);
   }, [edgeState]);
 
   return (
@@ -242,7 +242,7 @@ export function ReusableSlider<TItem>({
       className={`reusable-slider ${className ?? ""}`}
       data-edge={edgeState?.direction ?? "none"}
       data-loop={hasLoop ? "true" : "false"}
-      style={{ "--edge-progress": 0, "--edge-space": "0px" } as CSSProperties}
+      style={{ "--edge-progress": 0, "--edge-space": 0 } as CSSProperties}
     >
       <div className="reusable-slider__frame">
         <div
