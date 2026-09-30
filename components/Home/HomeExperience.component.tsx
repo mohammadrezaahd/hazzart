@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { getPublicPortfolio, type PublicPortfolioResponse } from '@/components/api/public';
+import { getPublicPortfolio, getPublicPortfolioSnapshot, type PublicPortfolioResponse } from '@/components/api/public';
 import { orderArtworks } from '@/utils/artworks';
 import type { TableOrder } from '@/interfaces/Portfolio';
 import { FooterComponent } from '@/components/Layouts';
 import { DeskModeComponent } from './ViewMode/DeskMode.component';
 
 export function HomeExperience() {
-  const [data, setData] = useState<PublicPortfolioResponse | null>(null);
+  const [data, setData] = useState<PublicPortfolioResponse | null>(() => getPublicPortfolioSnapshot());
   const [order, setOrder] = useState<TableOrder>('random');
   const [seed, setSeed] = useState(0);
   const [mediumId, setMediumId] = useState<string | null>(null);
