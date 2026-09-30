@@ -829,9 +829,19 @@ dialog {
 }
 /* The strip glides aside while an edge is charged, opening the space for the arrow. */
 .projects-slider .reusable-slider__viewport {
-  transform: translate3d(calc(var(--edge-progress) * var(--project-edge-shift)), 0, 0);
-  will-change: transform;
-  transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: width, margin-left, margin-right;
+  transition:
+    width 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    margin-left 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    margin-right 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.projects-slider[data-edge="previous"] .reusable-slider__viewport {
+  width: calc(100% - var(--edge-progress) * var(--project-edge-shift));
+  margin-left: calc(var(--edge-progress) * var(--project-edge-shift));
+}
+.projects-slider[data-edge="next"] .reusable-slider__viewport {
+  width: calc(100% - var(--edge-progress) * var(--project-edge-shift));
+  margin-right: calc(var(--edge-progress) * var(--project-edge-shift));
 }
 /* Images are flush: each slide is exactly one image ratio wide, with no gap between. */
 .projects-slider .reusable-slider__slide {
@@ -1027,8 +1037,11 @@ dialog {
     --projects-pagination-gap: 10px;
     --project-edge-shift: 68px;
   }
+  .projects-slider[data-edge="previous"] {
+    --project-edge-shift: 68px;
+  }
   .projects-slider[data-edge="next"] {
-    --project-edge-shift: -68px;
+    --project-edge-shift: 68px;
   }
   .projects-detail {
     grid-template-columns: 1fr;
