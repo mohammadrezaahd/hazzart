@@ -1,11 +1,10 @@
 import { randomUUID } from "node:crypto";
-import { del, put } from "@vercel/blob";
+import { del } from "@vercel/blob";
+import { validateAdminBlobReference, type AdminBlobReference } from "@/lib/admin-blob-reference";
 import { getDatabase } from "@/lib/mongodb";
 import type { AdminPainting, AdminPaintingImage, AdminPaintingStatus } from "@/interfaces/Painting";
 
 const COLLECTION = "admin_paintings";
-const MAX_IMAGE_SIZE = 4 * 1024 * 1024;
-const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 function escapeRegex(value: string) {
   return value.replace(/[.*+?^$()|[\]\\]/g, "\\$&");
@@ -80,34 +79,9 @@ async function validateCategories(categoryIds: string[]) {
   return uniqueIds;
 }
 
-function getSafeFileName(fileName: string) {
-  const name = fileName.trim().replace(/[^a-zA-Z0-9._-]/g, "-");
-  return name || "painting-image";
-}
-
-async function uploadImage(file: File): Promise<AdminPaintingImage> {
-  if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
-    throw new Error("Only JPG, PNG and WebP images are accepted.");
-  }
-
-  if (file.size <= 0 || file.size > MAX_IMAGE_SIZE) {
-    throw new Error("Each painting image must be smaller than 4 MB.");
-  }
-
-  const pathname = `paintings/${randomUUID()}-${getSafeFileName(file.name)}`;
-  const blob = await put(pathname, file, {
-    access: "private",
-    contentType: file.type,
-    addRandomSuffix: false,
-  });
-
-  return {
-    fileId: blob.pathname,
-    url: `/api/paintings/images/${blob.pathname}`,
-    name: file.name || "painting-image",
-    contentType: file.type,
-    size: file.size,
-  };
+async function uploadImage(image: AdminBlobReference): Promise<AdminPaintingImage> {
+  const verified = await validateAdminBlobReference(image, "paintings");
+  return { fileId: verified.pathname, url: `/api/paintings/images/${verified.pathname}`, name: verified.name, contentType: verified.contentType, size: verified.size };
 }
 
 async function deleteImage(fileId: string) {
@@ -169,7 +143,7 @@ export async function createPainting(input: {
   completedDate: string;
   categoryIds: string[];
   status: AdminPaintingStatus;
-  images: [File, File];
+  images: [AdminBlobReference, AdminBlobReference];
 }) {
   const name = validateName(input.name);
   const description = validateDescription(input.description);
@@ -209,7 +183,7 @@ export async function updatePainting(
     completedDate: string;
     categoryIds: string[];
     status: AdminPaintingStatus;
-    images: [File | null, File | null];
+    images: [AdminBlobReference | null, AdminBlobReference | null];
   },
 ) {
   const db = await getDatabase();

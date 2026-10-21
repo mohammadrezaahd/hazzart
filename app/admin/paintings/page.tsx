@@ -86,7 +86,7 @@ function ImagePicker({ label, file, existingUrl, onChange }: {
       <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => onChange(event.target.files?.[0] ?? null)} />
       <button type="button" className="admin-painting-image-picker" onClick={() => inputRef.current?.click()}>
         {preview ? <img src={preview} alt="" /> : existingUrl ? <img src={existingUrl} alt="" /> : <span className="admin-painting-image-placeholder">+</span>}
-        <span><strong>{label}</strong><small>{file?.name ?? (existingUrl ? "Keep current image" : "JPG · PNG · WebP · max 4 MB")}</small></span>
+        <span><strong>{label}</strong><small>{file?.name ?? (existingUrl ? "Keep current image" : "JPG · PNG · WebP · max 20 MB")}</small></span>
       </button>
     </div>
   );
@@ -158,6 +158,11 @@ export default function AdminPaintingsPage() {
     }
     if (!editing && (!form.image1 || !form.image2)) {
       setToast({ type: "error", text: "Choose both painting images." });
+      return;
+    }
+
+    if ([form.image1, form.image2].some((file) => file && file.size > 20 * 1024 * 1024)) {
+      setToast({ type: "error", text: "Each painting image must be 20 MB or smaller." });
       return;
     }
 

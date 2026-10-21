@@ -1,12 +1,11 @@
 import { randomUUID } from "node:crypto";
-import { del, put } from "@vercel/blob";
+import { del } from "@vercel/blob";
+import { validateAdminBlobReference, type AdminBlobReference } from "@/lib/admin-blob-reference";
 import { getDatabase } from "@/lib/mongodb";
 import { getProjectStatuses } from "@/lib/project-statuses";
 import type { AdminProject, AdminProjectImage, AdminProjectStatus } from "@/interfaces/Project";
 
 const COLLECTION = "admin_projects";
-const MAX_IMAGE_SIZE = 4 * 1024 * 1024;
-const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 type ProjectDocument = AdminProject & { statusId?: string };
 
 function validateStatus(value: unknown): AdminProjectStatus {
@@ -102,30 +101,9 @@ function normalizeFields(value: unknown) {
   return result;
 }
 
-function getSafeFileName(fileName: string) {
-  const name = fileName.trim().replace(/[^a-zA-Z0-9._-]/g, "-");
-  return name || "project-image";
-}
-
-async function uploadImage(file: File): Promise<AdminProjectImage> {
-  if (!ALLOWED_IMAGE_TYPES.has(file.type)) throw new Error("Only JPG, PNG and WebP images are accepted.");
-  if (file.size <= 0 || file.size > MAX_IMAGE_SIZE) throw new Error("Each project image must be smaller than 4 MB.");
-
-  const pathname = `projects/${randomUUID()}-${getSafeFileName(file.name)}`;
-  const blob = await put(pathname, file, {
-    access: "private",
-    contentType: file.type,
-    addRandomSuffix: false,
-  });
-
-  return {
-    id: randomUUID(),
-    fileId: blob.pathname,
-    url: `/api/paintings/images/${blob.pathname}`,
-    name: file.name || "project-image",
-    contentType: file.type,
-    size: file.size,
-  };
+async function uploadImage(image: AdminBlobReference): Promise<AdminProjectImage> {
+  const verified = await validateAdminBlobReference(image, "projects");
+  return { id: randomUUID(), fileId: verified.pathname, url: `/api/paintings/images/${verified.pathname}`, name: verified.name, contentType: verified.contentType, size: verified.size };
 }
 
 async function deleteImage(fileId: string) {
@@ -207,7 +185,7 @@ export async function getProjects(filters: { search?: string; status?: AdminProj
   }).filter((project) => !filters.status || project.status === filters.status);
 }
 
-export async function createProject(body: Record<string, unknown>, imageFiles: File[]) {
+export async function createProject(body: Record<string, unknown>, imageFiles: AdminBlobReference[]) {
   const uploaded = await Promise.all(imageFiles.map(uploadImage));
 
   try {
@@ -220,7 +198,7 @@ export async function createProject(body: Record<string, unknown>, imageFiles: F
   }
 }
 
-export async function updateProject(id: string, body: Record<string, unknown>, imageFiles: File[], removeImageIds: string[] = []) {
+export async function updateProject(id: string, body: Record<string, unknown>, imageFiles: AdminBlobReference[], removeImageIds: string[] = []) {
   const db = await getDatabase();
   const current = await db.collection<ProjectDocument>(COLLECTION).findOne({ id });
 

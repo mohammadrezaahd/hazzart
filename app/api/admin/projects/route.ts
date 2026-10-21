@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { invalidatePublicPortfolioCache } from "@/lib/public-cache";
 import { requireAdminSession } from "@/lib/admin-auth";
 import { createProject, getProjects } from "@/lib/projects";
+import type { AdminBlobReference } from "@/lib/admin-blob-reference";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,21 +24,12 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   await requireAdminSession();
-
   try {
-    const formData = await request.formData();
-    const raw = formData.get("data");
-
-    if (typeof raw !== "string") throw new Error("Project data is required.");
-
-    const body = JSON.parse(raw) as Record<string, unknown>;
-    const imageFiles = formData.getAll("images").filter((value): value is File => value instanceof File);
-
-    if (!imageFiles.length) throw new Error("At least one project image is required.");
-
-    const project = await createProject(body, imageFiles);
+    const body = await request.json() as { data?: unknown; images?: unknown };
+    if (!body.data || typeof body.data !== "object" || Array.isArray(body.data)) throw new Error("Project data is required.");
+    if (!Array.isArray(body.images) || !body.images.length) throw new Error("At least one project image is required.");
+    const project = await createProject(body.data as Record<string, unknown>, body.images as AdminBlobReference[]);
     invalidatePublicPortfolioCache();
-
     return NextResponse.json({ project }, { status: 201 });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Could not create project.";

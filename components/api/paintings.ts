@@ -1,5 +1,6 @@
 import type { AdminPainting, AdminPaintingsPayload } from "@/interfaces/Painting";
 import { apiClient } from "./client";
+import { uploadAdminImage, type UploadedAdminImage } from "./admin-image-upload";
 
 export interface PaintingFilters {
   search?: string;
@@ -16,60 +17,33 @@ export async function getAdminPaintings(filters: PaintingFilters) {
   return response.data;
 }
 
-function buildPaintingFormData(input: {
-  name: string;
-  description: string;
-  completedDate: string;
-  categoryIds: string[];
-  status: "draft" | "published" | "archived";
-  image1?: File | null;
-  image2?: File | null;
-}) {
-  const formData = new FormData();
-  formData.append("name", input.name);
-  formData.append("description", input.description);
-  formData.append("completedDate", input.completedDate);
-  formData.append("categoryIds", JSON.stringify(input.categoryIds));
-  formData.append("status", input.status);
-
-  if (input.image1) formData.append("image1", input.image1);
-  if (input.image2) formData.append("image2", input.image2);
-
-  return formData;
+async function buildPaintingPayload(input: {
+  name: string; description: string; completedDate: string; categoryIds: string[];
+  status: "draft" | "published" | "archived"; image1?: File | null; image2?: File | null;
+}, required: boolean) {
+  const images: (UploadedAdminImage | null)[] = await Promise.all([
+    input.image1 ? uploadAdminImage(input.image1, "painting") : Promise.resolve(null),
+    input.image2 ? uploadAdminImage(input.image2, "painting") : Promise.resolve(null),
+  ]);
+  if (required && images.some((image) => !image)) throw new Error("Two painting images are required.");
+  return { name: input.name, description: input.description, completedDate: input.completedDate, categoryIds: input.categoryIds, status: input.status, images };
 }
 
 export async function createAdminPainting(input: {
-  name: string;
-  description: string;
-  completedDate: string;
-  categoryIds: string[];
-  status: "draft" | "published" | "archived";
-  image1: File;
-  image2: File;
+  name: string; description: string; completedDate: string; categoryIds: string[];
+  status: "draft" | "published" | "archived"; image1: File; image2: File;
 }) {
-  const response = await apiClient.post<{ painting: AdminPainting }>(
-    "/api/admin/paintings",
-    buildPaintingFormData(input),
-  );
+  const payload = await buildPaintingPayload(input, true);
+  const response = await apiClient.post<{ painting: AdminPainting }>("/api/admin/paintings", payload);
   return response.data.painting;
 }
 
-export async function updateAdminPainting(
-  id: string,
-  input: {
-    name: string;
-    description: string;
-    completedDate: string;
-    categoryIds: string[];
-    status: "draft" | "published" | "archived";
-    image1?: File | null;
-    image2?: File | null;
-  },
-) {
-  const response = await apiClient.put<{ painting: AdminPainting }>(
-    "/api/admin/paintings/" + id,
-    buildPaintingFormData(input),
-  );
+export async function updateAdminPainting(id: string, input: {
+  name: string; description: string; completedDate: string; categoryIds: string[];
+  status: "draft" | "published" | "archived"; image1?: File | null; image2?: File | null;
+}) {
+  const payload = await buildPaintingPayload(input, false);
+  const response = await apiClient.put<{ painting: AdminPainting }>("/api/admin/paintings/" + id, payload);
   return response.data.painting;
 }
 

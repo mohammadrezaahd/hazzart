@@ -1,5 +1,6 @@
 import { requireAdminSession } from "@/lib/admin-auth";
 import { createPainting, getPaintings } from "@/lib/paintings";
+import type { AdminBlobReference } from "@/lib/admin-blob-reference";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -7,19 +8,6 @@ export const dynamic = "force-dynamic";
 function errorResponse(error: unknown, status = 400) {
   const message = error instanceof Error ? error.message : "Unexpected error.";
   return Response.json({ error: message }, { status });
-}
-
-function parseCategoryIds(value: FormDataEntryValue | null) {
-  if (typeof value !== "string") {
-    throw new Error("At least one category is required.");
-  }
-
-  const parsed: unknown = JSON.parse(value);
-  if (!Array.isArray(parsed) || !parsed.every((id) => typeof id === "string")) {
-    throw new Error("Invalid category selection.");
-  }
-
-  return parsed;
 }
 
 export async function GET(request: Request) {
@@ -45,31 +33,22 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   await requireAdminSession();
-
   try {
-    const formData = await request.formData();
-    const image1 = formData.get("image1");
-    const image2 = formData.get("image2");
-
-    if (!(image1 instanceof File) || !(image2 instanceof File)) {
-      throw new Error("Two painting images are required.");
-    }
-
+    const body = await request.json() as Record<string, unknown>;
+    const images = body.images;
+    if (!Array.isArray(images) || images.length !== 2) throw new Error("Two painting images are required.");
+    const categoryIds = body.categoryIds;
+    if (!Array.isArray(categoryIds) || !categoryIds.every((id) => typeof id === "string")) throw new Error("Invalid category selection.");
+    const status = body.status;
+    if (status !== "draft" && status !== "published" && status !== "archived") throw new Error("Invalid painting status.");
     const painting = await createPainting({
-      name: String(formData.get("name") ?? ""),
-      description: String(formData.get("description") ?? ""),
-      completedDate: String(formData.get("completedDate") ?? ""),
-      categoryIds: parseCategoryIds(formData.get("categoryIds")),
-      status: (() => {
-        const value = formData.get("status");
-        if (value !== "draft" && value !== "published" && value !== "archived") {
-          throw new Error("Invalid painting status.");
-        }
-        return value;
-      })(),
-      images: [image1, image2],
+      name: String(body.name ?? ""),
+      description: String(body.description ?? ""),
+      completedDate: String(body.completedDate ?? ""),
+      categoryIds,
+      status,
+      images: images as [AdminBlobReference, AdminBlobReference],
     });
-
     return Response.json({ painting }, { status: 201 });
   } catch (error) {
     return errorResponse(error);

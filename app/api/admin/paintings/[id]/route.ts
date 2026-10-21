@@ -1,5 +1,6 @@
 import { requireAdminSession } from "@/lib/admin-auth";
 import { deletePainting, updatePainting, updatePaintingStatus } from "@/lib/paintings";
+import type { AdminBlobReference } from "@/lib/admin-blob-reference";
 
 export const runtime = "nodejs";
 
@@ -21,36 +22,25 @@ function parseCategoryIds(value: FormDataEntryValue | null) {
   return parsed;
 }
 
-export async function PUT(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   await requireAdminSession();
-
   try {
     const { id } = await params;
-    const formData = await request.formData();
-    const image1 = formData.get("image1");
-    const image2 = formData.get("image2");
-
+    const body = await request.json() as Record<string, unknown>;
+    const categoryIds = body.categoryIds;
+    if (!Array.isArray(categoryIds) || !categoryIds.every((value) => typeof value === "string")) throw new Error("Invalid category selection.");
+    const status = body.status;
+    if (status !== "draft" && status !== "published" && status !== "archived") throw new Error("Invalid painting status.");
+    const images = body.images;
+    if (!Array.isArray(images) || images.length !== 2) throw new Error("Two image slots are required.");
     const painting = await updatePainting(id, {
-      name: String(formData.get("name") ?? ""),
-      description: String(formData.get("description") ?? ""),
-      completedDate: String(formData.get("completedDate") ?? ""),
-      categoryIds: parseCategoryIds(formData.get("categoryIds")),
-      status: (() => {
-        const value = formData.get("status");
-        if (value !== "draft" && value !== "published" && value !== "archived") {
-          throw new Error("Invalid painting status.");
-        }
-        return value;
-      })(),
-      images: [
-        image1 instanceof File ? image1 : null,
-        image2 instanceof File ? image2 : null,
-      ],
+      name: String(body.name ?? ""),
+      description: String(body.description ?? ""),
+      completedDate: String(body.completedDate ?? ""),
+      categoryIds,
+      status,
+      images: images as [AdminBlobReference | null, AdminBlobReference | null],
     });
-
     return Response.json({ painting });
   } catch (error) {
     return errorResponse(error);

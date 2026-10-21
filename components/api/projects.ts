@@ -1,6 +1,7 @@
 import type { AdminProject, AdminProjectStatus as PublicationStatus } from "@/interfaces/Project";
 import type { AdminProjectStatus } from "@/interfaces/ProjectStatus";
 import { apiClient } from "./client";
+import { uploadAdminImage } from "./admin-image-upload";
 
 export interface ProjectFilters {
   search?: string;
@@ -28,22 +29,21 @@ interface ProjectInput {
   dynamicFields: Record<string, string>;
 }
 
-function buildFormData(input: ProjectInput) {
-  const formData = new FormData();
+async function buildPayload(input: ProjectInput) {
   const { images, removeImageIds, ...data } = input;
-  if (removeImageIds?.length) formData.append("removeImageIds", JSON.stringify(removeImageIds));
-  formData.append("data", JSON.stringify(data));
-  images.forEach((image) => formData.append("images", image));
-  return formData;
+  const uploadedImages = await Promise.all(images.map((image) => uploadAdminImage(image, "project")));
+  return { data, images: uploadedImages, removeImageIds: removeImageIds ?? [] };
 }
 
 export async function createAdminProject(input: ProjectInput) {
-  const r = await apiClient.post<{ project: AdminProject }>("/api/admin/projects", buildFormData(input));
+  const payload = await buildPayload(input);
+  const r = await apiClient.post<{ project: AdminProject }>("/api/admin/projects", payload);
   return r.data.project;
 }
 
 export async function updateAdminProject(id: string, input: Omit<ProjectInput, "images"> & { images?: File[]; removeImageIds?: string[] }) {
-  const r = await apiClient.put<{ project: AdminProject }>("/api/admin/projects/" + id, buildFormData({ ...input, images: input.images ?? [] }));
+  const payload = await buildPayload({ ...input, images: input.images ?? [] });
+  const r = await apiClient.put<{ project: AdminProject }>("/api/admin/projects/" + id, payload);
   return r.data.project;
 }
 
