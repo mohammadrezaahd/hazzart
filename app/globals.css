@@ -585,7 +585,7 @@ dialog {
     opacity: 1;
   }
 }
-.artwork-slider__image--rotated img {
+.artwork-slider__image img.artwork-slider__image--rotated {
   width: 75% !important;
   height: 133.333% !important;
   max-width: none;
