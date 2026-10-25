@@ -565,12 +565,25 @@ dialog {
 .artwork-slider__image img {
   object-fit: contain;
   object-position: center;
-  transition:
-    transform 0.7s var(--motion-ease),
-    filter 0.45s ease;
 }
-.artwork-slider__slide:hover .artwork-slider__image img {
-  transform: scale(1.012);
+.artwork-slider__primary-image,
+.artwork-slider__hover-image {
+  transition: opacity 0.55s var(--motion-ease);
+  will-change: opacity;
+}
+.artwork-slider__primary-image {
+  opacity: 1;
+}
+.artwork-slider__hover-image {
+  opacity: 0;
+}
+@media (hover: hover) and (pointer: fine) {
+  .artwork-slider__slide:hover .artwork-slider__primary-image {
+    opacity: 0;
+  }
+  .artwork-slider__slide:hover .artwork-slider__hover-image {
+    opacity: 1;
+  }
 }
 .artwork-slider__image--rotated img {
   width: 75% !important;
@@ -580,8 +593,11 @@ dialog {
   top: -16.666% !important;
   transform: rotate(-90deg);
 }
-.artwork-slider__slide:hover .artwork-slider__image--rotated img {
-  transform: rotate(-90deg) scale(1.012);
+@media (prefers-reduced-motion: reduce) {
+  .artwork-slider__primary-image,
+  .artwork-slider__hover-image {
+    transition-duration: 0.01ms;
+  }
 }
 
 /* ------------------------------------------------------------------ *
