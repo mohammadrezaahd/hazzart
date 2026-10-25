@@ -1,5 +1,7 @@
 "use client";
 
+import { uploadPresigned } from "@vercel/blob/client";
+
 export interface UploadedAdminImage {
   pathname: string;
   name: string;
@@ -8,52 +10,34 @@ export interface UploadedAdminImage {
 }
 
 const MAX_IMAGE_SIZE = 20 * 1024 * 1024;
-const CHUNK_SIZE = 4 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
-async function readError(response: Response) {
-  try {
-    const body = await response.json() as { error?: string };
-    return body.error || "Image upload failed.";
-  } catch {
-    return "Image upload failed.";
-  }
+function safeName(name: string) {
+  return name.trim().replace(/[^a-zA-Z0-9._-]/g, "-") || "image";
 }
 
 export async function uploadAdminImage(file: File, kind: "painting" | "project"): Promise<UploadedAdminImage> {
-  if (!ALLOWED_IMAGE_TYPES.has(file.type)) throw new Error("Only JPG, PNG and WebP images are accepted.");
-  if (file.size <= 0 || file.size > MAX_IMAGE_SIZE) throw new Error("Each image must be 20 MB or smaller.");
-
-  const uploadId = crypto.randomUUID();
-  const chunkCount = Math.ceil(file.size / CHUNK_SIZE);
-  for (let index = 0; index < chunkCount; index += 1) {
-    const chunk = file.slice(index * CHUNK_SIZE, Math.min(file.size, (index + 1) * CHUNK_SIZE));
-    const query = new URLSearchParams({
-      uploadId,
-      index: String(index),
-      contentType: file.type,
-      totalSize: String(file.size),
-    });
-    const response = await fetch("/api/admin/blob-upload?" + query.toString(), {
-      method: "POST",
-      headers: { "Content-Type": "application/octet-stream" },
-      body: chunk,
-    });
-    if (!response.ok) throw new Error(await readError(response));
+  if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+    throw new Error("Only JPG, PNG and WebP images are accepted.");
+  }
+  if (file.size <= 0 || file.size > MAX_IMAGE_SIZE) {
+    throw new Error("Each image must be 20 MB or smaller.");
   }
 
-  const response = await fetch("/api/admin/blob-upload/complete", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      uploadId,
-      chunkCount,
-      totalSize: file.size,
-      fileName: file.name || "image",
-      contentType: file.type,
-      kind,
-    }),
+  const prefix = kind === "painting" ? "paintings" : "projects";
+  const pathname = `${prefix}/${crypto.randomUUID()}-${safeName(file.name || "image")}`;
+
+  // The browser sends the file directly to private Vercel Blob storage.
+  // Our API route only authorizes this one path using a short-lived signed URL.
+  const blob = await uploadPresigned(pathname, file, {
+    access: "private",
+    handleUploadUrl: "/api/admin/blob-upload",
   });
-  if (!response.ok) throw new Error(await readError(response));
-  return await response.json() as UploadedAdminImage;
+
+  return {
+    pathname: blob.pathname,
+    name: file.name || "image",
+    contentType: file.type,
+    size: file.size,
+  };
 }
