@@ -11,10 +11,7 @@ export function ArtworkViewer({ selection, onClose }: { selection: ArtworkSelect
   const imageRef = useRef<HTMLDivElement>(null);
   const descriptionRef = useRef<HTMLParagraphElement>(null);
   const closing = useRef(false);
-  const { artwork, element, rect, rotation } = selection;
-  const sourceRatio = artwork.image.rotate ? artwork.image.height / artwork.image.width : artwork.image.width / artwork.image.height;
-  // Match the desk: preserve existing portrait sizing and expand only true landscape artwork.
-  const imageRatio = sourceRatio > 1 ? sourceRatio : artwork.table.aspectRatio;
+  const { artwork, element, rect, rotation, imageRatio } = selection;
   const getSourceTransform = useCallback((source: DOMRect) => {
     const target = imageRef.current!;
     const dialog = dialogRef.current!;
