@@ -117,7 +117,15 @@ export async function getTableSettings(): Promise<AdminTableSettings> {
   const settings = await db.collection<AdminTableSettings>("admin_table_settings").findOne({ id: SETTINGS_ID } as AdminTableSettings & { id: string });
 
   if (settings) {
-    return { categoryIds: settings.categoryIds, updatedAt: settings.updatedAt };
+    const categories = await db.collection<{ id: string }>("admin_categories")
+      .find({ id: { $in: settings.categoryIds } })
+      .project({ _id: 0, id: 1 })
+      .toArray();
+    const validIds = new Set(categories.map((category) => category.id));
+    return {
+      categoryIds: settings.categoryIds.filter((id) => validIds.has(id)),
+      updatedAt: settings.updatedAt,
+    };
   }
 
   const categories = await db.collection<{ id: string }>("admin_categories").find({}).project({ _id: 0, id: 1 }).toArray();
@@ -132,16 +140,16 @@ export async function updateTableSettings(categoryIdsInput: unknown): Promise<Ad
     throw new Error("Table categories must be a list of IDs.");
   }
 
-  const categoryIds = [...new Set(categoryIdsInput)];
+  const requestedIds = [...new Set(categoryIdsInput.map((id) => id.trim()).filter(Boolean))];
   const db = await getDatabase();
   const validCategories = await db.collection<{ id: string }>("admin_categories")
-    .find({ id: { $in: categoryIds } })
+    .find({ id: { $in: requestedIds } })
     .project({ _id: 0, id: 1 })
     .toArray();
-
-  if (validCategories.length !== categoryIds.length) {
-    throw new Error("One or more selected categories were not found.");
-  }
+  const validIds = new Set(validCategories.map((category) => category.id));
+  // Ignore stale IDs left behind when a category was deleted. Keep the user's
+  // selection order while ensuring only existing categories are persisted.
+  const categoryIds = requestedIds.filter((id) => validIds.has(id));
 
   const updatedAt = new Date().toISOString();
   await db.collection<AdminTableSettings & { id: string }>("admin_table_settings").replaceOne(
