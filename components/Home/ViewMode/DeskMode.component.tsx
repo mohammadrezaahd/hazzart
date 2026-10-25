@@ -13,7 +13,7 @@ export function DeskModeComponent({ artworks, arrangementKey }: { artworks: Artw
   const sound = usePaperSound();
   const open = (artwork: Artwork, element: HTMLElement) => {
     gsap.killTweensOf(element);
-    setSelection({ artwork, element, rotation: Number(gsap.getProperty(element, 'rotation')) || 0, rect: element.getBoundingClientRect() });
+    setSelection({ artwork, element, rotation: Number(gsap.getProperty(element, 'rotation')) || 0, rect: element.getBoundingClientRect(), imageRatio: Number(element.style.getPropertyValue('--art-ratio')) || artwork.table.aspectRatio });
   };
   useGSAP(() => {
     const stage = root.current;
@@ -66,11 +66,18 @@ export function DeskModeComponent({ artworks, arrangementKey }: { artworks: Artw
     <p className="sr-only" id="table-instructions">Drag the artworks to explore the table. Select an artwork or press Enter to view it. Press Escape to return.</p>
     <div className="desk-stage" ref={root} aria-label="Artwork table" aria-describedby="table-instructions">
       {artworks.map(artwork => {
-        const sourceRatio = artwork.image.rotate ? artwork.image.height / artwork.image.width : artwork.image.width / artwork.image.height;
-        // Keep the established portrait-card proportions; only landscape artwork expands to its real image ratio.
-        const imageRatio = sourceRatio > 1 ? sourceRatio : artwork.table.aspectRatio;
-        return <button key={artwork.id} type="button" className={`artwork-card ${imageRatio > 1 ? 'landscape-card' : ''}`} data-artwork-id={artwork.id} aria-label={`View ${artwork.title}`} aria-haspopup="dialog" style={{ '--art-ratio': imageRatio, transform: `translate(-50%, -50%) rotate(${artwork.table.rotation}deg)` } as CSSProperties} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(artwork, event.currentTarget); } }}>
-        <ArtworkImage artwork={artwork} sizes="(max-width: 767px) 55vw, 44vw" priority />
+        const setImageRatio = (width: number, height: number) => {
+          const cards = root.current?.querySelectorAll<HTMLElement>('[data-artwork-id]');
+          const card = cards ? Array.from(cards).find(item => item.dataset.artworkId === artwork.id) : undefined;
+          if (!card || width <= 0 || height <= 0) return;
+          const sourceRatio = artwork.image.rotate ? height / width : width / height;
+          // Keep the established portrait-card proportions; only real landscape files widen.
+          const ratio = sourceRatio > 1 ? sourceRatio : artwork.table.aspectRatio;
+          card.style.setProperty('--art-ratio', String(ratio));
+          card.classList.toggle('landscape-card', sourceRatio > 1);
+        };
+        return <button key={artwork.id} type="button" className="artwork-card" data-artwork-id={artwork.id} aria-label={`View ${artwork.title}`} aria-haspopup="dialog" style={{ '--art-ratio': artwork.table.aspectRatio, transform: `translate(-50%, -50%) rotate(${artwork.table.rotation}deg)` } as CSSProperties} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(artwork, event.currentTarget); } }}>
+        <ArtworkImage artwork={artwork} sizes="(max-width: 767px) 55vw, 44vw" priority onLoad={setImageRatio} />
       </button>;
       })}
       {artworks.length === 0 && <p className="empty-table">No artwork in this medium yet.</p>}
