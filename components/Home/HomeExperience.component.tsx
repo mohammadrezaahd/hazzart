@@ -15,6 +15,9 @@ export function HomeExperience() {
 
   useEffect(() => { void getPublicPortfolio().then(setData).catch(() => setData(null)); }, []);
 
+  // Randomize the default stack after hydration to keep SSR markup deterministic.
+  useEffect(() => { setSeed(Math.floor(Math.random() * 2_147_483_646) + 1); }, []);
+
   const artworks = useMemo(() => {
     if (!data) return [];
     return orderArtworks(data.tableArtworks.filter((art) => !mediumId || art.paintingCategoryIds.includes(mediumId)), order, seed);
