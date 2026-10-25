@@ -65,9 +65,12 @@ export function DeskModeComponent({ artworks, arrangementKey }: { artworks: Artw
   return <>
     <p className="sr-only" id="table-instructions">Drag the artworks to explore the table. Select an artwork or press Enter to view it. Press Escape to return.</p>
     <div className="desk-stage" ref={root} aria-label="Artwork table" aria-describedby="table-instructions">
-      {artworks.map(artwork => <button key={artwork.id} type="button" className={`artwork-card ${artwork.table.aspectRatio > 1 ? 'landscape-card' : ''}`} data-artwork-id={artwork.id} aria-label={`View ${artwork.title}`} aria-haspopup="dialog" style={{ '--art-ratio': artwork.table.aspectRatio, transform: `translate(-50%, -50%) rotate(${artwork.table.rotation}deg)` } as CSSProperties} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(artwork, event.currentTarget); } }}>
+      {artworks.map(artwork => {
+        const imageRatio = artwork.image.rotate ? artwork.image.height / artwork.image.width : artwork.image.width / artwork.image.height;
+        return <button key={artwork.id} type="button" className={`artwork-card ${imageRatio > 1 ? 'landscape-card' : ''}`} data-artwork-id={artwork.id} aria-label={`View ${artwork.title}`} aria-haspopup="dialog" style={{ '--art-ratio': imageRatio, transform: `translate(-50%, -50%) rotate(${artwork.table.rotation}deg)` } as CSSProperties} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(artwork, event.currentTarget); } }}>
         <ArtworkImage artwork={artwork} sizes="(max-width: 767px) 55vw, 44vw" priority />
-      </button>)}
+      </button>;
+      })}
       {artworks.length === 0 && <p className="empty-table">No artwork in this medium yet.</p>}
     </div>
     <button type="button" className="sound-toggle" aria-pressed={sound.enabled} onClick={sound.toggle}>Sound {sound.enabled ? 'on' : 'off'}</button>
