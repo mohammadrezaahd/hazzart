@@ -147,7 +147,7 @@ a:focus-visible {
   position: absolute;
   inset: 82px 0 115px;
   overflow: hidden;
-  --card-height: min(54.6875dvh, 39vw);
+  --card-height: min(49.2dvh, 35vw);
 }
 .artwork-card {
   position: absolute;
@@ -1118,7 +1118,7 @@ dialog {
   }
   .desk-stage {
     inset: 90px 0 76px;
-    --card-height: min(51.69vw, 27dvh);
+    --card-height: min(46.5vw, 24.3dvh);
   }
   .site-footer {
     width: 100%;
