@@ -66,7 +66,9 @@ export function DeskModeComponent({ artworks, arrangementKey }: { artworks: Artw
     <p className="sr-only" id="table-instructions">Drag the artworks to explore the table. Select an artwork or press Enter to view it. Press Escape to return.</p>
     <div className="desk-stage" ref={root} aria-label="Artwork table" aria-describedby="table-instructions">
       {artworks.map(artwork => {
-        const imageRatio = artwork.image.rotate ? artwork.image.height / artwork.image.width : artwork.image.width / artwork.image.height;
+        const sourceRatio = artwork.image.rotate ? artwork.image.height / artwork.image.width : artwork.image.width / artwork.image.height;
+        // Keep the established portrait-card proportions; only landscape artwork expands to its real image ratio.
+        const imageRatio = sourceRatio > 1 ? sourceRatio : artwork.table.aspectRatio;
         return <button key={artwork.id} type="button" className={`artwork-card ${imageRatio > 1 ? 'landscape-card' : ''}`} data-artwork-id={artwork.id} aria-label={`View ${artwork.title}`} aria-haspopup="dialog" style={{ '--art-ratio': imageRatio, transform: `translate(-50%, -50%) rotate(${artwork.table.rotation}deg)` } as CSSProperties} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(artwork, event.currentTarget); } }}>
         <ArtworkImage artwork={artwork} sizes="(max-width: 767px) 55vw, 44vw" priority />
       </button>;
