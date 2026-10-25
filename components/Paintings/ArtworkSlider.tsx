@@ -66,11 +66,11 @@ export function ArtworkSlider({ items, ariaLabel = 'Paintings', infinite = true 
       getSlideA11yLabel={artwork => `${artwork.title}, ${artwork.year}`}
       renderSlide={(artwork, index) => (
         <span
-          className={`artwork-slider__image ${artwork.image.rotate ? 'artwork-slider__image--rotated' : ''}`}
+          className="artwork-slider__image"
           style={{ transform: artwork.image.flipX ? 'scaleX(-1)' : undefined }}
         >
           <Image
-            className="artwork-slider__primary-image"
+            className={`artwork-slider__primary-image ${Math.abs(artwork.image.rotate ?? 0) % 180 === 90 ? 'artwork-slider__image--rotated' : ''}`}
             src={artwork.image.src}
             alt={artwork.image.alt}
             fill
@@ -79,7 +79,7 @@ export function ArtworkSlider({ items, ariaLabel = 'Paintings', infinite = true 
             draggable={false}
           />
           <Image
-            className="artwork-slider__hover-image"
+            className={`artwork-slider__hover-image ${Math.abs(artwork.hoverImage.rotate ?? 0) % 180 === 90 ? 'artwork-slider__image--rotated' : ''}`}
             src={artwork.hoverImage.src}
             alt={artwork.hoverImage.alt}
             fill
