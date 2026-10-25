@@ -5,7 +5,7 @@ import { gsap } from '@/lib/gsap';
 import type { Artwork } from '@/interfaces/Portfolio';
 import { ArtworkImage } from './ArtworkImage';
 
-export interface ArtworkSelection { artwork: Artwork; element: HTMLElement; rotation: number; rect: DOMRect }
+export interface ArtworkSelection { artwork: Artwork; element: HTMLElement; rotation: number; rect: DOMRect; imageRatio: number }
 export function ArtworkViewer({ selection, onClose }: { selection: ArtworkSelection; onClose: () => void }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const imageRef = useRef<HTMLDivElement>(null);
