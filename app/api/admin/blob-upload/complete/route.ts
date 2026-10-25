@@ -64,7 +64,7 @@ export async function POST(request: Request) {
 
     const prefix = kind === "painting" ? "paintings" : "projects";
     finalPath = `${prefix}/${randomUUID()}-${safeName(fileName)}`;
-    const blob = await put(finalPath, combined, {
+    const blob = await put(finalPath, Buffer.from(combined), {
       access: "private",
       contentType,
       addRandomSuffix: false,
