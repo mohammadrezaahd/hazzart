@@ -12,6 +12,7 @@ export function ArtworkViewer({ selection, onClose }: { selection: ArtworkSelect
   const descriptionRef = useRef<HTMLParagraphElement>(null);
   const closing = useRef(false);
   const { artwork, element, rect, rotation } = selection;
+  const imageRatio = artwork.image.rotate ? artwork.image.height / artwork.image.width : artwork.image.width / artwork.image.height;
   const getSourceTransform = useCallback((source: DOMRect) => {
     const target = imageRef.current!;
     const dialog = dialogRef.current!;
@@ -50,7 +51,7 @@ export function ArtworkViewer({ selection, onClose }: { selection: ArtworkSelect
   };
   return <dialog ref={dialogRef} className="artwork-viewer" aria-label={artwork.title} aria-describedby="artwork-description" onCancel={event => { event.preventDefault(); close(); }} onClick={event => { if (event.target === dialogRef.current) close(); }}>
     <button type="button" className="close-button" aria-label="Close artwork" onClick={close}><Image src="/icons/close.svg" width={32} height={32} alt="" /></button>
-    <div className={`viewer-image ${artwork.table.aspectRatio > 1 ? 'viewer-landscape' : ''}`} ref={imageRef} style={{ aspectRatio: artwork.table.aspectRatio, '--art-ratio': artwork.table.aspectRatio } as CSSProperties}><ArtworkImage artwork={artwork} sizes="(max-width: 767px) 88vw, 55vw" priority /></div>
+    <div className={`viewer-image ${imageRatio > 1 ? 'viewer-landscape' : ''}`} ref={imageRef} style={{ aspectRatio: imageRatio, '--art-ratio': imageRatio } as CSSProperties}><ArtworkImage artwork={artwork} sizes="(max-width: 767px) 88vw, 55vw" priority /></div>
     <p ref={descriptionRef} id="artwork-description" className="artwork-description">{artwork.title}, {artwork.year}, {artwork.description}, {artwork.dimensions}</p>
   </dialog>;
 }
