@@ -75,9 +75,7 @@ export function ArtworkSlider({ items, ariaLabel = 'Paintings', infinite = true 
             tabIndex={0}
             aria-label={`Show alternate image for ${artwork.title}`}
             aria-pressed={showAlternate}
-            onClick={() => {
-              if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) toggleAlternate();
-            }}
+            onClick={toggleAlternate}
             onKeyDown={event => {
               if (event.key === 'Enter' || event.key === ' ') {
                 event.preventDefault();
