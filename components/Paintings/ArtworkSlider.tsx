@@ -13,6 +13,7 @@ interface ArtworkSliderProps {
 
 export function ArtworkSlider({ items, ariaLabel = 'Paintings', infinite = true }: ArtworkSliderProps) {
   const [ratios, setRatios] = useState<Record<string, number>>({});
+  const [alternateArtworkId, setAlternateArtworkId] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -64,32 +65,53 @@ export function ArtworkSlider({ items, ariaLabel = 'Paintings', infinite = true 
       getItemId={artwork => artwork.id}
       getSlideAspectRatio={getRatio}
       getSlideA11yLabel={artwork => `${artwork.title}, ${artwork.year}`}
-      renderSlide={(artwork, index) => (
-        <span
-          className="artwork-slider__image"
-          style={{ transform: artwork.image.flipX ? 'scaleX(-1)' : undefined }}
-        >
-          <Image
-            className={`artwork-slider__primary-image ${Math.abs(artwork.image.rotate ?? 0) % 180 === 90 ? 'artwork-slider__image--rotated' : ''}`}
-            src={artwork.image.src}
-            alt={artwork.image.alt}
-            fill
-            sizes="(max-width: 767px) 78vw, 46vw"
-            priority={index < 4}
-            draggable={false}
-          />
-          <Image
-            className={`artwork-slider__hover-image ${Math.abs(artwork.hoverImage.rotate ?? 0) % 180 === 90 ? 'artwork-slider__image--rotated' : ''}`}
-            src={artwork.hoverImage.src}
-            alt={artwork.hoverImage.alt}
-            fill
-            sizes="(max-width: 767px) 78vw, 46vw"
-            priority={index < 4}
-            draggable={false}
-            aria-hidden
-          />
-        </span>
-      )}
+      renderSlide={(artwork, index) => {
+        const showAlternate = alternateArtworkId === artwork.id;
+        return (
+          <span
+            className="artwork-slider__image"
+            role="button"
+            tabIndex={0}
+            aria-label={`Show alternate image for ${artwork.title}`}
+            aria-pressed={showAlternate}
+            onMouseEnter={() => setAlternateArtworkId(artwork.id)}
+            onMouseLeave={() => setAlternateArtworkId(current => current === artwork.id ? null : current)}
+            onClick={() => setAlternateArtworkId(current => current === artwork.id ? null : artwork.id)}
+            onKeyDown={event => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                setAlternateArtworkId(current => current === artwork.id ? null : artwork.id);
+              }
+            }}
+            style={{
+              transform: artwork.image.flipX ? 'scaleX(-1)' : undefined,
+              pointerEvents: 'auto',
+            }}
+          >
+            <Image
+              className={`artwork-slider__primary-image ${Math.abs(artwork.image.rotate ?? 0) % 180 === 90 ? 'artwork-slider__image--rotated' : ''}`}
+              src={artwork.image.src}
+              alt={artwork.image.alt}
+              fill
+              sizes="(max-width: 767px) 78vw, 46vw"
+              priority={index < 4}
+              draggable={false}
+              style={showAlternate ? { opacity: 0 } : undefined}
+            />
+            <Image
+              className={`artwork-slider__hover-image ${Math.abs(artwork.hoverImage.rotate ?? 0) % 180 === 90 ? 'artwork-slider__image--rotated' : ''}`}
+              src={artwork.hoverImage.src}
+              alt={artwork.hoverImage.alt}
+              fill
+              sizes="(max-width: 767px) 78vw, 46vw"
+              priority={index < 4}
+              draggable={false}
+              aria-hidden
+              style={showAlternate ? { opacity: 1 } : undefined}
+            />
+          </span>
+        );
+      }}
     />
   );
 }
