@@ -22,6 +22,8 @@ export function ArtworkViewer({ selection, onClose }: { selection: ArtworkSelect
     const dialog = dialogRef.current!;
     const image = imageRef.current;
     const description = descriptionRef.current;
+    // Restore keyboard focus only when the viewer was opened from keyboard navigation.
+    const shouldRestoreFocus = element.matches(':focus-visible');
     dialog.showModal();
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const sourceTransform = getSourceTransform(rect);
@@ -30,7 +32,16 @@ export function ArtworkViewer({ selection, onClose }: { selection: ArtworkSelect
     timeline.fromTo(dialog, { '--veil-opacity': 0 }, { '--veil-opacity': 0.9, duration: reduced ? 0 : 0.45 }, 0)
       .fromTo(imageRef.current, sourceTransform, { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0, duration: reduced ? 0 : 0.68, ease: 'power3.inOut' }, 0)
       .fromTo(descriptionRef.current, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: reduced ? 0 : 0.4 }, reduced ? 0 : 0.28);
-    return () => { timeline.kill(); gsap.killTweensOf([dialog, image, description]); element.style.visibility = ''; dialog.close(); if (element.isConnected) element.focus({ preventScroll: true }); };
+    return () => {
+      timeline.kill();
+      gsap.killTweensOf([dialog, image, description]);
+      element.style.visibility = '';
+      dialog.close();
+      if (element.isConnected) {
+        if (shouldRestoreFocus) element.focus({ preventScroll: true });
+        else element.blur();
+      }
+    };
   }, [element, getSourceTransform, rect]);
   const close = () => {
     if (closing.current) return;
