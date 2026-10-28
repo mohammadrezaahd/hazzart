@@ -4199,3 +4199,11 @@ body:has(.admin-shell) > .site-header {
     outline: none;
   }
 }
+
+/* Touch alternate-image toggle: update only the two image layers, not React/slider state. */
+.artwork-slider__image-toggle.is-alternate .artwork-slider__primary-image {
+  opacity: 0;
+}
+.artwork-slider__image-toggle.is-alternate .artwork-slider__hover-image {
+  opacity: 1;
+}
