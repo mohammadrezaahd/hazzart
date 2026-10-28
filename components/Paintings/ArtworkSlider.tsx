@@ -67,6 +67,7 @@ export function ArtworkSlider({ items, ariaLabel = 'Paintings', infinite = true 
       getSlideA11yLabel={artwork => `${artwork.title}, ${artwork.year}`}
       renderSlide={(artwork, index) => {
         const showAlternate = alternateArtworkId === artwork.id;
+        const toggleAlternate = () => setAlternateArtworkId(current => current === artwork.id ? null : artwork.id);
         return (
           <span
             className="artwork-slider__image"
@@ -74,13 +75,13 @@ export function ArtworkSlider({ items, ariaLabel = 'Paintings', infinite = true 
             tabIndex={0}
             aria-label={`Show alternate image for ${artwork.title}`}
             aria-pressed={showAlternate}
-            onMouseEnter={() => setAlternateArtworkId(artwork.id)}
-            onMouseLeave={() => setAlternateArtworkId(current => current === artwork.id ? null : current)}
-            onClick={() => setAlternateArtworkId(current => current === artwork.id ? null : artwork.id)}
+            onClick={() => {
+              if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) toggleAlternate();
+            }}
             onKeyDown={event => {
               if (event.key === 'Enter' || event.key === ' ') {
                 event.preventDefault();
-                setAlternateArtworkId(current => current === artwork.id ? null : artwork.id);
+                toggleAlternate();
               }
             }}
             style={{
