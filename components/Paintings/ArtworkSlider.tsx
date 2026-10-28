@@ -13,7 +13,6 @@ interface ArtworkSliderProps {
 
 export function ArtworkSlider({ items, ariaLabel = 'Paintings', infinite = true }: ArtworkSliderProps) {
   const [ratios, setRatios] = useState<Record<string, number>>({});
-  const [alternateArtworkId, setAlternateArtworkId] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -66,20 +65,27 @@ export function ArtworkSlider({ items, ariaLabel = 'Paintings', infinite = true 
       getSlideAspectRatio={getRatio}
       getSlideA11yLabel={artwork => `${artwork.title}, ${artwork.year}`}
       renderSlide={(artwork, index) => {
-        const showAlternate = alternateArtworkId === artwork.id;
-        const toggleAlternate = () => setAlternateArtworkId(current => current === artwork.id ? null : artwork.id);
+        const toggleAlternate = (element: HTMLSpanElement) => {
+          const isAlternate = element.classList.toggle('is-alternate');
+          element.setAttribute('aria-pressed', String(isAlternate));
+        };
         return (
           <span
-            className="artwork-slider__image"
+            className="artwork-slider__image artwork-slider__image-toggle"
             role="button"
             tabIndex={0}
-            aria-label={`Show alternate image for ${artwork.title}`}
-            aria-pressed={showAlternate}
-            onClick={toggleAlternate}
+            aria-label={`Toggle alternate image for ${artwork.title}`}
+            aria-pressed="false"
+            onClick={event => {
+              event.preventDefault();
+              event.stopPropagation();
+              toggleAlternate(event.currentTarget);
+            }}
             onKeyDown={event => {
               if (event.key === 'Enter' || event.key === ' ') {
                 event.preventDefault();
-                toggleAlternate();
+                event.stopPropagation();
+                toggleAlternate(event.currentTarget);
               }
             }}
             style={{
@@ -95,7 +101,6 @@ export function ArtworkSlider({ items, ariaLabel = 'Paintings', infinite = true 
               sizes="(max-width: 767px) 78vw, 46vw"
               priority={index < 4}
               draggable={false}
-              style={showAlternate ? { opacity: 0 } : undefined}
             />
             <Image
               className={`artwork-slider__hover-image ${Math.abs(artwork.hoverImage.rotate ?? 0) % 180 === 90 ? 'artwork-slider__image--rotated' : ''}`}
@@ -106,7 +111,6 @@ export function ArtworkSlider({ items, ariaLabel = 'Paintings', infinite = true 
               priority={index < 4}
               draggable={false}
               aria-hidden
-              style={showAlternate ? { opacity: 1 } : undefined}
             />
           </span>
         );
