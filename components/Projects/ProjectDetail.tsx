@@ -29,7 +29,7 @@ export function ProjectDetail({ project }: ProjectDetailProps) {
 
         <br /><br />
 
-        {project.description && <p className="projects-detail__description">{project.description}</p>}
+        {project.description && <p className="projects-detail__description" style={{ whiteSpace: "pre-line" }}>{project.description}</p>}
 
         {project.links.length > 0 && (
           <>
