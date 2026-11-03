@@ -182,7 +182,7 @@ export async function getProjects(filters: { search?: string; status?: AdminProj
     const migrated = migrateLegacyStatuses(project);
     const legacyDescription = Object.entries(project.dynamicFields ?? {})
       .map(([key, value]) => `${key}: ${value}`)
-      .join("\\n");
+      .join("\n");
     const { dynamicFields: _legacyFields, medium: _legacyMedium, ...currentProject } = project;
     return {
       ...currentProject,
