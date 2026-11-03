@@ -21,7 +21,7 @@ export interface AdminProject {
   myRole: string;
   started: string;
   ended: string | null;
-  medium: string[];
+  description: string;
   /** Website publication status shared with paintings. */
   status: AdminProjectStatus;
   /** Internal workflow status for this project. */
@@ -29,7 +29,6 @@ export interface AdminProject {
   projectStatusName?: string;
   images: AdminProjectImage[];
   links: AdminProjectLink[];
-  dynamicFields: Record<string, string>;
   createdAt: string;
   updatedAt: string;
 }
