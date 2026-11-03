@@ -83,7 +83,7 @@ function toProjects(
       label: link.title,
       href: link.link,
     })),
-    description: [project.description, `Started: ${project.started}`, ...(project.ended ? [`Ended: ${project.ended}`] : [])].filter(Boolean).join("\\n"),
+    description: [project.description, `Started: ${project.started}`, ...(project.ended ? [`Ended: ${project.ended}`] : [])].filter(Boolean).join("\n"),
   }));
 }
 
