@@ -13,7 +13,6 @@ function formatProjectStatus(value: string) {
 }
 
 export function ProjectDetail({ project }: ProjectDetailProps) {
-  const metadata = Object.entries(project.dynamicFields);
 
   return (
     <section className="projects-detail" aria-labelledby="project-title">
@@ -30,12 +29,7 @@ export function ProjectDetail({ project }: ProjectDetailProps) {
 
         <br /><br />
 
-        {metadata.map(([key, value]) => (
-          <span key={key}>
-            {key}: {value}
-            <br />
-          </span>
-        ))}
+        {project.description && <p className="projects-detail__description">{project.description}</p>}
 
         {project.links.length > 0 && (
           <>
