@@ -19,13 +19,12 @@ interface ProjectInput {
   myRole: string;
   started: string;
   ended: string;
-  medium: string[];
+  description: string;
   status: "draft" | "published" | "archived";
   projectStatusId: string;
   images: File[];
   removeImageIds?: string[];
   links: { id: string; title: string; link: string }[];
-  dynamicFields: Record<string, string>;
 }
 
 function buildFormData(input: ProjectInput) {
