@@ -50,7 +50,6 @@ export interface ProjectLink {
   label: string;
   href: string;
 }
-export type ProjectDynamicFields = Record<string, string>;
 export interface Project {
   id: string;
   name: string;
@@ -66,7 +65,7 @@ export interface Project {
   /** Every image of the project, in the order the strip shows them. */
   images: ProjectMedia[];
   links: ProjectLink[];
-  dynamicFields: ProjectDynamicFields;
+  description: string;
 }
 export interface NavigationItem {
   id: string;
