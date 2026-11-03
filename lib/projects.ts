@@ -7,7 +7,7 @@ import type { AdminProject, AdminProjectImage, AdminProjectStatus } from "@/inte
 const COLLECTION = "admin_projects";
 const MAX_IMAGE_SIZE = 4 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
-type ProjectDocument = AdminProject & { statusId?: string };
+type ProjectDocument = Omit<AdminProject, "description"> & { statusId?: string; description?: string; medium?: string[]; dynamicFields?: Record<string, string> };
 
 function validateStatus(value: unknown): AdminProjectStatus {
   if (value !== "draft" && value !== "published" && value !== "archived") {
@@ -90,18 +90,6 @@ function normalizeLinks(value: unknown) {
   });
 }
 
-function normalizeFields(value: unknown) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    throw new Error("Dynamic fields are invalid.");
-  }
-  const result: Record<string, string> = {};
-  for (const [key, val] of Object.entries(value)) {
-    const k = key.trim();
-    if (k) result[k] = text(val, "Value for " + k);
-  }
-  return result;
-}
-
 function getSafeFileName(fileName: string) {
   const name = fileName.trim().replace(/[^a-zA-Z0-9._-]/g, "-");
   return name || "project-image";
@@ -150,11 +138,6 @@ async function normalize(
     legacy?.projectStatusId ?? "done",
   );
 
-  const medium = Array.isArray(body.medium)
-    ? body.medium.filter((x): x is string => typeof x === "string" && !!x.trim()).map((x) => x.trim())
-    : [];
-
-  if (!medium.length) throw new Error("At least one medium category is required.");
 
   const projectImages = images ?? current?.images ?? [];
   if (!projectImages.length) throw new Error("At least one project image is required.");
@@ -167,12 +150,11 @@ async function normalize(
     myRole,
     started,
     ended,
-    medium,
+    description: text(body.description, "Description"),
     status,
     projectStatusId,
     images: projectImages,
     links: normalizeLinks(body.links),
-    dynamicFields: normalizeFields(body.dynamicFields ?? {}),
     createdAt: current?.createdAt ?? now,
     updatedAt: now,
   };
@@ -198,8 +180,13 @@ export async function getProjects(filters: { search?: string; status?: AdminProj
 
   return documents.map((project) => {
     const migrated = migrateLegacyStatuses(project);
+    const legacyDescription = Object.entries(project.dynamicFields ?? {})
+      .map(([key, value]) => `${key}: ${value}`)
+      .join("\\n");
+    const { dynamicFields: _legacyFields, medium: _legacyMedium, ...currentProject } = project;
     return {
-      ...project,
+      ...currentProject,
+      description: project.description ?? legacyDescription,
       status: migrated.status,
       projectStatusId: migrated.projectStatusId,
       projectStatusName: statusNames.get(migrated.projectStatusId) ?? migrated.projectStatusId,
