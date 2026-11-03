@@ -63,7 +63,7 @@ function toProjects(
     id: project.id,
     name: project.title,
     tagline: "",
-    description: "",
+    description: project.description ?? "",
     year: Number(project.started.slice(0, 4)) || 0,
     discipline: "",
     client: "",
@@ -83,11 +83,7 @@ function toProjects(
       label: link.title,
       href: link.link,
     })),
-    dynamicFields: {
-      ...project.dynamicFields,
-      Started: project.started,
-      ...(project.ended ? { Ended: project.ended } : {}),
-    },
+    description: [project.description, `Started: ${project.started}`, ...(project.ended ? [`Ended: ${project.ended}`] : [])].filter(Boolean).join("\\n"),
   }));
 }
 
